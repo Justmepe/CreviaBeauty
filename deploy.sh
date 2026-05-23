@@ -16,12 +16,13 @@
 set -euo pipefail
 
 # ============ CONFIGURATION ============
-APP_NAME="creviabeauty"            # PM2 process + nginx site name
+APP_NAME="creviabeauty"               # PM2 process + nginx site name
 APP_DIR="/var/www/${APP_NAME}"
-APP_PORT="${APP_PORT:-3001}"       # change if 3001 is taken on the VPS
-DB_NAME="crevia_and_co"            # must match .env
-DB_USER="crevia_user"
+APP_PORT="${APP_PORT:-3001}"          # change if 3001 is taken on the VPS
+DB_NAME="creviabeauty"                # dedicated DB for this app
+DB_USER="creviabeauty_user"           # dedicated user — does NOT collide with other apps
 DOMAIN="${DOMAIN:-creviabeauty.com}"
+SKIP_NGINX="${SKIP_NGINX:-0}"         # set to 1 if nginx is managed elsewhere (e.g. CloudPanel)
 
 cd "${APP_DIR}"
 
@@ -85,6 +86,9 @@ npm ci --omit=dev || npm install --production
 mkdir -p uploads && chmod 755 uploads
 
 echo "[5/6] Installing nginx site (additive — does not touch other sites)"
+if [[ "${SKIP_NGINX}" == "1" ]]; then
+  echo "  SKIP_NGINX=1 — leaving nginx alone (e.g. CloudPanel will route to 127.0.0.1:${APP_PORT})."
+else
 NGINX_SITE="/etc/nginx/sites-available/${APP_NAME}"
 if [[ ! -f "${NGINX_SITE}" ]]; then
   cat > "${NGINX_SITE}" <<NGINX
@@ -110,6 +114,7 @@ NGINX
   nginx -t && systemctl reload nginx
 else
   echo "  nginx site '${APP_NAME}' already exists — leaving untouched."
+fi
 fi
 
 echo "[6/6] Starting / reloading PM2 process '${APP_NAME}'"
