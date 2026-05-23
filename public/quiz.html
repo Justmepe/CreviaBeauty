@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Your Perfect Scent | CreviaBeauty Kenya</title>
+<link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+<meta name="description" content="Take our 5-question scent-finder quiz. Discover whether your signature is fresh, woody, floral, or oriental — and shop matching fragrances.">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+    .quiz-hero { background: linear-gradient(135deg, #ec4899, #8b5cf6); color:#fff; padding:3rem 1.5rem; text-align:center; }
+    .quiz-hero h1 { margin:0 0 0.5rem 0; font-size:2.2rem; }
+    .quiz-wrap { max-width:680px; margin:2.5rem auto; padding:0 1.5rem; }
+    .quiz-card { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); padding:1.75rem; min-height:380px; display:flex; flex-direction:column; }
+    .quiz-progress { background:#f3e8ff; height:6px; border-radius:999px; overflow:hidden; margin-bottom:1.25rem; }
+    .quiz-progress > div { background:#7c3aed; height:100%; transition:width 0.3s; width:0%; }
+    .quiz-q { font-size:1.25rem; font-weight:600; margin:0 0 1.25rem 0; color:#1f2937; }
+    .quiz-answers { display:grid; gap:0.6rem; }
+    .quiz-answer { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:0.85rem 1rem; cursor:pointer; font-size:0.95rem; color:#333; text-align:left; transition:all 0.15s; }
+    .quiz-answer:hover { border-color:#7c3aed; background:#faf5ff; transform:translateX(3px); }
+    .quiz-result { text-align:center; padding:1rem 0; }
+    .quiz-result-family { font-size:2rem; font-weight:700; color:#7c3aed; margin:0.5rem 0; }
+    .quiz-result-desc { color:#555; line-height:1.55; margin-bottom:1.25rem; }
+    .quiz-cta { display:inline-block; padding:0.9rem 1.6rem; background:#7c3aed; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; }
+    .quiz-cta:hover { background:#6d28d9; }
+    .quiz-restart { background:none; border:none; color:#7c3aed; cursor:pointer; margin-top:1rem; font-size:0.85rem; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-content">
+        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/products">Products</a></li>
+            <li><a href="/bundles">Bundles</a></li>
+            <li><a href="/quiz" class="active">Find your scent</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="quiz-hero">
+    <h1>Find Your Perfect Scent</h1>
+    <p>5 quick questions. We'll match you to a fragrance family.</p>
+</section>
+
+<div class="quiz-wrap">
+    <div class="quiz-card" id="quiz-card">
+        <div class="quiz-progress"><div id="quiz-progress-bar"></div></div>
+        <div id="quiz-step"></div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-section"><h3>CreviaBeauty Kenya</h3><p>Find your signature scent.</p></div>
+        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products?category=Perfumes">Perfumes</a></li><li><a href="/bundles">Bundles</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p></div>
+</footer>
+
+<script>
+// Scent-family quiz. Each answer awards points to one of 4 families.
+const FAMILIES = {
+    fresh:     { name: 'Fresh / Aromatic',  desc: 'Light, clean, energising. Citrus, bergamot, herbs and sea breeze. Best for hot Nairobi days and the office.', filter: 'Fresh / Aromatic' },
+    floral:    { name: 'Floral Aldehyde',   desc: 'Romantic, classic, feminine. Layered florals — rose, jasmine, ylang-ylang. Timeless evening wear.',            filter: 'Floral Aldehyde' },
+    woody:     { name: 'Fresh / Woody',     desc: 'Grounded, modern, unisex. Cedar, sandalwood, vetiver with a clean top. Effortless everyday signature.',         filter: 'Fresh / Woody' },
+    oriental:  { name: 'Oriental / Woody',  desc: 'Warm, sensual, magnetic. Amber, vanilla, spices and dark florals. The "going-out" scent that people remember.', filter: 'Oriental / Woody' }
+};
+
+const QUESTIONS = [
+    {
+        q: 'How would you describe the vibe you want to give off?',
+        answers: [
+            { t: 'Clean and approachable',         f: 'fresh' },
+            { t: 'Romantic and classic',            f: 'floral' },
+            { t: 'Modern and effortless',           f: 'woody' },
+            { t: 'Bold and unforgettable',          f: 'oriental' }
+        ]
+    },
+    {
+        q: 'When do you wear perfume most?',
+        answers: [
+            { t: 'Daytime — work, errands, walking around CBD', f: 'fresh' },
+            { t: 'Special occasions — weddings, dinners',        f: 'floral' },
+            { t: 'Every day, on repeat',                          f: 'woody' },
+            { t: 'Date night and going out',                      f: 'oriental' }
+        ]
+    },
+    {
+        q: 'Which smells do you reach for at home?',
+        answers: [
+            { t: 'Citrus peels, fresh laundry, sea air',          f: 'fresh' },
+            { t: 'Fresh-cut flowers, talcum powder',              f: 'floral' },
+            { t: 'Tea, cedar, leather, freshly cut grass',        f: 'woody' },
+            { t: 'Vanilla, incense, warm spices, sweet treats',   f: 'oriental' }
+        ]
+    },
+    {
+        q: 'Pick a city for your dream trip:',
+        answers: [
+            { t: 'Diani Beach',                                    f: 'fresh' },
+            { t: 'Paris',                                          f: 'floral' },
+            { t: 'Tokyo',                                          f: 'woody' },
+            { t: 'Marrakesh',                                      f: 'oriental' }
+        ]
+    },
+    {
+        q: 'How long do you want your scent to last?',
+        answers: [
+            { t: 'Light — fades by lunch is fine',                 f: 'fresh' },
+            { t: 'All-day soft cloud',                             f: 'floral' },
+            { t: 'Subtle but lasts till evening',                  f: 'woody' },
+            { t: 'Trail of scent everywhere I go',                 f: 'oriental' }
+        ]
+    }
+];
+
+let step = 0;
+const score = { fresh:0, floral:0, woody:0, oriental:0 };
+
+function render() {
+    const card = document.getElementById('quiz-step');
+    const bar = document.getElementById('quiz-progress-bar');
+    if (step < QUESTIONS.length) {
+        bar.style.width = ((step / QUESTIONS.length) * 100) + '%';
+        const q = QUESTIONS[step];
+        card.innerHTML = `
+            <div class="quiz-q">Q${step + 1} of ${QUESTIONS.length}. ${q.q}</div>
+            <div class="quiz-answers">
+                ${q.answers.map((a, i) => `<button class="quiz-answer" onclick="answer('${a.f}')">${a.t}</button>`).join('')}
+            </div>
+        `;
+    } else {
+        bar.style.width = '100%';
+        // Find winning family
+        const winner = Object.entries(score).sort((a,b) => b[1] - a[1])[0][0];
+        const fam = FAMILIES[winner];
+        card.innerHTML = `
+            <div class="quiz-result">
+                <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Your scent family</div>
+                <div class="quiz-result-family">${fam.name}</div>
+                <p class="quiz-result-desc">${fam.desc}</p>
+                <a class="quiz-cta" href="/products?scent_family=${encodeURIComponent(fam.filter)}">See matching fragrances →</a>
+                <div><button class="quiz-restart" onclick="restart()">Retake quiz</button></div>
+            </div>
+        `;
+    }
+}
+function answer(family) {
+    score[family]++;
+    step++;
+    render();
+}
+function restart() {
+    step = 0;
+    Object.keys(score).forEach(k => score[k] = 0);
+    render();
+}
+render();
+</script>
+</body>
+</html>

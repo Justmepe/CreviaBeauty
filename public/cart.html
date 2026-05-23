@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - CreviaBeauty Kenya</title>
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254745853914">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">Free Delivery in Nairobi | Countrywide Shipping Available</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto;">
+                <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Furnitures</span></div>
+            </a>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form class="search-bar" id="search-form" action="/products" method="GET">
+                    <input type="text" name="search" placeholder="Search for furniture..." id="search-input">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/">Home</a></li>
+                <li class="nav-dropdown">
+                    <a href="/products">Categories</a>
+                    <div class="dropdown-menu">
+                        <a href="/products?category=Office Furniture">Office Furniture</a>
+                        <a href="/products?category=Living Room">Living Room</a>
+                        <a href="/products?category=Dining">Dining Sets</a>
+                        <a href="/products?category=Bedroom">Bedroom</a>
+                        <a href="/products?category=Outdoor">Outdoor Furniture</a>
+                        <a href="/products?category=Recliner">Recliner Seats</a>
+                    </div>
+                </li>
+                <li><a href="/products">Shop All</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li id="nav-auth-link"><a href="/login">Sign In</a></li>
+                <li class="cart-icon">
+                    <a href="/cart">
+                        <span id="cart-count" class="cart-count">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Cart Section -->
+    <section class="cart-section">
+        <div class="cart-header">
+            <h2>Shopping Cart</h2>
+        </div>
+        <div id="cart-content">
+            <div class="spinner"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for quality office and home furniture in Kenya.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/become-marketer">Become a Marketer</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li>+254 745 853 914</li>
+                    <li>info@creviabeauty.com</li>
+                    <li>Mombasa Road, Nairobi</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Live Chat Widget -->
+    <div class="live-chat-widget">
+        <div class="chat-box" id="chat-box">
+            <div class="chat-header">
+                <div>
+                    <h4>Crevia Support</h4>
+                    <div class="chat-status">Online</div>
+                </div>
+                <button class="chat-close" onclick="toggleChat()">&times;</button>
+            </div>
+            <div class="chat-body">
+                <div class="chat-message">
+                    <p>Need help with your order? We're here to assist!</p>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" placeholder="Type your message..." id="chat-input">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+        <button class="chat-toggle" onclick="toggleChat()">💬</button>
+    </div>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/254745853914" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+        <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
+    </a>
+
+    <script src="/js/main.js"></script>
+    <script>
+        async function loadCart() {
+            const container = document.getElementById('cart-content');
+
+            try {
+                const response = await fetch('/api/cart');
+                const data = await response.json();
+
+                if (data.items.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-cart">
+                            <h3>Your cart is empty</h3>
+                            <p>Start shopping to add items to your cart</p>
+                            <a href="/products" class="btn">Browse Products</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="cart-items">
+                        ${data.items.map(item => `
+                            <div class="cart-item" data-id="${item.id}">
+                                <div class="cart-item-image">
+                                    <img src="${item.image_url}" alt="${item.name}"
+                                         onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\\'font-size:3rem\\'>🪑</span>'">
+                                </div>
+                                <div class="cart-item-details">
+                                    <div class="cart-item-name">${item.name}</div>
+                                    <div class="cart-item-price">KSh ${item.price.toLocaleString()} each</div>
+                                </div>
+                                <div class="cart-item-actions">
+                                    <div class="quantity-control">
+                                        <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})">−</button>
+                                        <span style="min-width: 40px; text-align: center; font-weight: 600;">${item.quantity}</span>
+                                        <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                    </div>
+                                    <button class="remove-btn" onclick="removeItem(${item.id})">Remove</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="cart-summary">
+                        <div class="cart-total">
+                            <span>Total Amount</span>
+                            <span>KSh ${data.total.toLocaleString()}</span>
+                        </div>
+                        <button class="btn" style="width: 100%;" onclick="checkout()">Proceed to Checkout</button>
+                        <a href="/products" class="btn btn-outline" style="width: 100%; margin-top: 1rem; display: block; text-align: center;">Continue Shopping</a>
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; padding: 3rem;">Failed to load cart. Please try again.</p>';
+            }
+        }
+
+        async function updateQuantity(cartId, quantity) {
+            try {
+                await fetch(`/api/cart/${cartId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantity })
+                });
+                loadCart();
+                updateCartCount();
+            } catch (error) {
+                showAlert('Failed to update quantity', 'error');
+            }
+        }
+
+        async function removeItem(cartId) {
+            try {
+                await fetch(`/api/cart/${cartId}`, {
+                    method: 'DELETE'
+                });
+                loadCart();
+                updateCartCount();
+                showAlert('Item removed from cart', 'success');
+            } catch (error) {
+                showAlert('Failed to remove item', 'error');
+            }
+        }
+
+        let cartTotal = 0;
+        let userPointsBalance = 0;
+        let pointsToKesRate = 10;
+        let pointsDiscount = 0;
+
+        async function checkout() {
+            // Check if user is logged in
+            const userResponse = await fetch('/api/user');
+            const userData = await userResponse.json();
+
+            if (!userData.loggedIn) {
+                showAlert('Please login to checkout', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+                return;
+            }
+
+            // Get cart total
+            const cartResponse = await fetch('/api/cart');
+            const cartData = await cartResponse.json();
+            cartTotal = cartData.total || 0;
+
+            // Get user's points balance
+            userPointsBalance = userData.user.pointsBalance || 0;
+            try {
+                const balanceResponse = await fetch('/api/rewards/balance');
+                const balanceData = await balanceResponse.json();
+                userPointsBalance = balanceData.pointsBalance || 0;
+                pointsToKesRate = balanceData.pointsToKesRate || 10;
+            } catch (e) {}
+
+            const maxPointsToRedeem = Math.min(userPointsBalance, cartTotal * pointsToKesRate);
+
+            // Show checkout modal
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 1rem;';
+            modal.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 500px; width: 100%; margin: auto; max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem;">Checkout</h3>
+                        <button onclick="this.closest('div').parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+                    <form id="checkout-form">
+                        <div class="form-group">
+                            <label for="shipping-address">Shipping Address</label>
+                            <textarea id="shipping-address" required placeholder="Enter your full delivery address" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="checkout-phone">Phone Number</label>
+                            <input type="tel" id="checkout-phone" required placeholder="+254 7XX XXX XXX">
+                        </div>
+
+                        <!-- Marketer Code Section -->
+                        <div class="form-group" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <label for="marketer-code" style="margin-bottom: 0.5rem; display: block;">Have a Marketer Code?</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" id="marketer-code" placeholder="Enter code" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <button type="button" onclick="validateMarketerCode()" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+                            </div>
+                            <small id="marketer-message" style="display: none; margin-top: 0.5rem;"></small>
+                        </div>
+
+                        <!-- Points Redemption Section -->
+                        ${userPointsBalance >= 1000 ? `
+                        <div class="form-group" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <span style="font-weight: 600;">Use Reward Points</span>
+                                <span style="color: #d4a574; font-weight: 600;">${userPointsBalance.toLocaleString()} pts available</span>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="range" id="points-slider" min="0" max="${maxPointsToRedeem}" value="0" step="100" style="flex: 1;">
+                                <span id="points-value" style="font-weight: 600; min-width: 60px;">0 pts</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
+                                <span>Discount: <strong id="points-discount" style="color: #27ae60;">KSh 0</strong></span>
+                                <span>New Total: <strong id="new-total">KSh ${cartTotal.toLocaleString()}</strong></span>
+                            </div>
+                        </div>
+                        ` : userPointsBalance > 0 ? `
+                        <div style="background: #f8f9fa; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; color: #666;">
+                            You have ${userPointsBalance.toLocaleString()} points. Minimum 1,000 points required to redeem.
+                        </div>
+                        ` : ''}
+
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment-method" value="cod" checked style="width: 18px; height: 18px;">
+                                    <div>
+                                        <strong style="color: #1a1a2e;">Pay on Delivery</strong>
+                                        <div style="font-size: 0.85rem; color: #666;">Pay when you receive your order</div>
+                                    </div>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment-method" value="mpesa" style="width: 18px; height: 18px;">
+                                    <div>
+                                        <strong style="color: #1a1a2e;">M-Pesa</strong>
+                                        <div style="font-size: 0.85rem; color: #666;">Pay via M-Pesa mobile money</div>
+                                    </div>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                    <input type="radio" name="payment-method" value="bank" style="width: 18px; height: 18px;">
+                                    <div>
+                                        <strong style="color: #1a1a2e;">Bank Transfer</strong>
+                                        <div style="font-size: 0.85rem; color: #666;">Pay via bank transfer</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="auth-btn">Place Order</button>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Setup points slider
+            const slider = document.getElementById('points-slider');
+            if (slider) {
+                slider.addEventListener('input', updatePointsDisplay);
+            }
+
+            // Highlight selected payment method
+            modal.querySelectorAll('input[name="payment-method"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    modal.querySelectorAll('input[name="payment-method"]').forEach(r => {
+                        r.closest('label').style.borderColor = r.checked ? '#d4a574' : '#e0e0e0';
+                        r.closest('label').style.background = r.checked ? '#faf8f5' : 'white';
+                    });
+                });
+                // Set initial state
+                if (radio.checked) {
+                    radio.closest('label').style.borderColor = '#d4a574';
+                    radio.closest('label').style.background = '#faf8f5';
+                }
+            });
+
+            document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const shippingAddress = document.getElementById('shipping-address').value;
+                const phone = document.getElementById('checkout-phone').value;
+                const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+                const marketerCode = document.getElementById('marketer-code')?.value?.trim() || null;
+                const redeemPoints = parseInt(document.getElementById('points-slider')?.value) || 0;
+
+                try {
+                    const response = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            shippingAddress,
+                            phone,
+                            paymentMethod,
+                            marketerCode: marketerCode || undefined,
+                            redeemPoints: redeemPoints > 0 ? redeemPoints : undefined
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        modal.remove();
+                        showPaymentConfirmation(data);
+                        loadCart();
+                        updateCartCount();
+                    } else {
+                        showAlert(data.error?.message || data.error || 'Failed to place order', 'error');
+                    }
+                } catch (error) {
+                    showAlert('Failed to place order', 'error');
+                }
+            });
+        }
+
+        function updatePointsDisplay() {
+            const slider = document.getElementById('points-slider');
+            const points = parseInt(slider.value) || 0;
+            const discount = points / pointsToKesRate;
+            const newTotal = cartTotal - discount;
+
+            document.getElementById('points-value').textContent = `${points.toLocaleString()} pts`;
+            document.getElementById('points-discount').textContent = `KSh ${discount.toLocaleString()}`;
+            document.getElementById('new-total').textContent = `KSh ${Math.max(0, newTotal).toLocaleString()}`;
+            pointsDiscount = discount;
+        }
+
+        async function validateMarketerCode() {
+            const code = document.getElementById('marketer-code').value.trim();
+            const msgEl = document.getElementById('marketer-message');
+
+            if (!code) {
+                msgEl.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/marketer/validate-code/${encodeURIComponent(code)}`);
+                const data = await response.json();
+
+                if (data.valid) {
+                    msgEl.textContent = `Code applied! Supporting ${data.marketerName}`;
+                    msgEl.style.color = '#27ae60';
+                } else {
+                    msgEl.textContent = data.message || 'Invalid code';
+                    msgEl.style.color = '#e94560';
+                }
+                msgEl.style.display = 'block';
+            } catch (error) {
+                msgEl.textContent = 'Failed to validate code';
+                msgEl.style.color = '#e94560';
+                msgEl.style.display = 'block';
+            }
+        }
+
+        // Show payment confirmation with details
+        async function showPaymentConfirmation(orderData) {
+            // Fetch payment settings from API
+            let settings = {};
+            try {
+                const response = await fetch('/api/orders/payment-settings');
+                settings = await response.json();
+            } catch (e) {
+                console.error('Failed to load payment settings:', e);
+            }
+
+            // Build M-Pesa instructions based on type
+            function getMpesaInstructions() {
+                const type = settings.mpesa_type || 'send_money';
+                const amount = `KSh ${Number(orderData.total).toLocaleString()}`;
+
+                if (type === 'send_money') {
+                    const phone = settings.mpesa_phone || '0712345678';
+                    return `
+                        <p><strong>Send To:</strong> ${phone}</p>
+                        <p><strong>Amount:</strong> ${amount}</p>
+                        <p><strong>Reference:</strong> ${orderData.paymentReference}</p>
+                        <hr style="margin: 1rem 0;">
+                        <p style="font-size: 0.9rem; color: #666;">
+                            1. Go to M-Pesa menu<br>
+                            2. Select Send Money<br>
+                            3. Enter Phone Number: <strong>${phone}</strong><br>
+                            4. Enter Amount: <strong>${amount}</strong><br>
+                            5. Enter PIN and confirm<br>
+                            6. Send SMS confirmation to us with reference: <strong>${orderData.paymentReference}</strong>
+                        </p>
+                    `;
+                } else if (type === 'paybill') {
+                    const paybill = settings.mpesa_paybill_number || '123456';
+                    return `
+                        <p><strong>Paybill Number:</strong> ${paybill}</p>
+                        <p><strong>Account Number:</strong> ${orderData.paymentReference}</p>
+                        <p><strong>Amount:</strong> ${amount}</p>
+                        <hr style="margin: 1rem 0;">
+                        <p style="font-size: 0.9rem; color: #666;">
+                            1. Go to M-Pesa menu<br>
+                            2. Select Lipa na M-Pesa<br>
+                            3. Select Paybill<br>
+                            4. Enter Business Number: <strong>${paybill}</strong><br>
+                            5. Enter Account: <strong>${orderData.paymentReference}</strong><br>
+                            6. Enter Amount: <strong>${amount}</strong><br>
+                            7. Enter PIN and confirm
+                        </p>
+                    `;
+                } else { // till
+                    const till = settings.mpesa_till_number || '789012';
+                    return `
+                        <p><strong>Till Number:</strong> ${till}</p>
+                        <p><strong>Amount:</strong> ${amount}</p>
+                        <p><strong>Reference:</strong> ${orderData.paymentReference}</p>
+                        <hr style="margin: 1rem 0;">
+                        <p style="font-size: 0.9rem; color: #666;">
+                            1. Go to M-Pesa menu<br>
+                            2. Select Lipa na M-Pesa<br>
+                            3. Select Buy Goods and Services<br>
+                            4. Enter Till Number: <strong>${till}</strong><br>
+                            5. Enter Amount: <strong>${amount}</strong><br>
+                            6. Enter PIN and confirm<br>
+                            7. Send SMS confirmation to us with reference: <strong>${orderData.paymentReference}</strong>
+                        </p>
+                    `;
+                }
+            }
+
+            const paymentDetails = {
+                mpesa: {
+                    title: 'M-Pesa Payment',
+                    instructions: getMpesaInstructions()
+                },
+                bank: {
+                    title: 'Bank Transfer',
+                    instructions: `
+                        <p><strong>Bank:</strong> ${settings.bank_name || 'Equity Bank'}</p>
+                        <p><strong>Account Name:</strong> ${settings.bank_account_name || 'CreviaBeauty Ltd'}</p>
+                        <p><strong>Account Number:</strong> ${settings.bank_account_number || '1234567890'}</p>
+                        <p><strong>Branch:</strong> ${settings.bank_branch || 'Nairobi Branch'}</p>
+                        <p><strong>Reference:</strong> ${orderData.paymentReference}</p>
+                        <p><strong>Amount:</strong> KSh ${Number(orderData.total).toLocaleString()}</p>
+                        <hr style="margin: 1rem 0;">
+                        <p style="font-size: 0.9rem; color: #666;">
+                            Please use <strong>${orderData.paymentReference}</strong> as payment reference to help us identify your payment.
+                        </p>
+                    `
+                },
+                cod: {
+                    title: 'Pay on Delivery',
+                    instructions: `
+                        <p>Your order <strong>#${orderData.orderId}</strong> has been confirmed!</p>
+                        <p><strong>Amount to Pay:</strong> KSh ${Number(orderData.total).toLocaleString()}</p>
+                        <p><strong>Reference:</strong> ${orderData.paymentReference}</p>
+                        <hr style="margin: 1rem 0;">
+                        <p style="font-size: 0.9rem; color: #666;">
+                            Please have <strong>KSh ${Number(orderData.total).toLocaleString()}</strong> ready when your order arrives.<br><br>
+                            You can pay via:<br>
+                            • Cash<br>
+                            • M-Pesa (to delivery person)
+                        </p>
+                    `
+                }
+            };
+
+            const details = paymentDetails[orderData.paymentMethod];
+
+            const confirmModal = document.createElement('div');
+            confirmModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 1rem;';
+            confirmModal.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 500px; width: 100%; margin: auto;">
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">✓</div>
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #27ae60;">Order Placed Successfully!</h3>
+                        <p style="color: #666;">Order #${orderData.orderId}</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem; color: #1a1a2e;">${details.title}</h4>
+                        ${details.instructions}
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="/my-orders" class="btn" style="flex: 1; text-align: center;">View My Orders</a>
+                        <button onclick="this.closest('div').parentElement.remove()" class="btn btn-outline" style="flex: 1;">Continue Shopping</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+        }
+
+        // Live Chat Toggle
+        function toggleChat() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.classList.toggle('active');
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (message) {
+                window.open(`https://wa.me/254745853914?text=${encodeURIComponent(message)}`, '_blank');
+                input.value = '';
+            }
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        loadCart();
+    </script>
+</body>
+</html>

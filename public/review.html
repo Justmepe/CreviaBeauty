@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write a Review - CreviaBeauty Kenya</title>
+    <meta name="description" content="Share your experience with CreviaBeauty. Rate our products and delivery service.">
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254745853914">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">Free Delivery in Nairobi | Countrywide Shipping Available</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto;">
+                <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Furnitures</span></div>
+            </a>
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/cart">Cart <span id="cart-count" class="cart-count">0</span></a></li>
+            </ul>
+            <div class="auth-links" id="auth-links">
+                <a href="/login" class="btn btn-outline">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Share Your Experience</h1>
+        <p>We value your feedback! Help other customers by sharing your experience.</p>
+    </div>
+
+    <section class="review-form-section">
+        <div class="container">
+            <div class="review-form-container">
+                <form id="review-form" class="review-form">
+                    <div class="form-group">
+                        <label for="customer-name">Your Name *</label>
+                        <input type="text" id="customer-name" required placeholder="Enter your name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customer-email">Email (optional)</label>
+                        <input type="email" id="customer-email" placeholder="Enter your email">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Overall Rating *</label>
+                        <div class="star-rating" id="overall-rating">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="rating-value" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Product Quality</label>
+                        <div class="star-rating" id="quality-rating">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="quality-value" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Delivery Experience</label>
+                        <div class="star-rating" id="delivery-rating">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                        <input type="hidden" id="delivery-value" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="review-text">Your Review</label>
+                        <textarea id="review-text" rows="5" placeholder="Tell us about your experience with our products and service..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+
+                <div id="form-message" class="form-message hidden"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for quality furniture.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/become-marketer">Become a Marketer</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li>+254 745 853 914</li>
+                    <li>info@creviabeauty.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Star rating functionality
+        function setupStarRating(containerId, inputId) {
+            const container = document.getElementById(containerId);
+            const input = document.getElementById(inputId);
+            const stars = container.querySelectorAll('.star');
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const rating = parseInt(star.dataset.rating);
+                    input.value = rating;
+
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseenter', () => {
+                    const rating = parseInt(star.dataset.rating);
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.add('hover');
+                        } else {
+                            s.classList.remove('hover');
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseleave', () => {
+                    stars.forEach(s => s.classList.remove('hover'));
+                });
+            });
+        }
+
+        setupStarRating('overall-rating', 'rating-value');
+        setupStarRating('quality-rating', 'quality-value');
+        setupStarRating('delivery-rating', 'delivery-value');
+
+        // Form submission
+        document.getElementById('review-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const rating = parseInt(document.getElementById('rating-value').value);
+            if (rating === 0) {
+                alert('Please select an overall rating');
+                return;
+            }
+
+            const reviewData = {
+                customerName: document.getElementById('customer-name').value,
+                customerEmail: document.getElementById('customer-email').value,
+                rating: rating,
+                productQuality: parseInt(document.getElementById('quality-value').value) || null,
+                deliveryRating: parseInt(document.getElementById('delivery-value').value) || null,
+                reviewText: document.getElementById('review-text').value
+            };
+
+            try {
+                const response = await fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reviewData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('review-form').classList.add('hidden');
+                    const message = document.getElementById('form-message');
+                    message.classList.remove('hidden');
+                    message.innerHTML = `
+                        <div class="success-message">
+                            <h3>Thank You!</h3>
+                            <p>Your review has been submitted and will be visible after approval.</p>
+                            <a href="/" class="btn">Back to Home</a>
+                        </div>
+                    `;
+                } else {
+                    alert(data.error || 'Failed to submit review');
+                }
+            } catch (error) {
+                console.error('Review submission error:', error);
+                alert('Failed to submit review. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

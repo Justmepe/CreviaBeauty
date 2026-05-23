@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - CreviaBeauty Kenya</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* Customer Dashboard Styles */
+        .dashboard-section { display: none; }
+        .dashboard-section:first-of-type { display: block; }
+
+        /* Share buttons */
+        .share-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .share-btn {
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .share-btn.whatsapp { background: #25D366; color: white; }
+        .share-btn.twitter { background: #1DA1F2; color: white; }
+        .share-btn.facebook { background: #1877F2; color: white; }
+        .share-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        /* Alert styles */
+        .alert {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+        .alert-success { background: #e8f5e9; color: #2e7d32; }
+        .alert-error { background: #ffebee; color: #c62828; }
+        .alert button { background: none; border: none; font-size: 1.25rem; cursor: pointer; opacity: 0.7; }
+        .alert button:hover { opacity: 1; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Points display */
+        .points-positive { color: #27ae60; }
+        .points-negative { color: #e94560; }
+    </style>
+</head>
+<body>
+    <!-- Mobile Sidebar Toggle -->
+    <button class="mobile-sidebar-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                <span>&#9664;</span>
+            </button>
+
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-logo">
+                    <img src="/assets/favicon.png" alt="CreviaBeauty">
+                    <span class="sidebar-logo-text">Crevia<span>Furnitures</span></span>
+                </a>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="user-avatar">C</div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Customer</div>
+                    <div class="user-role">Customer Account</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Dashboard</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                                <span class="icon">&#128200;</span>
+                                <span class="label">Overview</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#orders" class="nav-link" data-section="orders">
+                                <span class="icon">&#128230;</span>
+                                <span class="label">My Orders</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Rewards</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#rewards" class="nav-link" data-section="rewards">
+                                <span class="icon">&#127942;</span>
+                                <span class="label">My Points</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#referrals" class="nav-link" data-section="referrals">
+                                <span class="icon">&#128101;</span>
+                                <span class="label">Referrals</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#withdraw" class="nav-link" data-section="withdraw">
+                                <span class="icon">&#128179;</span>
+                                <span class="label">Withdraw</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#profile" class="nav-link" data-section="profile">
+                                <span class="icon">&#128100;</span>
+                                <span class="label">My Profile</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">
+                                <span class="icon">&#127968;</span>
+                                <span class="label">Back to Store</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="logout(); return false;">
+                                <span class="icon">&#128682;</span>
+                                <span class="label">Logout</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1 class="header-title" id="page-title">My Account</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-notifications">
+                        <button id="notifications-btn">&#128276;</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- Dashboard Section -->
+                <section id="section-dashboard" class="dashboard-section">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">&#128230;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Orders</div>
+                                <div class="stat-value" id="stat-total-orders">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card gold">
+                            <div class="stat-icon">&#127942;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Points Balance</div>
+                                <div class="stat-value" id="stat-points">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-icon">&#128101;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Referrals</div>
+                                <div class="stat-value" id="stat-referrals">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card info">
+                            <div class="stat-icon">&#128176;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Spent</div>
+                                <div class="stat-value" id="stat-total-spent">KSh 0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Referral Code -->
+                    <div class="referral-box" style="margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 0.5rem;">Your Referral Code</h3>
+                                <p style="opacity: 0.8; font-size: 0.9rem;">Share this code to earn <strong id="ref-bonus-display">500</strong> points when friends make their first purchase!</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span id="dashboard-referral-code" style="font-size: 1.5rem; font-weight: 700; color: #d4a574; letter-spacing: 2px;">-</span>
+                                <button class="copy-btn" onclick="copyReferralCode()">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Orders</h3>
+                            <a href="#orders" class="btn-dashboard outline sm" onclick="showSection('orders')">View All</a>
+                        </div>
+                        <div class="card-body" id="recent-orders-list">
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                <p style="margin-top: 1rem; color: #7f8c8d;">Loading orders...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Orders Section -->
+                <section id="section-orders" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Order History</h3>
+                            <div class="filter-pills">
+                                <button class="filter-pill active" data-filter="all">All</button>
+                                <button class="filter-pill" data-filter="pending">Pending</button>
+                                <button class="filter-pill" data-filter="processing">Processing</button>
+                                <button class="filter-pill" data-filter="shipped">Shipped</button>
+                                <button class="filter-pill" data-filter="delivered">Delivered</button>
+                            </div>
+                        </div>
+                        <div class="card-body" id="orders-list">
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                <p style="margin-top: 1rem; color: #7f8c8d;">Loading orders...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rewards Section -->
+                <section id="section-rewards" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Points Balance</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="text-align: center; padding: 1rem 0;">
+                                    <div style="font-size: 4rem; margin-bottom: 1rem;">&#127942;</div>
+                                    <h2 style="font-family: 'Playfair Display', serif; color: #d4a574; margin-bottom: 0.5rem; font-size: 2.5rem;" id="points-balance">0</h2>
+                                    <p style="color: #7f8c8d; margin-bottom: 1.5rem;" id="kes-value">= KSh 0</p>
+                                </div>
+                                <div style="background: #f8f9fa; border-radius: 10px; padding: 1.25rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #7f8c8d;">Points per KSh 100</span>
+                                        <span style="font-weight: 600; color: #27ae60;">1 Point</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: #7f8c8d;">Redemption Rate</span>
+                                        <span style="font-weight: 600;">10 pts = KSh 1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Points History</h3>
+                            </div>
+                            <div class="card-body no-padding">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Points</th>
+                                            <th>Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="history-tbody">
+                                        <tr><td colspan="4" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Referrals Section -->
+                <section id="section-referrals" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Your Referral Code</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="referral-box">
+                                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 1rem;">Share & Earn</h3>
+                                    <div class="referral-code-display">
+                                        <span class="referral-code" id="referral-code">-</span>
+                                        <button class="copy-btn" onclick="copyReferralCode()">Copy Code</button>
+                                    </div>
+                                    <p style="opacity: 0.9; margin-bottom: 1rem;">When friends sign up with your code and make their first purchase, you both earn <strong id="referral-bonus-amount">500</strong> points!</p>
+                                </div>
+
+                                <div style="margin-top: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem;">Share Your Code</h4>
+                                    <div class="share-buttons">
+                                        <button class="share-btn whatsapp" onclick="shareWhatsApp()">
+                                            <span>&#128172;</span> WhatsApp
+                                        </button>
+                                        <button class="share-btn twitter" onclick="shareTwitter()">
+                                            <span>&#128038;</span> Twitter
+                                        </button>
+                                        <button class="share-btn facebook" onclick="shareFacebook()">
+                                            <span>&#128077;</span> Facebook
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Referral Stats</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="background: #f8f9fa; border-radius: 10px; padding: 1.25rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #7f8c8d;">Total Referred</span>
+                                        <span style="font-weight: 600;" id="total-referred">0</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #7f8c8d;">Bonuses Earned</span>
+                                        <span style="font-weight: 600;" id="bonuses-earned">0</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: #7f8c8d;">Points from Referrals</span>
+                                        <span style="font-weight: 600; color: #27ae60;" id="referral-points">+0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Your Referrals</h3>
+                        </div>
+                        <div class="card-body no-padding" id="referrals-list">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Joined</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="referrals-tbody">
+                                    <tr><td colspan="3" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Withdraw Section -->
+                <section id="section-withdraw" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <!-- Request Withdrawal -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Request Withdrawal</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert-box success" style="margin-bottom: 1.5rem;">
+                                    <span class="icon">&#128176;</span>
+                                    <div class="content">
+                                        <div class="title">Available Balance</div>
+                                        <span style="font-size: 1.25rem; font-weight: 700;" id="withdraw-points-balance">0 points</span>
+                                        <span style="display: block; font-size: 0.9rem; margin-top: 0.25rem;" id="withdraw-kes-balance">= KSh 0</span>
+                                    </div>
+                                </div>
+
+                                <div class="alert-box warning" style="margin-bottom: 1.5rem;">
+                                    <span class="icon">&#9888;</span>
+                                    <div class="content">
+                                        <div class="title">Minimum Withdrawal</div>
+                                        <span>KSh <span id="min-withdrawal">5,000</span> (50,000 points)</span>
+                                    </div>
+                                </div>
+
+                                <form id="withdraw-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Points to Withdraw</label>
+                                        <input type="number" id="withdraw-points-input" min="50000" placeholder="Enter points amount" required>
+                                        <small>= KSh <span id="withdraw-kes-preview">0</span></small>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Payment Method</label>
+                                        <select id="withdraw-method" required>
+                                            <option value="mpesa">M-Pesa</option>
+                                            <option value="bank">Bank Transfer</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Payment Details</label>
+                                        <textarea id="withdraw-details" rows="3" placeholder="For M-Pesa: Enter phone number&#10;For Bank: Enter bank name, account name, account number" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard gold" id="withdraw-submit-btn">Request Withdrawal</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Withdrawal History -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Withdrawal History</h3>
+                            </div>
+                            <div class="card-body no-padding">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Points</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="withdrawals-tbody">
+                                        <tr><td colspan="4" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profile Section -->
+                <section id="section-profile" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Account Information</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="profile-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Full Name</label>
+                                        <input type="text" id="profile-name" placeholder="Your name" required>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Email Address</label>
+                                        <input type="email" id="profile-email" readonly style="background: #f5f5f5; cursor: not-allowed;">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Phone Number</label>
+                                        <input type="tel" id="profile-phone" placeholder="+254 7XX XXX XXX">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Default Shipping Address</label>
+                                        <textarea id="profile-address" rows="2" placeholder="Your default shipping address"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard gold">Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Change Password</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="password-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Current Password</label>
+                                        <input type="password" id="current-password" required>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>New Password</label>
+                                        <input type="password" id="new-password" required>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Confirm New Password</label>
+                                        <input type="password" id="confirm-password" required>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard gold">Update Password</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container" style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;"></div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Global variables
+        let currentUser = null;
+        let pointsToKesRate = 10;
+        let referralBonus = 500;
+        let allOrders = [];
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        mobileToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('active');
+            mobileToggle.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('active');
+            mobileToggle.classList.remove('active');
+        });
+
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(link.dataset.section);
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                mobileToggle.classList.remove('active');
+            });
+        });
+
+        function showSection(section) {
+            document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
+            document.querySelector(`.nav-link[data-section="${section}"]`)?.classList.add('active');
+            document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+            document.getElementById(`section-${section}`).style.display = 'block';
+
+            const titles = {
+                dashboard: 'My Account',
+                orders: 'My Orders',
+                rewards: 'My Points',
+                referrals: 'Referral Program',
+                withdraw: 'Withdraw Points',
+                profile: 'My Profile'
+            };
+            document.getElementById('page-title').textContent = titles[section] || 'My Account';
+
+            loadSectionData(section);
+            window.location.hash = section;
+        }
+
+        function loadSectionData(section) {
+            switch(section) {
+                case 'orders': loadOrders(); break;
+                case 'rewards': loadRewardsData(); break;
+                case 'referrals': loadReferralsData(); break;
+                case 'withdraw': loadWithdrawalsData(); break;
+                case 'profile': loadProfileData(); break;
+            }
+        }
+
+        // Initialize app
+        async function init() {
+            try {
+                // Check if user is logged in
+                const userResponse = await fetch('/api/user');
+                const userData = await userResponse.json();
+
+                if (!userData.loggedIn) {
+                    window.location.href = '/login?redirect=/customer';
+                    return;
+                }
+
+                if (userData.user.role !== 'customer') {
+                    if (userData.user.role === 'admin') {
+                        window.location.href = '/admin';
+                    } else if (userData.user.role === 'marketer') {
+                        window.location.href = '/marketer';
+                    }
+                    return;
+                }
+
+                currentUser = userData.user;
+
+                document.getElementById('user-name').textContent = currentUser.name;
+                document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+
+                await loadDashboardStats();
+
+                const hash = window.location.hash.replace('#', '') || 'dashboard';
+                showSection(hash);
+
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                showAlert('Failed to load dashboard. Please refresh.', 'error');
+            }
+        }
+
+        // Load dashboard stats
+        async function loadDashboardStats() {
+            try {
+                // Load orders for stats
+                const ordersRes = await fetch('/api/orders/my-orders');
+                const ordersData = await ordersRes.json();
+
+                const orders = ordersData.orders || [];
+                const totalOrders = orders.length;
+                const totalSpent = orders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+
+                document.getElementById('stat-total-orders').textContent = totalOrders;
+                document.getElementById('stat-total-spent').textContent = `KSh ${totalSpent.toLocaleString()}`;
+
+                // Load points
+                const balanceRes = await fetch('/api/rewards/balance');
+                const balanceData = await balanceRes.json();
+
+                pointsToKesRate = balanceData.pointsToKesRate || 10;
+                document.getElementById('stat-points').textContent = Number(balanceData.pointsBalance).toLocaleString();
+
+                // Load referrals
+                const refRes = await fetch('/api/rewards/referrals');
+                const refData = await refRes.json();
+
+                referralBonus = refData.referralBonus || 500;
+                document.getElementById('stat-referrals').textContent = refData.totalReferred || 0;
+                document.getElementById('ref-bonus-display').textContent = referralBonus.toLocaleString();
+
+                // Load referral code for dashboard
+                const codeRes = await fetch('/api/rewards/referral-code');
+                const codeData = await codeRes.json();
+                document.getElementById('dashboard-referral-code').textContent = codeData.referralCode;
+
+                // Show recent orders (last 3)
+                const recentOrders = orders.slice(0, 3);
+                if (recentOrders.length === 0) {
+                    document.getElementById('recent-orders-list').innerHTML = `
+                        <div class="empty-state">
+                            <h3>No orders yet</h3>
+                            <p>Start shopping to see your orders here!</p>
+                            <a href="/products" class="btn btn-primary">Browse Products</a>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('recent-orders-list').innerHTML = recentOrders.map(order => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #eee;">
+                            <div>
+                                <div style="font-weight: 500;">Order #${order.id}</div>
+                                <div style="font-size: 0.85rem; color: #666;">${new Date(order.created_at).toLocaleDateString('en-KE')}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="status-badge status-${order.status.toLowerCase()}">${order.status}</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem;">KSh ${Number(order.total_amount).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Failed to load dashboard stats:', error);
+            }
+        }
+
+        // Load orders
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/orders/my-orders');
+                const data = await response.json();
+
+                allOrders = data.orders || [];
+                renderOrders(allOrders);
+
+                // Setup filter pills
+                document.querySelectorAll('.filter-pill').forEach(pill => {
+                    pill.addEventListener('click', () => {
+                        document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                        pill.classList.add('active');
+
+                        const filter = pill.dataset.filter;
+                        if (filter === 'all') {
+                            renderOrders(allOrders);
+                        } else {
+                            renderOrders(allOrders.filter(o => o.status.toLowerCase() === filter));
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Failed to load orders:', error);
+                document.getElementById('orders-list').innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Failed to load orders.</p>';
+            }
+        }
+
+        function renderOrders(orders) {
+            const container = document.getElementById('orders-list');
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">&#128230;</div>
+                        <h3>No orders found</h3>
+                        <p>You haven't placed any orders yet.</p>
+                        <a href="/products" class="btn-dashboard gold">Start Shopping</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div style="background: #f8f9fa; border-radius: 12px; margin-bottom: 1rem; overflow: hidden;">
+                    <div style="background: var(--primary, #1a1a2e); color: white; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div>
+                            <div style="font-weight: 600;">Order #${order.id}</div>
+                            <div style="opacity: 0.8; font-size: 0.85rem;">${new Date(order.created_at).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <span class="status-badge ${order.status.toLowerCase()}">${order.status}</span>
+                            <span class="status-badge ${order.payment_status === 'paid' ? 'delivered' : 'pending'}">${order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}</span>
+                        </div>
+                    </div>
+                    <div style="padding: 1.25rem; background: white;">
+                        ${order.items.map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    ${item.image_url
+                                        ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">`
+                                        : '<div style="width: 50px; height: 50px; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center;">&#128717;</div>'
+                                    }
+                                    <div>
+                                        <div style="font-weight: 500;">${escapeHtml(item.name)}</div>
+                                        <div style="font-size: 0.85rem; color: #7f8c8d;">Qty: ${item.quantity}</div>
+                                    </div>
+                                </div>
+                                <div style="font-weight: 600; color: var(--gold, #d4a574);">KSh ${(item.price * item.quantity).toLocaleString()}</div>
+                            </div>
+                        `).join('')}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: 0.5rem;">
+                            <div style="font-size: 0.85rem; color: #7f8c8d;">
+                                <strong>Ship to:</strong> ${escapeHtml(order.shipping_address || 'N/A')}
+                            </div>
+                            <div style="font-size: 1.1rem;">
+                                Total: <span style="font-weight: 700; color: var(--gold, #d4a574);">KSh ${Number(order.total_amount).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getPaymentMethodLabel(method) {
+            const labels = {
+                'cod': 'Pay on Delivery',
+                'mpesa': 'M-Pesa',
+                'bank': 'Bank Transfer'
+            };
+            return labels[method] || method;
+        }
+
+        async function showPaymentDetails(reference, method, amount) {
+            let settings = {};
+            try {
+                const response = await fetch('/api/orders/payment-settings');
+                settings = await response.json();
+            } catch (e) {
+                console.error('Failed to load payment settings:', e);
+            }
+
+            function getMpesaDetails() {
+                const type = settings.mpesa_type || 'send_money';
+                const amountStr = `KSh ${Number(amount).toLocaleString()}`;
+
+                if (type === 'send_money') {
+                    const phone = settings.mpesa_phone || '0712345678';
+                    return `
+                        <h4>M-Pesa Payment Instructions</h4>
+                        <p><strong>Send Money To:</strong> ${phone}</p>
+                        <p><strong>Amount:</strong> ${amountStr}</p>
+                        <p><strong>Reference:</strong> ${reference}</p>
+                        <hr style="margin: 1rem 0;">
+                        <ol style="padding-left: 1.5rem; color: #666;">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select Send Money</li>
+                            <li>Enter Phone Number: <strong>${phone}</strong></li>
+                            <li>Enter Amount: <strong>${amountStr}</strong></li>
+                            <li>Enter PIN and confirm</li>
+                        </ol>
+                    `;
+                } else if (type === 'paybill') {
+                    const paybill = settings.mpesa_paybill_number || '123456';
+                    return `
+                        <h4>M-Pesa Payment Instructions</h4>
+                        <p><strong>Paybill Number:</strong> ${paybill}</p>
+                        <p><strong>Account Number:</strong> ${reference}</p>
+                        <p><strong>Amount:</strong> ${amountStr}</p>
+                        <hr style="margin: 1rem 0;">
+                        <ol style="padding-left: 1.5rem; color: #666;">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select Lipa na M-Pesa</li>
+                            <li>Select Paybill</li>
+                            <li>Enter Business Number: <strong>${paybill}</strong></li>
+                            <li>Enter Account: <strong>${reference}</strong></li>
+                            <li>Enter Amount: <strong>${amountStr}</strong></li>
+                        </ol>
+                    `;
+                } else {
+                    const till = settings.mpesa_till_number || '789012';
+                    return `
+                        <h4>M-Pesa Payment Instructions</h4>
+                        <p><strong>Till Number:</strong> ${till}</p>
+                        <p><strong>Amount:</strong> ${amountStr}</p>
+                        <hr style="margin: 1rem 0;">
+                        <ol style="padding-left: 1.5rem; color: #666;">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select Lipa na M-Pesa</li>
+                            <li>Select Buy Goods</li>
+                            <li>Enter Till Number: <strong>${till}</strong></li>
+                            <li>Enter Amount: <strong>${amountStr}</strong></li>
+                        </ol>
+                    `;
+                }
+            }
+
+            const details = {
+                mpesa: getMpesaDetails(),
+                bank: `
+                    <h4>Bank Transfer Details</h4>
+                    <p><strong>Bank:</strong> ${settings.bank_name || 'Equity Bank'}</p>
+                    <p><strong>Account Name:</strong> ${settings.bank_account_name || 'CreviaBeauty Ltd'}</p>
+                    <p><strong>Account Number:</strong> ${settings.bank_account_number || '1234567890'}</p>
+                    <p><strong>Branch:</strong> ${settings.bank_branch || 'Nairobi Branch'}</p>
+                    <p><strong>Reference:</strong> ${reference}</p>
+                    <p><strong>Amount:</strong> KSh ${Number(amount).toLocaleString()}</p>
+                `
+            };
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem;';
+            modal.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 450px; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-family: 'Playfair Display', serif;">Payment Details</h3>
+                        <button onclick="this.closest('div').parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                        ${details[method] || '<p>Payment details not available</p>'}
+                    </div>
+                    <button onclick="this.closest('div').parentElement.remove()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Load rewards data
+        async function loadRewardsData() {
+            try {
+                const balanceRes = await fetch('/api/rewards/balance');
+                const balanceData = await balanceRes.json();
+
+                pointsToKesRate = balanceData.pointsToKesRate || 10;
+                document.getElementById('points-balance').textContent = Number(balanceData.pointsBalance).toLocaleString();
+                document.getElementById('kes-value').textContent = `= KSh ${Number(balanceData.kesValue).toLocaleString()}`;
+
+                // Load history
+                const historyRes = await fetch('/api/rewards/history?limit=20');
+                const historyData = await historyRes.json();
+
+                if (historyData.transactions.length === 0) {
+                    document.getElementById('history-tbody').innerHTML = `
+                        <tr><td colspan="4" style="text-align: center; color: #666; padding: 2rem;">No transactions yet.</td></tr>
+                    `;
+                } else {
+                    document.getElementById('history-tbody').innerHTML = historyData.transactions.map(t => `
+                        <tr>
+                            <td>${new Date(t.created_at).toLocaleDateString('en-KE')}</td>
+                            <td>${escapeHtml(t.description || t.type)}</td>
+                            <td class="${t.points >= 0 ? 'points-positive' : 'points-negative'}">
+                                ${t.points >= 0 ? '+' : ''}${Number(t.points).toLocaleString()}
+                            </td>
+                            <td>${Number(t.balance_after).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Failed to load rewards:', error);
+            }
+        }
+
+        // Load referrals data
+        async function loadReferralsData() {
+            try {
+                const codeRes = await fetch('/api/rewards/referral-code');
+                const codeData = await codeRes.json();
+                document.getElementById('referral-code').textContent = codeData.referralCode;
+
+                const refRes = await fetch('/api/rewards/referrals');
+                const refData = await refRes.json();
+
+                referralBonus = refData.referralBonus || 500;
+                document.getElementById('referral-bonus-amount').textContent = referralBonus.toLocaleString();
+                document.getElementById('total-referred').textContent = refData.totalReferred || 0;
+                document.getElementById('bonuses-earned').textContent = refData.bonusesAwarded || 0;
+                document.getElementById('referral-points').textContent = `+${((refData.bonusesAwarded || 0) * referralBonus).toLocaleString()}`;
+
+                const tbody = document.getElementById('referrals-tbody');
+                if (!refData.referrals || refData.referrals.length === 0) {
+                    tbody.innerHTML = `
+                        <tr><td colspan="3" style="text-align: center; padding: 3rem; color: #7f8c8d;">
+                            <div style="font-size: 3rem; margin-bottom: 0.5rem;">&#128101;</div>
+                            <h4 style="font-family: 'Playfair Display', serif; margin-bottom: 0.5rem;">No referrals yet</h4>
+                            <p>Share your code with friends to start earning!</p>
+                        </td></tr>
+                    `;
+                } else {
+                    tbody.innerHTML = refData.referrals.map(r => `
+                        <tr>
+                            <td style="font-weight: 500;">${escapeHtml(r.name)}</td>
+                            <td>${new Date(r.created_at).toLocaleDateString('en-KE')}</td>
+                            <td>
+                                <span class="status-badge ${r.bonus_awarded ? 'delivered' : 'pending'}">
+                                    ${r.bonus_awarded ? 'Bonus Earned' : 'Pending Order'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Failed to load referrals:', error);
+            }
+        }
+
+        // Load withdrawals data
+        async function loadWithdrawalsData() {
+            try {
+                const balanceRes = await fetch('/api/rewards/balance');
+                const balanceData = await balanceRes.json();
+
+                document.getElementById('withdraw-points-balance').textContent = Number(balanceData.pointsBalance).toLocaleString();
+                document.getElementById('withdraw-kes-balance').textContent = `KSh ${Number(balanceData.kesValue).toLocaleString()}`;
+
+                const withdrawRes = await fetch('/api/rewards/withdrawals');
+                const withdrawData = await withdrawRes.json();
+
+                if (!withdrawData.withdrawals || withdrawData.withdrawals.length === 0) {
+                    document.getElementById('withdrawals-tbody').innerHTML = `
+                        <tr><td colspan="4" style="text-align: center; color: #666; padding: 2rem;">No withdrawals yet.</td></tr>
+                    `;
+                } else {
+                    document.getElementById('withdrawals-tbody').innerHTML = withdrawData.withdrawals.map(w => `
+                        <tr>
+                            <td>${new Date(w.created_at).toLocaleDateString('en-KE')}</td>
+                            <td>${Number(w.points).toLocaleString()}</td>
+                            <td style="color: var(--gold); font-weight: 600;">KSh ${Number(w.kes_amount).toLocaleString()}</td>
+                            <td>
+                                <span class="status-badge ${w.status === 'approved' ? 'status-delivered' : w.status === 'pending' ? 'status-pending' : 'status-cancelled'}">
+                                    ${w.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Failed to load withdrawals:', error);
+            }
+        }
+
+        // Calculate KES value for withdrawal preview
+        document.getElementById('withdraw-points-input').addEventListener('input', (e) => {
+            const points = parseInt(e.target.value) || 0;
+            const kes = points / pointsToKesRate;
+            document.getElementById('withdraw-kes-preview').textContent = Number(kes).toLocaleString();
+        });
+
+        // Handle withdrawal form
+        document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const points = parseInt(document.getElementById('withdraw-points-input').value);
+            const paymentMethod = document.getElementById('withdraw-method').value;
+            const paymentDetails = document.getElementById('withdraw-details').value;
+
+            try {
+                const response = await fetch('/api/rewards/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ points, paymentMethod, paymentDetails })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Withdrawal request submitted successfully!', 'success');
+                    document.getElementById('withdraw-form').reset();
+                    document.getElementById('withdraw-kes-preview').textContent = '0';
+                    loadWithdrawalsData();
+                    loadRewardsData();
+                } else {
+                    showAlert(data.error?.message || 'Failed to submit withdrawal request', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to submit withdrawal request', 'error');
+            }
+        });
+
+        // Load profile data
+        async function loadProfileData() {
+            if (currentUser) {
+                document.getElementById('profile-name').value = currentUser.name || '';
+                document.getElementById('profile-email').value = currentUser.email || '';
+                document.getElementById('profile-phone').value = currentUser.phone || '';
+                document.getElementById('profile-address').value = currentUser.address || '';
+            }
+        }
+
+        // Handle profile form
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('profile-name').value;
+            const phone = document.getElementById('profile-phone').value;
+            const address = document.getElementById('profile-address').value;
+
+            try {
+                const response = await fetch('/api/user/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, address })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Profile updated successfully!', 'success');
+                    currentUser.name = name;
+                    document.getElementById('user-name').textContent = name;
+                    document.getElementById('welcome-name').textContent = name.split(' ')[0];
+                    document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+                } else {
+                    showAlert(data.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update profile', 'error');
+            }
+        });
+
+        // Handle password form
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                showAlert('New passwords do not match', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showAlert('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Password updated successfully!', 'success');
+                    document.getElementById('password-form').reset();
+                } else {
+                    showAlert(data.error || 'Failed to update password', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update password', 'error');
+            }
+        });
+
+        // Share functions
+        function copyReferralCode() {
+            const code = document.getElementById('referral-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showAlert('Code copied to clipboard!', 'success');
+            }).catch(() => {
+                const el = document.createElement('textarea');
+                el.value = code;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                showAlert('Code copied to clipboard!', 'success');
+            });
+        }
+
+        function shareWhatsApp() {
+            const code = document.getElementById('referral-code').textContent;
+            const text = `Shop at CreviaBeauty and use my referral code ${code} to earn ${referralBonus} bonus points! Visit: https://creviabeauty.com/register?ref=${code}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareTwitter() {
+            const code = document.getElementById('referral-code').textContent;
+            const text = `Shop at @CreviaFurnitures and use my referral code ${code} to earn bonus points!`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareFacebook() {
+            const code = document.getElementById('referral-code').textContent;
+            const url = `https://creviabeauty.com/register?ref=${code}`;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                window.location.href = '/';
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

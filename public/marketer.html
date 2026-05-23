@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketer Dashboard - CreviaBeauty</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        .products-catalog {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .product-commission-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-commission-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .product-commission-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        .product-commission-info {
+            padding: 1rem;
+        }
+        .product-commission-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .product-commission-info .category-tag {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+        .product-commission-info .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .product-commission-info .selling-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .commission-highlight {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .commission-highlight .label {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+        .commission-highlight .amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .share-btn {
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .share-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .share-btn.whatsapp { background: #25D366; color: white; }
+        .share-btn.twitter { background: #1DA1F2; color: white; }
+        .share-btn.facebook { background: #1877F2; color: white; }
+    </style>
+</head>
+<body>
+    <!-- Mobile Sidebar Toggle -->
+    <button class="mobile-sidebar-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                <span>&#9664;</span>
+            </button>
+
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-logo">
+                    <img src="/assets/favicon.png" alt="CreviaBeauty">
+                    <span class="sidebar-logo-text">Crevia<span>Furnitures</span></span>
+                </a>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="user-avatar">M</div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Marketer</div>
+                    <div class="user-role">Marketer</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Business</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                                <span class="icon">&#128200;</span>
+                                <span class="label">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#products" class="nav-link" data-section="products">
+                                <span class="icon">&#128722;</span>
+                                <span class="label">Products</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#sales" class="nav-link" data-section="sales">
+                                <span class="icon">&#128176;</span>
+                                <span class="label">My Sales</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Earnings</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#rewards" class="nav-link" data-section="rewards">
+                                <span class="icon">&#127942;</span>
+                                <span class="label">My Rewards</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#payouts" class="nav-link" data-section="payouts">
+                                <span class="icon">&#128179;</span>
+                                <span class="label">Payouts</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#profile" class="nav-link" data-section="profile">
+                                <span class="icon">&#128100;</span>
+                                <span class="label">Profile</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">
+                                <span class="icon">&#127968;</span>
+                                <span class="label">Back to Store</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" onclick="logout(); return false;">
+                                <span class="icon">&#128682;</span>
+                                <span class="label">Logout</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1 class="header-title" id="page-title">Marketer Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-notifications">
+                        <button id="notifications-btn">&#128276;</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem; color: #7f8c8d;">Loading dashboard...</p>
+                </div>
+
+                <!-- Pending Approval -->
+                <div id="pending-state" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-body" style="text-align: center; padding: 4rem 2rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">&#9203;</div>
+                            <h2 style="font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 1rem;">Application Under Review</h2>
+                            <p style="color: #7f8c8d; max-width: 500px; margin: 0 auto 2rem;">
+                                Thank you for registering as a marketer! Your application is currently being reviewed by our team. This typically takes 24-48 hours.
+                            </p>
+                            <div class="alert-box warning" style="display: inline-flex; margin-bottom: 2rem;">
+                                <span class="icon">&#128273;</span>
+                                <div class="content">
+                                    <div class="title">Your Referral Code</div>
+                                    <span id="pending-ref-code" style="font-family: monospace; font-weight: bold; font-size: 1.1rem;">-</span>
+                                </div>
+                            </div>
+                            <br>
+                            <a href="/" class="btn-dashboard gold">Back to Home</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Section -->
+                <section id="section-dashboard" class="dashboard-section" style="display: none;">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">&#128176;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Sales</div>
+                                <div class="stat-value" id="stat-sales">KSh 0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-icon">&#128178;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Commission</div>
+                                <div class="stat-value" id="stat-commission">KSh 0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-icon">&#9203;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Pending Commission</div>
+                                <div class="stat-value" id="stat-pending">KSh 0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card gold">
+                            <div class="stat-icon">&#128179;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Available Balance</div>
+                                <div class="stat-value" id="stat-balance">KSh 0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Referral Code -->
+                    <div class="referral-box" style="margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 0.5rem;">Your Marketer Code</h3>
+                                <p style="opacity: 0.8; font-size: 0.9rem;">Share this code to earn commission on every sale!</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span id="quick-code" style="font-size: 1.5rem; font-weight: 700; color: #d4a574; letter-spacing: 2px;">-</span>
+                                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Sales -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Sales</h3>
+                            <a href="#sales" class="btn-dashboard outline sm" onclick="showSection('sales')">View All</a>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Order Total</th>
+                                        <th>Commission</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-sales-table">
+                                    <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Products Section -->
+                <section id="section-products" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Products & Your Commissions</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Browse all products and see exactly how much you'll earn when a customer buys using your code.</p>
+
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                                <input type="text" id="product-search" placeholder="Search products..." style="flex: 1; min-width: 200px; padding: 0.75rem 1rem; border: 2px solid #e0e0e0; border-radius: 8px;">
+                                <select id="product-category-filter" style="padding: 0.75rem 1rem; border: 2px solid #e0e0e0; border-radius: 8px;">
+                                    <option value="">All Categories</option>
+                                    <option value="Office Furniture">Office Furniture</option>
+                                    <option value="Living Room">Living Room</option>
+                                    <option value="Dining">Dining</option>
+                                    <option value="Bedroom">Bedroom</option>
+                                    <option value="Recliner">Recliner</option>
+                                    <option value="Outdoor">Outdoor</option>
+                                </select>
+                            </div>
+
+                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #7f8c8d;">Your Commission Rate</div>
+                                    <div style="font-size: 1.1rem; font-weight: 600;" id="products-commission-rate">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #7f8c8d;">Products Shown</div>
+                                    <div style="font-size: 1.1rem; font-weight: 600;" id="products-count">-</div>
+                                </div>
+                            </div>
+
+                            <div class="products-catalog" id="products-catalog">
+                                <div style="text-align: center; padding: 2rem; color: #7f8c8d;">Loading products...</div>
+                            </div>
+
+                            <div class="pagination" id="products-pagination" style="display: none;">
+                                <button id="prev-page-btn" onclick="loadProducts(currentProductPage - 1)">&#9664;</button>
+                                <span id="page-info" style="padding: 0.5rem 1rem;">Page 1 of 1</span>
+                                <button id="next-page-btn" onclick="loadProducts(currentProductPage + 1)">&#9654;</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sales Section -->
+                <section id="section-sales" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">My Sales</h3>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Order Total</th>
+                                        <th>Commission Rate</th>
+                                        <th>Commission Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="all-sales-table">
+                                    <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Payouts Section -->
+                <section id="section-payouts" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <!-- Request Payout -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Request Payout</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert-box success" style="margin-bottom: 1.5rem;">
+                                    <span class="icon">&#128176;</span>
+                                    <div class="content">
+                                        <div class="title">Available Balance</div>
+                                        <span style="font-size: 1.25rem; font-weight: 700;" id="payout-balance">KSh 0</span>
+                                    </div>
+                                </div>
+
+                                <form id="payout-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Amount (KSh)</label>
+                                        <input type="number" id="payout-amount" min="5000" placeholder="Enter amount" required>
+                                        <small>Minimum: KSh 5,000</small>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Payment Method</label>
+                                        <select id="payout-method" required>
+                                            <option value="mpesa">M-Pesa</option>
+                                            <option value="bank">Bank Transfer</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Payment Details</label>
+                                        <textarea id="payout-details" rows="3" placeholder="For M-Pesa: Enter phone number&#10;For Bank: Enter bank name, account name, account number" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard gold" id="payout-submit-btn">Request Payout</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Payout History -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Payout History</h3>
+                            </div>
+                            <div class="card-body no-padding">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="payouts-history-table">
+                                        <tr><td colspan="4" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rewards Section -->
+                <section id="section-rewards" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Your Marketer Status</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="text-align: center; padding: 1rem 0;">
+                                    <div style="font-size: 4rem; margin-bottom: 1rem;">&#127942;</div>
+                                    <h2 style="font-family: 'Playfair Display', serif; color: #1a1a2e; margin-bottom: 0.5rem;" id="rewards-tier">Marketer</h2>
+                                    <p style="color: #7f8c8d; margin-bottom: 1.5rem;">Your current tier level</p>
+                                </div>
+                                <div style="background: #f8f9fa; border-radius: 10px; padding: 1.25rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #7f8c8d;">Commission Rate</span>
+                                        <span style="font-weight: 600; color: #27ae60;" id="rewards-commission-rate">15%</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0;">
+                                        <span style="color: #7f8c8d;">Total Sales</span>
+                                        <span style="font-weight: 600;" id="rewards-total-sales">KSh 0</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="color: #7f8c8d;">Total Commission Earned</span>
+                                        <span style="font-weight: 600; color: #d4a574;" id="rewards-total-commission">KSh 0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Your Referral Code</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="referral-box">
+                                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 1rem;">Share & Earn</h3>
+                                    <div class="referral-code-display">
+                                        <span class="referral-code" id="rewards-referral-code">-</span>
+                                        <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+                                    </div>
+                                    <p style="opacity: 0.9; margin-bottom: 1rem;">When customers use your code at checkout, you earn commission on each sale!</p>
+                                </div>
+
+                                <div style="margin-top: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem;">Share Your Code</h4>
+                                    <div class="share-buttons">
+                                        <button class="share-btn whatsapp" onclick="shareWhatsApp()">
+                                            <span>&#128172;</span> WhatsApp
+                                        </button>
+                                        <button class="share-btn twitter" onclick="shareTwitter()">
+                                            <span>&#128038;</span> Twitter
+                                        </button>
+                                        <button class="share-btn facebook" onclick="shareFacebook()">
+                                            <span>&#128077;</span> Facebook
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profile Section -->
+                <section id="section-profile" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Account Information</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="profile-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Full Name</label>
+                                        <input type="text" id="profile-name" placeholder="Your name" required>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Email Address</label>
+                                        <input type="email" id="profile-email" readonly style="background: #f5f5f5; cursor: not-allowed;">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Phone Number</label>
+                                        <input type="tel" id="profile-phone" placeholder="+254 7XX XXX XXX">
+                                    </div>
+                                    <button type="submit" class="btn-dashboard gold">Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Change Password</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="password-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Current Password</label>
+                                        <input type="password" id="current-password" required>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>New Password</label>
+                                        <input type="password" id="new-password" required>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Confirm New Password</label>
+                                        <input type="password" id="confirm-password" required>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard gold">Update Password</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        let dashboardData = null;
+        let currentProductPage = 1;
+        let productSearchTimeout = null;
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        mobileToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('active');
+            mobileToggle.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('active');
+            mobileToggle.classList.remove('active');
+        });
+
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(link.dataset.section);
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                mobileToggle.classList.remove('active');
+            });
+        });
+
+        function showSection(section) {
+            document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
+            document.querySelector(`.nav-link[data-section="${section}"]`)?.classList.add('active');
+            document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+            document.getElementById(`section-${section}`).style.display = 'block';
+
+            const titles = {
+                dashboard: 'Dashboard',
+                products: 'Products',
+                sales: 'My Sales',
+                rewards: 'My Rewards',
+                payouts: 'Payouts',
+                profile: 'Profile'
+            };
+            document.getElementById('page-title').textContent = titles[section] || 'Dashboard';
+
+            loadSectionData(section);
+            window.location.hash = section;
+        }
+
+        function loadSectionData(section) {
+            switch(section) {
+                case 'products': loadProducts(1); break;
+                case 'sales': loadAllSales(); break;
+                case 'payouts': loadPayouts(); break;
+                case 'rewards': loadRewardsSection(); break;
+                case 'profile': loadProfileSection(); break;
+            }
+        }
+
+        // Load Dashboard
+        async function loadDashboard() {
+            try {
+                const userResponse = await fetch('/api/user');
+                const userData = await userResponse.json();
+
+                if (!userData.loggedIn) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (userData.user.role !== 'marketer') {
+                    window.location.href = '/become-marketer';
+                    return;
+                }
+
+                // Update user info
+                document.getElementById('user-name').textContent = userData.user.name || 'Marketer';
+                document.getElementById('user-avatar').textContent = (userData.user.name || 'M').charAt(0).toUpperCase();
+
+                // Handle pending status
+                if (userData.user.marketerStatus === 'pending') {
+                    document.getElementById('loading-state').style.display = 'none';
+                    document.getElementById('pending-state').style.display = 'block';
+                    document.getElementById('pending-ref-code').textContent = userData.user.referralCode || 'Loading...';
+                    return;
+                }
+
+                // Load dashboard data
+                const response = await fetch('/api/marketer/dashboard');
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error?.message || 'Failed to load dashboard');
+                }
+
+                dashboardData = data;
+                renderDashboard(data);
+
+                document.getElementById('loading-state').style.display = 'none';
+
+                const hash = window.location.hash.replace('#', '') || 'dashboard';
+                showSection(hash);
+            } catch (error) {
+                document.getElementById('loading-state').innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">&#128683;</div>
+                        <h3 style="color: #e94560;">Error</h3>
+                        <p style="color: #7f8c8d;">${error.message}</p>
+                        <a href="/" class="btn-dashboard gold" style="margin-top: 1rem;">Back to Home</a>
+                    </div>
+                `;
+            }
+        }
+
+        function renderDashboard(data) {
+            const profile = data.profile;
+
+            // Stats
+            document.getElementById('stat-sales').textContent = `KSh ${Number(profile.totalSales).toLocaleString()}`;
+            document.getElementById('stat-commission').textContent = `KSh ${Number(profile.totalCommission).toLocaleString()}`;
+            document.getElementById('stat-pending').textContent = `KSh ${Number(profile.pendingCommission).toLocaleString()}`;
+            document.getElementById('stat-balance').textContent = `KSh ${Number(profile.availableBalance).toLocaleString()}`;
+
+            // Referral code
+            document.getElementById('quick-code').textContent = profile.referralCode;
+
+            // Commission rate
+            document.getElementById('products-commission-rate').textContent = `${profile.commissionRate}%`;
+
+            // Payout balance
+            document.getElementById('payout-balance').textContent = `KSh ${Number(profile.availableBalance).toLocaleString()}`;
+            document.getElementById('payout-amount').max = profile.availableBalance;
+            if (profile.availableBalance < 5000) {
+                document.getElementById('payout-submit-btn').disabled = true;
+                document.getElementById('payout-submit-btn').textContent = 'Insufficient Balance';
+            }
+
+            // Load recent sales
+            loadRecentSales();
+        }
+
+        async function loadRecentSales() {
+            const tbody = document.getElementById('recent-sales-table');
+            try {
+                const response = await fetch('/api/marketer/sales?limit=5');
+                const data = await response.json();
+
+                if (!data.sales || data.sales.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No sales yet. Share your code to start earning!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.sales.map(sale => `
+                    <tr>
+                        <td><strong>#${sale.order_id}</strong></td>
+                        <td>${new Date(sale.created_at).toLocaleDateString('en-KE')}</td>
+                        <td>KSh ${Number(sale.order_total).toLocaleString()}</td>
+                        <td style="color: #d4a574; font-weight: 600;">KSh ${Number(sale.commission_amount).toLocaleString()}</td>
+                        <td><span class="status-badge ${sale.status}">${sale.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load sales</td></tr>';
+            }
+        }
+
+        async function loadAllSales() {
+            const tbody = document.getElementById('all-sales-table');
+            try {
+                const response = await fetch('/api/marketer/sales?limit=50');
+                const data = await response.json();
+
+                if (!data.sales || data.sales.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #7f8c8d;">No sales yet. Share your code to start earning!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.sales.map(sale => `
+                    <tr>
+                        <td><strong>#${sale.order_id}</strong></td>
+                        <td>${new Date(sale.created_at).toLocaleDateString('en-KE')}</td>
+                        <td>KSh ${Number(sale.order_total).toLocaleString()}</td>
+                        <td>${sale.commission_rate}%</td>
+                        <td style="color: #d4a574; font-weight: 600;">KSh ${Number(sale.commission_amount).toLocaleString()}</td>
+                        <td><span class="status-badge ${sale.status}">${sale.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load sales</td></tr>';
+            }
+        }
+
+        // Products
+        async function loadProducts(page = 1) {
+            currentProductPage = page;
+            const search = document.getElementById('product-search').value;
+            const category = document.getElementById('product-category-filter').value;
+
+            const params = new URLSearchParams();
+            params.append('page', page);
+            params.append('limit', 12);
+            if (search) params.append('search', search);
+            if (category) params.append('category', category);
+
+            const container = document.getElementById('products-catalog');
+
+            try {
+                const response = await fetch(`/api/marketer/products?${params.toString()}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error?.message || 'Failed to load products');
+                }
+
+                const { products, commissionRate, pagination } = data;
+                document.getElementById('products-count').textContent = `${products.length} of ${pagination.total}`;
+
+                if (products.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #7f8c8d; grid-column: 1/-1;">No products found.</div>';
+                    document.getElementById('products-pagination').style.display = 'none';
+                    return;
+                }
+
+                const placeholderImg = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="280" height="180"%3E%3Crect fill="%23f5f5f5" width="280" height="180"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="14" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+
+                container.innerHTML = products.map(product => `
+                    <div class="product-commission-card">
+                        <img src="${product.image_url || placeholderImg}" alt="${escapeHtml(product.name)}" onerror="this.src='${placeholderImg}'">
+                        <div class="product-commission-info">
+                            <div class="category-tag">${product.category}</div>
+                            <h4 title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</h4>
+                            <div class="price-row">
+                                <span class="selling-price">KSh ${Number(product.price).toLocaleString()}</span>
+                                <span style="color: #7f8c8d; font-size: 0.8rem;">${product.stock > 0 ? `${product.stock} in stock` : 'Available'}</span>
+                            </div>
+                            <div class="commission-highlight">
+                                <div class="label">Your Commission</div>
+                                <div class="amount">KSh ${Number(product.commission).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Pagination
+                if (pagination.totalPages > 1) {
+                    document.getElementById('products-pagination').style.display = 'flex';
+                    document.getElementById('page-info').textContent = `Page ${pagination.page} of ${pagination.totalPages}`;
+                    document.getElementById('prev-page-btn').disabled = pagination.page <= 1;
+                    document.getElementById('next-page-btn').disabled = pagination.page >= pagination.totalPages;
+                } else {
+                    document.getElementById('products-pagination').style.display = 'none';
+                }
+            } catch (error) {
+                container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #e94560; grid-column: 1/-1;">Failed to load products: ${error.message}</div>`;
+            }
+        }
+
+        document.getElementById('product-search').addEventListener('input', () => {
+            clearTimeout(productSearchTimeout);
+            productSearchTimeout = setTimeout(() => loadProducts(1), 300);
+        });
+
+        document.getElementById('product-category-filter').addEventListener('change', () => loadProducts(1));
+
+        // Payouts
+        async function loadPayouts() {
+            const tbody = document.getElementById('payouts-history-table');
+            try {
+                const response = await fetch('/api/marketer/payouts');
+                const data = await response.json();
+
+                if (!data.payouts || data.payouts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #7f8c8d;">No payout requests yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.payouts.map(payout => `
+                    <tr>
+                        <td>${new Date(payout.created_at).toLocaleDateString('en-KE')}</td>
+                        <td style="font-weight: 600;">KSh ${Number(payout.amount).toLocaleString()}</td>
+                        <td>${payout.payment_method === 'mpesa' ? 'M-Pesa' : 'Bank Transfer'}</td>
+                        <td><span class="status-badge ${payout.status}">${payout.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load payouts</td></tr>';
+            }
+        }
+
+        document.getElementById('payout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const amount = document.getElementById('payout-amount').value;
+            const paymentMethod = document.getElementById('payout-method').value;
+            const paymentDetails = document.getElementById('payout-details').value;
+
+            try {
+                const response = await fetch('/api/marketer/payout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: parseFloat(amount), paymentMethod, paymentDetails })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Payout request submitted!', 'success');
+                    document.getElementById('payout-form').reset();
+                    loadDashboard();
+                } else {
+                    showAlert(data.error?.message || 'Failed to submit', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to submit payout request', 'error');
+            }
+        });
+
+        // Copy & Share
+        function copyCode() {
+            const code = dashboardData?.profile?.referralCode || document.getElementById('referral-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showAlert('Code copied to clipboard!', 'success');
+            }).catch(() => {
+                const el = document.createElement('textarea');
+                el.value = code;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                showAlert('Code copied to clipboard!', 'success');
+            });
+        }
+
+        function shareWhatsApp() {
+            const code = dashboardData?.profile?.referralCode || '';
+            const text = `Shop at CreviaBeauty and use my code ${code} for great deals! Visit: https://creviabeauty.com/?ref=${code}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareTwitter() {
+            const code = dashboardData?.profile?.referralCode || '';
+            const text = `Shop quality furniture at @CreviaFurnitures! Use my code ${code} for great deals!`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareFacebook() {
+            const code = dashboardData?.profile?.referralCode || '';
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://creviabeauty.com/?ref=' + code)}`, '_blank');
+        }
+
+        // Load Rewards Section
+        function loadRewardsSection() {
+            if (!dashboardData) return;
+            const profile = dashboardData.profile;
+            document.getElementById('rewards-tier').textContent = 'Marketer';
+            document.getElementById('rewards-commission-rate').textContent = `${profile.commissionRate}%`;
+            document.getElementById('rewards-total-sales').textContent = `KSh ${Number(profile.totalSales).toLocaleString()}`;
+            document.getElementById('rewards-total-commission').textContent = `KSh ${Number(profile.totalCommission).toLocaleString()}`;
+            document.getElementById('rewards-referral-code').textContent = profile.referralCode;
+        }
+
+        // Load Profile Section
+        let currentUserData = null;
+        async function loadProfileSection() {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
+                if (data.loggedIn && data.user) {
+                    currentUserData = data.user;
+                    document.getElementById('profile-name').value = data.user.name || '';
+                    document.getElementById('profile-email').value = data.user.email || '';
+                    document.getElementById('profile-phone').value = data.user.phone || '';
+                }
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        // Profile Form Handler
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('profile-name').value;
+            const phone = document.getElementById('profile-phone').value;
+
+            try {
+                const response = await fetch('/api/user/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Profile updated successfully!', 'success');
+                    document.getElementById('user-name').textContent = name;
+                    document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+                } else {
+                    showAlert(data.error || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update profile', 'error');
+            }
+        });
+
+        // Password Form Handler
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                showAlert('New passwords do not match', 'error');
+                return;
+            }
+            if (newPassword.length < 6) {
+                showAlert('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Password updated successfully!', 'success');
+                    document.getElementById('password-form').reset();
+                } else {
+                    showAlert(data.error || 'Failed to update password', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update password', 'error');
+            }
+        });
+
+        // Logout
+        async function logout() {
+            try {
+                await fetch('/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        // Initialize
+        loadDashboard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Marketer - CreviaBeauty</title>
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .marketer-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #2d2d44 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .marketer-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .marketer-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .benefits-section {
+            padding: 4rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        .benefit-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .benefit-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .benefit-card h3 {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 0.75rem;
+        }
+        .benefit-card p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        .tiers-section {
+            background: #f8f9fa;
+            padding: 3rem 2rem;
+        }
+        .tiers-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .tiers-section h2 {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 2rem;
+        }
+        .tier-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .tier-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .tier-card.bronze { border-top: 4px solid #cd7f32; }
+        .tier-card.silver { border-top: 4px solid #c0c0c0; }
+        .tier-card.gold { border-top: 4px solid #ffd700; }
+        .tier-card.platinum { border-top: 4px solid #e5e4e2; }
+        .tier-name {
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .tier-rate {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+        .tier-requirement {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .apply-section {
+            padding: 4rem 2rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .apply-section h2 {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 2rem;
+        }
+        .apply-form {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        .apply-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .apply-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .apply-form input,
+        .apply-form select,
+        .apply-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .terms-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .terms-check input {
+            width: auto;
+            margin-top: 0.25rem;
+        }
+        .terms-check label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .pending-message {
+            text-align: center;
+            padding: 3rem;
+            background: #fff3cd;
+            border-radius: 12px;
+        }
+        .pending-message h3 {
+            color: #856404;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254745853914">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">Join Our Marketer Program</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">Crevia<span>Furnitures</span></a>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li id="nav-auth-link"><a href="/login">Sign In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="marketer-hero">
+        <h1>Become a Crevia Marketer</h1>
+        <p>Earn money by referring customers to CreviaBeauty. Share your unique code and earn commission on every sale!</p>
+    </div>
+
+    <!-- Benefits Section -->
+    <section class="benefits-section">
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">💰</div>
+                <h3>Clear Earnings</h3>
+                <p>See exactly how much you'll earn on each product. Your commission amount is displayed clearly in your dashboard.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🔗</div>
+                <h3>Your Unique Code</h3>
+                <p>Get a personal referral code to share. When customers use it at checkout, you earn commission automatically.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">💳</div>
+                <h3>Easy Payouts</h3>
+                <p>Request payouts via M-Pesa or bank transfer once you reach KES 5,000 in earnings.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">📊</div>
+                <h3>Track Everything</h3>
+                <p>Access a dedicated dashboard to monitor your sales, commissions, and payout history in real-time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="tiers-section">
+        <div class="tiers-container">
+            <h2>How It Works</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 2rem;">Start earning in 3 simple steps</p>
+            <div class="tier-cards">
+                <div class="tier-card" style="border-top: 4px solid #d4a574;">
+                    <div class="tier-rate" style="font-size: 2.5rem;">1</div>
+                    <div class="tier-name" style="color: #1a1a2e;">Apply & Get Approved</div>
+                    <div class="tier-requirement">Submit your application below. We review and approve within 24-48 hours.</div>
+                </div>
+                <div class="tier-card" style="border-top: 4px solid #d4a574;">
+                    <div class="tier-rate" style="font-size: 2.5rem;">2</div>
+                    <div class="tier-name" style="color: #1a1a2e;">Share Your Code</div>
+                    <div class="tier-requirement">Browse products, see your earnings per item, and share your code with customers.</div>
+                </div>
+                <div class="tier-card" style="border-top: 4px solid #d4a574;">
+                    <div class="tier-rate" style="font-size: 2.5rem;">3</div>
+                    <div class="tier-name" style="color: #1a1a2e;">Earn & Withdraw</div>
+                    <div class="tier-requirement">Earn commission on every sale. Request payout once you reach KES 5,000.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Apply Section -->
+    <section class="apply-section">
+        <h2>Apply Now</h2>
+        <div id="apply-container">
+            <div class="apply-form" id="apply-form-container">
+                <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">
+                    Fill in your details to apply for the marketer program. Applications are reviewed within 24-48 hours.
+                </p>
+                <form id="apply-form">
+                    <div class="form-group">
+                        <label>Preferred Payment Method</label>
+                        <select id="payment-method">
+                            <option value="mpesa">M-Pesa</option>
+                            <option value="bank">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Details</label>
+                        <textarea id="payment-details" rows="3" placeholder="For M-Pesa: Enter phone number&#10;For Bank: Enter bank name, account name, account number"></textarea>
+                    </div>
+                    <div class="terms-check">
+                        <input type="checkbox" id="terms" required>
+                        <label for="terms">I agree to the marketer terms and conditions. I understand that commissions are earned only on completed orders and must reach KES 5,000 before withdrawal.</label>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">Submit Application</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for quality furniture.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        async function checkStatus() {
+            try {
+                const userResponse = await fetch('/api/user');
+                const userData = await userResponse.json();
+
+                if (!userData.loggedIn) {
+                    document.getElementById('apply-form-container').innerHTML = `
+                        <div style="text-align: center;">
+                            <p style="margin-bottom: 1.5rem;">Please sign in to apply for the marketer program.</p>
+                            <a href="/login" class="btn">Sign In</a>
+                            <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                                Don't have an account? <a href="/register">Register here</a>
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (userData.user.isMarketer) {
+                    window.location.href = '/marketer';
+                    return;
+                }
+
+                if (userData.user.marketerStatus === 'pending') {
+                    document.getElementById('apply-form-container').innerHTML = `
+                        <div class="pending-message">
+                            <h3>Application Pending</h3>
+                            <p>Your marketer application is currently under review.</p>
+                            <p style="margin-top: 1rem; font-size: 0.9rem;">We'll notify you once it's approved. This usually takes 24-48 hours.</p>
+                            <a href="/" class="btn" style="margin-top: 1.5rem;">Back to Home</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (userData.user.marketerStatus === 'suspended') {
+                    document.getElementById('apply-form-container').innerHTML = `
+                        <div style="text-align: center; padding: 2rem; background: #f8d7da; border-radius: 12px;">
+                            <h3 style="color: #721c24;">Account Suspended</h3>
+                            <p style="color: #721c24;">Your marketer account has been suspended. Please contact support for assistance.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        document.getElementById('apply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const paymentMethod = document.getElementById('payment-method').value;
+            const paymentDetails = document.getElementById('payment-details').value;
+
+            try {
+                const response = await fetch('/api/marketer/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentMethod, paymentDetails })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Application submitted successfully!', 'success');
+                    document.getElementById('apply-form-container').innerHTML = `
+                        <div class="pending-message">
+                            <h3>Application Submitted!</h3>
+                            <p>Thank you for applying to the Crevia Marketer Program.</p>
+                            <p style="margin-top: 1rem;">Your unique code will be: <strong style="color: var(--gold);">${data.referralCode}</strong></p>
+                            <p style="margin-top: 1rem; font-size: 0.9rem;">We'll review your application and notify you within 24-48 hours.</p>
+                            <a href="/" class="btn" style="margin-top: 1.5rem;">Back to Home</a>
+                        </div>
+                    `;
+                } else {
+                    showAlert(data.error?.message || 'Failed to submit application', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to submit application', 'error');
+            }
+        });
+
+        checkStatus();
+    </script>
+</body>
+</html>

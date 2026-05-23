@@ -1,0 +1,20 @@
+# CreviaBeauty - Robots.txt
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://creviabeauty.com/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /cart
+Disallow: /login
+Disallow: /register
+
+# Allow search engines to crawl product images
+Allow: /uploads/
+Allow: /images/
+
+# Crawl delay for polite crawling
+Crawl-delay: 1

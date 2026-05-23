@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+sessions.db
+
+# Test artefacts & cookie dumps (never commit session tokens)
+*cookies*.txt
+*cookies*.json
+newmarketer.txt
+test_cookies.txt
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Environment — never commit real credentials. Only .env.example is tracked.
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings
+.claude/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Production
+dist/
+build/

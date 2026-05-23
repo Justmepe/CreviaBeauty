@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CreviaBeauty</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <!-- Mobile Sidebar Toggle -->
+    <button class="mobile-sidebar-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
+                <span>&#9664;</span>
+            </button>
+
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-logo">
+                    <img src="/assets/favicon.png" alt="CreviaBeauty">
+                    <span class="sidebar-logo-text">Crevia<span>Beauty</span></span>
+                </a>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Admin</div>
+                    <div class="user-role">
+                        <span class="role-badge">Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                                <span class="icon">&#128200;</span>
+                                <span class="label">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#products" class="nav-link" data-section="products">
+                                <span class="icon">&#128722;</span>
+                                <span class="label">Products</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#hero-slides" class="nav-link" data-section="hero-slides">
+                                <span class="icon">&#127916;</span>
+                                <span class="label">Hero Slides</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#orders" class="nav-link" data-section="orders">
+                                <span class="icon">&#128230;</span>
+                                <span class="label">Orders</span>
+                                <span class="badge" id="orders-badge" style="display: none;">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#marketers" class="nav-link" data-section="marketers">
+                                <span class="icon">&#128101;</span>
+                                <span class="label">Marketers</span>
+                                <span class="badge" id="marketers-badge" style="display: none;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#reviews" class="nav-link" data-section="reviews">
+                                <span class="icon">&#11088;</span>
+                                <span class="label">Reviews</span>
+                                <span class="badge" id="reviews-badge" style="display: none;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#messages" class="nav-link" data-section="messages">
+                                <span class="icon">&#128172;</span>
+                                <span class="label">Messages</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Settings</div>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="#rewards" class="nav-link" data-section="rewards">
+                                <span class="icon">&#127873;</span>
+                                <span class="label">Rewards</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#payments" class="nav-link" data-section="payments">
+                                <span class="icon">&#128179;</span>
+                                <span class="label">Payment Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/" class="nav-link">
+                    <span class="icon">&#127968;</span>
+                    <span class="label">Back to Store</span>
+                </a>
+                <a href="#" class="nav-link" onclick="logout(); return false;">
+                    <span class="icon">&#128682;</span>
+                    <span class="label">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1 class="header-title" id="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-search">
+                        <span class="search-icon">&#128269;</span>
+                        <input type="text" placeholder="Search..." id="global-search">
+                    </div>
+                    <div class="header-notifications">
+                        <button id="notifications-btn">&#128276;</button>
+                        <span class="notification-badge" id="notification-count" style="display: none;">0</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 1rem; color: #7f8c8d;">Loading dashboard...</p>
+                </div>
+
+                <!-- Access Denied -->
+                <div id="access-denied" style="display: none;">
+                    <div class="empty-state">
+                        <div class="icon">&#128683;</div>
+                        <h3>Access Denied</h3>
+                        <p>You need admin privileges to access this page.</p>
+                        <a href="/login" class="btn-dashboard primary">Login as Admin</a>
+                    </div>
+                </div>
+
+                <!-- Dashboard Section -->
+                <section id="section-dashboard" class="dashboard-section" style="display: none;">
+                    <!-- Stats Cards -->
+                    <div class="stats-grid" id="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">&#128722;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Products</div>
+                                <div class="stat-value" id="stat-products">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-icon">&#128230;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Orders</div>
+                                <div class="stat-value" id="stat-orders">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-icon">&#9203;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Pending Orders</div>
+                                <div class="stat-value" id="stat-pending">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card gold">
+                            <div class="stat-icon">&#128176;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Revenue</div>
+                                <div class="stat-value" id="stat-revenue">KSh 0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <a href="#products" class="quick-action" onclick="showSection('products')">
+                            <div class="icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;">&#10133;</div>
+                            <span class="text">Add Product</span>
+                        </a>
+                        <a href="#orders" class="quick-action" onclick="showSection('orders')">
+                            <div class="icon" style="background: rgba(39, 174, 96, 0.1); color: #27ae60;">&#128230;</div>
+                            <span class="text">View Orders</span>
+                        </a>
+                        <a href="#marketers" class="quick-action" onclick="showSection('marketers')">
+                            <div class="icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">&#128101;</div>
+                            <span class="text">Manage Marketers</span>
+                        </a>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Orders</h3>
+                            <a href="#orders" class="btn-dashboard outline sm" onclick="showSection('orders')">View All</a>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-orders-table">
+                                    <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Products Section -->
+                <section id="section-products" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Manage Products</h3>
+                            <button class="btn-dashboard primary" onclick="showAddProductModal()">
+                                <span>&#10133;</span> Add Product
+                            </button>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table">
+                                    <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hero Slides Section -->
+                <section id="section-hero-slides" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Homepage Hero Slides</h3>
+                            <button class="btn-dashboard primary" onclick="showAddSlideModal()">
+                                <span>&#10133;</span> Add Slide
+                            </button>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Image</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hero-slides-table">
+                                    <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Orders Section -->
+                <section id="section-orders" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Orders Management</h3>
+                            <div class="filter-pills">
+                                <button class="filter-pill active" data-filter="">All</button>
+                                <button class="filter-pill" data-filter="pending">Pending</button>
+                                <button class="filter-pill" data-filter="processing">Processing</button>
+                                <button class="filter-pill" data-filter="shipped">Shipped</button>
+                                <button class="filter-pill" data-filter="delivered">Delivered</button>
+                            </div>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Customer</th>
+                                        <th>Shipping</th>
+                                        <th>Total</th>
+                                        <th>Payment</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table">
+                                    <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Marketers Section -->
+                <section id="section-marketers" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Marketers Management</h3>
+                            <div class="filter-pills">
+                                <button class="filter-pill active" data-filter="">All</button>
+                                <button class="filter-pill" data-filter="pending">Pending</button>
+                                <button class="filter-pill" data-filter="approved">Approved</button>
+                                <button class="filter-pill" data-filter="suspended">Suspended</button>
+                            </div>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Marketer</th>
+                                        <th>Code</th>
+                                        <th>Tier</th>
+                                        <th>Sales</th>
+                                        <th>Commission</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="marketers-table">
+                                    <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payout Requests -->
+                    <div class="content-card" style="margin-top: 1.5rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Payout Requests</h3>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Marketer</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Details</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payouts-table">
+                                    <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reviews Section -->
+                <section id="section-reviews" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Customer Reviews</h3>
+                            <div class="filter-pills">
+                                <button class="filter-pill active" data-filter="">All</button>
+                                <button class="filter-pill" data-filter="pending">Pending</button>
+                                <button class="filter-pill" data-filter="approved">Approved</button>
+                            </div>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Rating</th>
+                                        <th>Review</th>
+                                        <th>Quality</th>
+                                        <th>Delivery</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reviews-table">
+                                    <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Messages Section -->
+                <section id="section-messages" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Contact Messages</h3>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Message</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="messages-table">
+                                    <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rewards Section -->
+                <section id="section-rewards" class="dashboard-section" style="display: none;">
+                    <div class="grid-2">
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Points Configuration</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="rewards-settings-form">
+                                    <div class="form-group-dashboard">
+                                        <label>Points earned per KES</label>
+                                        <input type="number" id="points_per_kes" min="1" placeholder="e.g., 100">
+                                        <small>Customer earns 1 point for every X KES spent</small>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Referral Bonus Points</label>
+                                        <input type="number" id="referral_bonus" min="0" placeholder="e.g., 500">
+                                        <small>Points given to both referrer and referee</small>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Points to KES Rate</label>
+                                        <input type="number" id="points_to_kes_rate" min="1" placeholder="e.g., 10">
+                                        <small>How many points equal KES 1</small>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Minimum Points to Redeem</label>
+                                        <input type="number" id="min_redeem_points" min="0" placeholder="e.g., 1000">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Minimum Withdrawal (KES)</label>
+                                        <input type="number" id="min_points_withdrawal" min="0" placeholder="e.g., 5000">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Minimum Marketer Payout (KES)</label>
+                                        <input type="number" id="min_marketer_payout" min="0" placeholder="e.g., 5000">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                            <input type="checkbox" id="points_enabled" style="width: auto;">
+                                            <span>Enable Points System</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                            <input type="checkbox" id="referrals_enabled" style="width: auto;">
+                                            <span>Enable Referral Bonuses</span>
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard primary">Save Settings</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Points Withdrawals</h3>
+                            </div>
+                            <div class="card-body no-padding">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Customer</th>
+                                            <th>Points</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="withdrawals-table">
+                                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Payments Section -->
+                <section id="section-payments" class="dashboard-section" style="display: none;">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="payment-settings-form" style="max-width: 600px;">
+                                <div class="alert-box info" style="margin-bottom: 1.5rem;">
+                                    <span class="icon">&#9432;</span>
+                                    <div class="content">
+                                        <div class="title">Payment Methods</div>
+                                        Configure your accepted payment methods and details.
+                                    </div>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem; font-size: 1rem;">Enabled Payment Methods</h4>
+                                    <div class="form-group-dashboard">
+                                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0.5rem;">
+                                            <input type="checkbox" id="cod_enabled" style="width: auto;">
+                                            <span>Cash on Delivery (COD)</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0.5rem;">
+                                            <input type="checkbox" id="mpesa_enabled" style="width: auto;">
+                                            <span>M-Pesa</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                            <input type="checkbox" id="bank_enabled" style="width: auto;">
+                                            <span>Bank Transfer</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div style="background: #e8f5e9; padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem; font-size: 1rem; color: #1b5e20;">M-Pesa Settings</h4>
+                                    <div class="form-group-dashboard">
+                                        <label>M-Pesa Type</label>
+                                        <select id="mpesa_type" onchange="toggleMpesaFields()">
+                                            <option value="send_money">Send Money (Phone Number)</option>
+                                            <option value="paybill">Paybill (Business Number + Account)</option>
+                                            <option value="till">Till Number (Buy Goods)</option>
+                                        </select>
+                                    </div>
+                                    <div id="mpesa-phone-fields">
+                                        <div class="form-group-dashboard">
+                                            <label>M-Pesa Phone Number</label>
+                                            <input type="text" id="mpesa_phone" placeholder="e.g., 0712345678">
+                                        </div>
+                                    </div>
+                                    <div id="mpesa-paybill-fields" style="display: none;">
+                                        <div class="form-group-dashboard">
+                                            <label>Paybill Number</label>
+                                            <input type="text" id="mpesa_paybill_number" placeholder="e.g., 123456">
+                                        </div>
+                                        <div class="form-group-dashboard">
+                                            <label>Account Number</label>
+                                            <input type="text" id="mpesa_paybill_account" placeholder="Account name">
+                                        </div>
+                                    </div>
+                                    <div id="mpesa-till-fields" style="display: none;">
+                                        <div class="form-group-dashboard">
+                                            <label>Till Number</label>
+                                            <input type="text" id="mpesa_till_number" placeholder="e.g., 789012">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="background: #e3f2fd; padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem; font-size: 1rem; color: #1565c0;">Bank Transfer Settings</h4>
+                                    <div class="form-group-dashboard">
+                                        <label>Bank Name</label>
+                                        <input type="text" id="bank_name" placeholder="e.g., Equity Bank">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Account Name</label>
+                                        <input type="text" id="bank_account_name" placeholder="e.g., CreviaBeauty Ltd">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Account Number</label>
+                                        <input type="text" id="bank_account_number" placeholder="e.g., 1234567890">
+                                    </div>
+                                    <div class="form-group-dashboard">
+                                        <label>Branch</label>
+                                        <input type="text" id="bank_branch" placeholder="e.g., Nairobi Branch">
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-dashboard primary" style="width: 100%;">Save Payment Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Product</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="product-form" enctype="multipart/form-data">
+                <input type="hidden" id="product-id">
+                <div class="form-group">
+                    <label for="product-name">Product Name</label>
+                    <input type="text" id="product-name" required placeholder="Enter product name">
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea id="product-description" placeholder="Enter product description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Selling Price (KSh)</label>
+                    <input type="number" id="product-price" required placeholder="Current selling price" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="product-original-price">Original Price (KSh) <small style="color: #888;">(optional)</small></label>
+                    <input type="number" id="product-original-price" placeholder="Price before discount" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="product-discount">Discount %</label>
+                    <input type="number" id="product-discount" placeholder="0" min="0" max="100" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="product-category">Category</label>
+                    <select id="product-category" required>
+                        <option value="">Select category</option>
+                        <option value="Perfumes">Perfumes</option>
+                        <option value="Women's Skincare">Women's Skincare</option>
+                        <option value="Men's Skincare">Men's Skincare</option>
+                        <option value="Makeup">Makeup</option>
+                        <option value="Hair Care">Hair Care</option>
+                        <option value="Body Care">Body Care</option>
+                        <option value="Fragrances">Fragrances</option>
+                        <option value="Beauty Tools">Beauty Tools</option>
+                        <option value="Wigs">Wigs</option>
+                    </select>
+                </div>
+
+                <!-- Wig-specific attributes (shown only when category = Wigs) -->
+                <div id="wig-fields" style="display:none; background:#fdf4ff; padding:1rem; border-radius:8px; border:1px solid #f0d4ff;">
+                    <h4 style="margin:0 0 0.75rem 0; color:#7c3aed;">Wig attributes</h4>
+                    <div class="form-group">
+                        <label for="product-wig-texture">Texture</label>
+                        <select id="product-wig-texture">
+                            <option value="">— Select —</option>
+                            <option value="Straight">Straight</option>
+                            <option value="Bone Straight">Bone Straight</option>
+                            <option value="Yaki Straight">Yaki Straight</option>
+                            <option value="Kinky Straight">Kinky Straight</option>
+                            <option value="Body Wave">Body Wave</option>
+                            <option value="Loose Wave">Loose Wave</option>
+                            <option value="Deep Wave">Deep Wave</option>
+                            <option value="Water Wave">Water Wave</option>
+                            <option value="Curly">Curly</option>
+                            <option value="Kinky Curly">Kinky Curly</option>
+                            <option value="Afro Kinky">Afro Kinky</option>
+                            <option value="Braided">Braided</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-wig-cap-type">Cap type</label>
+                        <select id="product-wig-cap-type">
+                            <option value="">— Select —</option>
+                            <option value="Headband">Headband</option>
+                            <option value="Machine-made">Machine-made</option>
+                            <option value="U-part">U-part</option>
+                            <option value="V-part">V-part</option>
+                            <option value="4x4 Closure">4x4 Closure</option>
+                            <option value="5x5 Closure">5x5 Closure</option>
+                            <option value="6x6 Closure">6x6 Closure</option>
+                            <option value="7x7 Closure">7x7 Closure</option>
+                            <option value="4x4 HD Closure">4x4 HD Closure</option>
+                            <option value="13x4 Lace Front">13x4 Lace Front</option>
+                            <option value="13x4 HD Lace Front">13x4 HD Lace Front</option>
+                            <option value="13x6 HD Lace Front">13x6 HD Lace Front</option>
+                            <option value="360 HD Lace">360 HD Lace</option>
+                            <option value="Full Lace">Full Lace</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-wig-origin">Hair source / origin</label>
+                        <select id="product-wig-origin">
+                            <option value="">— Select —</option>
+                            <option value="Synthetic">Synthetic</option>
+                            <option value="Heat-friendly Synthetic">Heat-friendly Synthetic</option>
+                            <option value="Human/Synthetic Blend">Human/Synthetic Blend (Semi-Human)</option>
+                            <option value="Brazilian">Brazilian (Human)</option>
+                            <option value="Peruvian">Peruvian (Human)</option>
+                            <option value="Indian">Indian (Human)</option>
+                            <option value="Malaysian">Malaysian (Human)</option>
+                            <option value="Cambodian">Cambodian (Human, Raw)</option>
+                            <option value="Vietnamese">Vietnamese (Human, Raw)</option>
+                            <option value="European">European (Human)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-wig-density">Density %</label>
+                        <select id="product-wig-density">
+                            <option value="">— Select —</option>
+                            <option value="130">130% (natural)</option>
+                            <option value="150">150% (standard)</option>
+                            <option value="180">180% (full)</option>
+                            <option value="200">200% (very full)</option>
+                            <option value="250">250% (extra)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-stock">Stock Quantity</label>
+                    <input type="number" id="product-stock" required placeholder="Enter stock quantity" min="0">
+                </div>
+                <div class="form-group" style="background: #fff3cd; padding: 1rem; border-radius: 8px;">
+                    <label for="product-cost-price">Cost Price (KSh) <small style="color: #856404;">(NOT shown to customers)</small></label>
+                    <input type="number" id="product-cost-price" placeholder="Your cost price" min="0">
+                    <small style="color: #856404;">Used for marketer commission calculation</small>
+                </div>
+                <div class="form-group">
+                    <label for="product-image">Product Image</label>
+                    <input type="file" id="product-image" accept="image/*">
+                    <div id="image-preview" style="margin-top: 10px;"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hero Slide Modal -->
+    <div id="hero-slide-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="hero-slide-modal-title">Add Hero Slide</h3>
+                <button class="modal-close" onclick="closeSlideModal()">&times;</button>
+            </div>
+            <form id="hero-slide-form" enctype="multipart/form-data">
+                <input type="hidden" id="hero-slide-id">
+
+                <div class="form-group">
+                    <label for="hero-slide-category">Category (link target)</label>
+                    <select id="hero-slide-category" required>
+                        <option value="">Select category</option>
+                        <option value="Perfumes">Perfumes</option>
+                        <option value="Women's Skincare">Women's Skincare</option>
+                        <option value="Men's Skincare">Men's Skincare</option>
+                        <option value="Makeup">Makeup</option>
+                        <option value="Hair Care">Hair Care</option>
+                        <option value="Body Care">Body Care</option>
+                        <option value="Fragrances">Fragrances</option>
+                        <option value="Beauty Tools">Beauty Tools</option>
+                        <option value="Wigs">Wigs</option>
+                    </select>
+                    <small style="color:#888;">The "Shop ..." button links to /products?category=this</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="hero-slide-badge">Badge <small style="color:#888;">(small label above title)</small></label>
+                    <input type="text" id="hero-slide-badge" placeholder="e.g. LUXURY SCENTS" maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="hero-slide-title-prefix">Title — opening words <small style="color:#888;">(plain)</small></label>
+                    <input type="text" id="hero-slide-title-prefix" required placeholder="e.g. Exclusive" maxlength="255">
+                </div>
+                <div class="form-group">
+                    <label for="hero-slide-title-highlight">Title — highlighted word(s) <small style="color:#888;">(rendered in gold)</small></label>
+                    <input type="text" id="hero-slide-title-highlight" placeholder="e.g. Fragrances" maxlength="255">
+                </div>
+                <div class="form-group">
+                    <label for="hero-slide-title-suffix">Title — closing words <small style="color:#888;">(optional, plain)</small></label>
+                    <input type="text" id="hero-slide-title-suffix" placeholder="e.g. Collection" maxlength="255">
+                </div>
+
+                <div class="form-group">
+                    <label for="hero-slide-description">Description</label>
+                    <textarea id="hero-slide-description" placeholder="Plain text. To add a CTA link, fill the fields below."></textarea>
+                </div>
+
+                <div class="form-group" style="background:#eef6ff; padding:1rem; border-radius:8px;">
+                    <label>Optional CTA link in the description</label>
+                    <input type="text" id="hero-slide-extra-link-url" placeholder="URL e.g. /quiz" maxlength="255" style="margin-bottom:0.5rem;">
+                    <input type="text" id="hero-slide-extra-link-text" placeholder="Link text e.g. Take our 5-question scent quiz." maxlength="150">
+                    <small style="color:#3b6fb8;">Leave both empty to skip. Filled in: shown as an underlined link at the end of the description.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="hero-slide-link-text">"Shop ..." button text</label>
+                    <input type="text" id="hero-slide-link-text" required placeholder="e.g. Shop Fragrances" maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="hero-slide-image">Slide Image</label>
+                    <input type="file" id="hero-slide-image" accept="image/*">
+                    <small style="color:#888;">Upload a new image, or leave empty and paste a URL below.</small>
+                    <input type="text" id="hero-slide-image-url" placeholder="Or paste image URL (e.g. https://...)" maxlength="500" style="margin-top:0.5rem;">
+                    <div id="hero-slide-image-preview" style="margin-top:10px;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hero-slide-display-order">Display order <small style="color:#888;">(lower = earlier)</small></label>
+                    <input type="number" id="hero-slide-display-order" value="0" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:0.5rem;">
+                        <input type="checkbox" id="hero-slide-is-active" checked>
+                        <span>Active (shown on homepage)</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Slide</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="modal">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>Order Details</h3>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div id="order-modal-content" style="padding: 1.5rem;">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        let isEditing = false;
+        let currentSection = 'dashboard';
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        mobileToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+            sidebarOverlay.classList.toggle('active');
+            mobileToggle.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            sidebarOverlay.classList.remove('active');
+            mobileToggle.classList.remove('active');
+        });
+
+        // Restore sidebar state
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.dataset.section;
+                showSection(section);
+
+                // Close mobile sidebar
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                mobileToggle.classList.remove('active');
+            });
+        });
+
+        function showSection(section) {
+            // Update nav links
+            document.querySelectorAll('.nav-link[data-section]').forEach(l => l.classList.remove('active'));
+            document.querySelector(`.nav-link[data-section="${section}"]`)?.classList.add('active');
+
+            // Hide all sections
+            document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+
+            // Show selected section
+            document.getElementById(`section-${section}`).style.display = 'block';
+
+            // Update title
+            const titles = {
+                dashboard: 'Dashboard',
+                products: 'Products',
+                'hero-slides': 'Hero Slides',
+                orders: 'Orders',
+                marketers: 'Marketers',
+                reviews: 'Reviews',
+                messages: 'Messages',
+                rewards: 'Rewards Settings',
+                payments: 'Payment Settings'
+            };
+            document.getElementById('page-title').textContent = titles[section] || 'Dashboard';
+
+            // Load data
+            currentSection = section;
+            loadSectionData(section);
+
+            // Update URL hash
+            window.location.hash = section;
+        }
+
+        function loadSectionData(section) {
+            switch(section) {
+                case 'dashboard': loadDashboardData(); break;
+                case 'products': loadProducts(); break;
+                case 'hero-slides': loadHeroSlides(); break;
+                case 'orders': loadOrders(); break;
+                case 'marketers': loadMarketers(); loadMarketerPayouts(); break;
+                case 'reviews': loadReviews(); break;
+                case 'messages': loadContacts(); break;
+                case 'rewards': loadRewardsSettings(); loadPointsWithdrawals(); break;
+                case 'payments': loadPaymentSettings(); break;
+            }
+        }
+
+        // Check Admin Access
+        async function checkAdminAccess() {
+            try {
+                const response = await fetch('/api/user');
+                const data = await response.json();
+
+                if (!data.loggedIn || !data.user.isAdmin) {
+                    document.getElementById('loading-state').style.display = 'none';
+                    document.getElementById('access-denied').style.display = 'block';
+                    return;
+                }
+
+                // Update user info
+                document.getElementById('user-name').textContent = data.user.name || 'Admin';
+                document.getElementById('user-avatar').textContent = (data.user.name || 'A').charAt(0).toUpperCase();
+
+                document.getElementById('loading-state').style.display = 'none';
+
+                // Check URL hash or default to dashboard
+                const hash = window.location.hash.replace('#', '') || 'dashboard';
+                showSection(hash);
+            } catch (error) {
+                document.getElementById('loading-state').innerHTML = '<p class="text-center" style="color: #e94560;">Failed to verify access. Please try again.</p>';
+            }
+        }
+
+        // Dashboard Data
+        async function loadDashboardData() {
+            try {
+                const [productsRes, ordersRes] = await Promise.all([
+                    fetch('/api/products'),
+                    fetch('/api/admin/orders')
+                ]);
+
+                const productsData = await productsRes.json();
+                const ordersData = await ordersRes.json();
+
+                const products = productsData.data || productsData || [];
+                const orders = ordersData.data || ordersData || [];
+
+                const pending = orders.filter(o => o.status === 'pending').length;
+                const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+                document.getElementById('stat-products').textContent = products.length;
+                document.getElementById('stat-orders').textContent = orders.length;
+                document.getElementById('stat-pending').textContent = pending;
+                document.getElementById('stat-revenue').textContent = `KSh ${revenue.toLocaleString()}`;
+
+                // Update badge
+                if (pending > 0) {
+                    document.getElementById('orders-badge').style.display = 'block';
+                    document.getElementById('orders-badge').textContent = pending;
+                }
+
+                // Recent orders
+                renderRecentOrders(orders.slice(0, 5));
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            }
+        }
+
+        function renderRecentOrders(orders) {
+            const tbody = document.getElementById('recent-orders-table');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No orders yet</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td><strong>#${o.id}</strong></td>
+                    <td>${escapeHtml(o.user_name) || 'Guest'}</td>
+                    <td><strong style="color: #27ae60;">KSh ${Number(o.total).toLocaleString()}</strong></td>
+                    <td><span class="status-badge ${o.status}">${o.status}</span></td>
+                    <td>${new Date(o.created_at).toLocaleDateString('en-KE')}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Products
+        async function loadProducts() {
+            const tbody = document.getElementById('products-table');
+            try {
+                const response = await fetch('/api/products');
+                const result = await response.json();
+                const products = result.data || result || [];
+
+                if (products.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No products yet. Add your first product!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = products.map(p => `
+                    <tr>
+                        <td>
+                            <div class="table-product">
+                                ${p.image_url ? `<img src="${p.image_url}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'">` : '<span style="font-size: 2rem;">&#128722;</span>'}
+                                <div class="table-product-info">
+                                    <h4>${escapeHtml(p.name)}</h4>
+                                    <span>${(p.description || '').substring(0, 40)}...</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-badge" style="background: rgba(26,26,46,0.1); color: #1a1a2e;">${p.category || '-'}</span></td>
+                        <td><strong style="color: #e94560;">KSh ${Number(p.price).toLocaleString()}</strong></td>
+                        <td><span class="status-badge ${p.stock < 10 ? 'pending' : 'approved'}">${p.stock} units</span></td>
+                        <td>
+                            <button class="action-btn edit" onclick="editProduct(${p.id})" title="Edit">&#9998;</button>
+                            <button class="action-btn delete" onclick="deleteProduct(${p.id})" title="Delete">&#128465;</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load products</td></tr>';
+            }
+        }
+
+        // Orders
+        async function loadOrders(filter = '') {
+            const tbody = document.getElementById('orders-table');
+            try {
+                const response = await fetch('/api/admin/orders');
+                const result = await response.json();
+                let orders = result.data || result || [];
+
+                if (filter) {
+                    orders = orders.filter(o => o.status === filter);
+                }
+
+                if (orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #7f8c8d;">No orders found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td>
+                            <strong>#${o.id}</strong><br>
+                            <small style="color: #7f8c8d;">${new Date(o.created_at).toLocaleDateString('en-KE')}</small>
+                        </td>
+                        <td>
+                            ${escapeHtml(o.user_name) || 'Guest'}<br>
+                            <small style="color: #7f8c8d;">${escapeHtml(o.phone) || ''}</small>
+                        </td>
+                        <td style="max-width: 150px;">
+                            <small style="white-space: pre-wrap;">${escapeHtml(o.shipping_address) || '-'}</small>
+                        </td>
+                        <td><strong style="color: #27ae60;">KSh ${Number(o.total).toLocaleString()}</strong></td>
+                        <td>
+                            <span class="status-badge ${o.payment_status === 'paid' ? 'approved' : 'pending'}">
+                                ${o.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+                            </span><br>
+                            <small style="color: #7f8c8d;">${getPaymentLabel(o.payment_method)}</small>
+                            ${o.payment_status !== 'paid' ? `<br><button class="btn-dashboard success sm" onclick="markPaymentReceived(${o.id})" style="margin-top: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.7rem;">Mark Paid</button>` : ''}
+                        </td>
+                        <td>
+                            <select onchange="updateOrderStatus(${o.id}, this.value)" class="status-badge" style="cursor: pointer; border: none; padding: 0.5rem;">
+                                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
+                                <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="complete" ${o.status === 'complete' ? 'selected' : ''}>Complete</option>
+                                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="action-btn view" onclick="viewOrderDetails(${o.id})" title="View">&#128065;</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load orders</td></tr>';
+            }
+        }
+
+        function getPaymentLabel(method) {
+            const labels = { 'cod': 'COD', 'mpesa': 'M-Pesa', 'bank': 'Bank' };
+            return labels[method] || method || '-';
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            try {
+                const response = await fetch(`/api/admin/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Order status updated', 'success');
+                } else {
+                    showAlert(data.error || 'Failed to update', 'error');
+                    loadOrders();
+                }
+            } catch (error) {
+                showAlert('Failed to update order status', 'error');
+            }
+        }
+
+        async function markPaymentReceived(orderId) {
+            if (!confirm('Mark this order as paid?')) return;
+            try {
+                const response = await fetch(`/api/admin/orders/${orderId}/payment`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payment_status: 'paid' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Payment marked as received', 'success');
+                    loadOrders();
+                } else {
+                    showAlert(data.error || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update payment status', 'error');
+            }
+        }
+
+        async function viewOrderDetails(orderId) {
+            try {
+                const response = await fetch(`/api/admin/orders/${orderId}`);
+                const order = await response.json();
+
+                const content = document.getElementById('order-modal-content');
+                content.innerHTML = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="margin: 0;">Order #${order.id}</h4>
+                            <span class="status-badge ${order.status}">${order.status}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                            <p style="margin: 0.25rem 0;"><strong>Customer:</strong> ${escapeHtml(order.user_name) || 'Guest'}</p>
+                            <p style="margin: 0.25rem 0;"><strong>Email:</strong> ${escapeHtml(order.user_email) || '-'}</p>
+                            <p style="margin: 0.25rem 0;"><strong>Phone:</strong> ${escapeHtml(order.phone) || '-'}</p>
+                            <p style="margin: 0.25rem 0;"><strong>Shipping:</strong> ${escapeHtml(order.shipping_address) || '-'}</p>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 0.75rem;">Items</h4>
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+                            </thead>
+                            <tbody>
+                                ${order.items ? order.items.map(item => `
+                                    <tr>
+                                        <td>${escapeHtml(item.name)}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>KSh ${Number(item.price).toLocaleString()}</td>
+                                        <td>KSh ${(item.quantity * Number(item.price)).toLocaleString()}</td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="4">No items</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="text-align: right; font-size: 1.25rem; padding-top: 1rem; border-top: 2px solid #f0f0f0;">
+                        <strong>Total: KSh ${Number(order.total).toLocaleString()}</strong>
+                    </div>
+                `;
+
+                document.getElementById('order-modal').classList.add('active');
+            } catch (error) {
+                showAlert('Failed to load order details', 'error');
+            }
+        }
+
+        function closeOrderModal() {
+            document.getElementById('order-modal').classList.remove('active');
+        }
+
+        // Marketers
+        async function loadMarketers(filter = '') {
+            const tbody = document.getElementById('marketers-table');
+            try {
+                const url = filter ? `/api/marketer/admin/list?status=${filter}` : '/api/marketer/admin/list';
+                const response = await fetch(url);
+                const data = await response.json();
+                const marketers = data.marketers || [];
+
+                if (marketers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #7f8c8d;">No marketers found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = marketers.map(m => `
+                    <tr>
+                        <td>
+                            <div class="table-product">
+                                <div class="user-avatar" style="width: 40px; height: 40px; font-size: 1rem;">${(m.name || 'M').charAt(0).toUpperCase()}</div>
+                                <div class="table-product-info">
+                                    <h4>${escapeHtml(m.name)}</h4>
+                                    <span>${escapeHtml(m.email)}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><code style="background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 4px;">${m.referral_code || '-'}</code></td>
+                        <td><span class="tier-badge ${m.tier}">${m.tier}</span></td>
+                        <td>KSh ${Number(m.total_sales || 0).toLocaleString()}</td>
+                        <td>
+                            <span style="color: #d4a574; font-weight: 600;">${m.commission_rate}%</span>
+                            <button class="action-btn edit" onclick="showCommissionModal(${m.user_id}, ${m.commission_rate})" style="margin-left: 0.5rem; width: 24px; height: 24px; font-size: 0.75rem;" title="Edit Rate">&#9998;</button>
+                        </td>
+                        <td><span class="status-badge ${m.status === 'approved' ? 'approved' : m.status === 'pending' ? 'pending' : 'suspended'}">${m.status}</span></td>
+                        <td>
+                            ${m.status === 'pending' ? `<button class="btn-dashboard success sm" onclick="updateMarketerStatus(${m.user_id}, 'approved')">Approve</button>` : ''}
+                            ${m.status === 'approved' ? `<button class="btn-dashboard danger sm" onclick="updateMarketerStatus(${m.user_id}, 'suspended')">Suspend</button>` : ''}
+                            ${m.status === 'suspended' ? `<button class="btn-dashboard success sm" onclick="updateMarketerStatus(${m.user_id}, 'approved')">Reactivate</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update pending badge
+                const pending = marketers.filter(m => m.status === 'pending').length;
+                if (pending > 0) {
+                    document.getElementById('marketers-badge').style.display = 'block';
+                    document.getElementById('marketers-badge').textContent = pending;
+                }
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load marketers</td></tr>';
+            }
+        }
+
+        async function updateMarketerStatus(marketerId, status) {
+            if (!confirm(`${status === 'approved' ? 'Approve' : status === 'suspended' ? 'Suspend' : 'Update'} this marketer?`)) return;
+            try {
+                const response = await fetch(`/api/marketer/admin/${marketerId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    loadMarketers();
+                } else {
+                    showAlert(data.error?.message || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update marketer status', 'error');
+            }
+        }
+
+        function showCommissionModal(marketerId, currentRate) {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <h3>Edit Commission Rate</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div class="form-group-dashboard">
+                            <label>Commission Rate (%)</label>
+                            <input type="number" id="new-commission" value="${currentRate}" min="1" max="50" step="0.5">
+                        </div>
+                        <button onclick="updateCommissionRate(${marketerId})" class="btn-dashboard primary" style="width: 100%;">Update Rate</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function updateCommissionRate(marketerId) {
+            const rate = document.getElementById('new-commission').value;
+            try {
+                const response = await fetch(`/api/marketer/admin/${marketerId}/commission`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ commissionRate: parseFloat(rate) })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Commission rate updated', 'success');
+                    document.querySelector('.modal').remove();
+                    loadMarketers();
+                } else {
+                    showAlert(data.error?.message || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update commission rate', 'error');
+            }
+        }
+
+        async function loadMarketerPayouts() {
+            const tbody = document.getElementById('payouts-table');
+            try {
+                const response = await fetch('/api/marketer/admin/payouts/list');
+                const data = await response.json();
+                const payouts = data.payouts || [];
+
+                if (payouts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #7f8c8d;">No payout requests</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = payouts.map(p => `
+                    <tr>
+                        <td>${escapeHtml(p.name)}</td>
+                        <td><strong style="color: #d4a574;">KSh ${Number(p.amount).toLocaleString()}</strong></td>
+                        <td>${p.payment_method === 'mpesa' ? 'M-Pesa' : 'Bank'}</td>
+                        <td style="max-width: 120px;"><small>${escapeHtml(p.payment_details || '-')}</small></td>
+                        <td><span class="status-badge ${p.status === 'approved' ? 'approved' : p.status === 'pending' ? 'pending' : 'rejected'}">${p.status}</span></td>
+                        <td>${new Date(p.created_at).toLocaleDateString('en-KE')}</td>
+                        <td>
+                            ${p.status === 'pending' ? `
+                                <button class="btn-dashboard success sm" onclick="processMarketerPayout(${p.id}, 'approved')">Approve</button>
+                                <button class="btn-dashboard danger sm" onclick="processMarketerPayout(${p.id}, 'rejected')">Reject</button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load payouts</td></tr>';
+            }
+        }
+
+        async function processMarketerPayout(payoutId, status) {
+            const notes = status === 'rejected' ? prompt('Reason for rejection (optional):') : '';
+            try {
+                const response = await fetch(`/api/marketer/admin/payouts/${payoutId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, notes })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    loadMarketerPayouts();
+                } else {
+                    showAlert(data.error?.message || 'Failed to process', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to process payout', 'error');
+            }
+        }
+
+        // Reviews
+        async function loadReviews(filter = '') {
+            const tbody = document.getElementById('reviews-table');
+            try {
+                const response = await fetch('/api/admin/reviews');
+                const result = await response.json();
+                let reviews = result.data || result || [];
+
+                if (filter === 'pending') {
+                    reviews = reviews.filter(r => !r.is_approved);
+                } else if (filter === 'approved') {
+                    reviews = reviews.filter(r => r.is_approved);
+                }
+
+                if (reviews.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #7f8c8d;">No reviews found</td></tr>';
+                    return;
+                }
+
+                // Update pending badge
+                const pending = reviews.filter(r => !r.is_approved).length;
+                if (pending > 0) {
+                    document.getElementById('reviews-badge').style.display = 'block';
+                    document.getElementById('reviews-badge').textContent = pending;
+                }
+
+                tbody.innerHTML = reviews.map(r => `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(r.customer_name)}</strong>
+                            ${r.customer_email ? `<br><small style="color: #7f8c8d;">${escapeHtml(r.customer_email)}</small>` : ''}
+                        </td>
+                        <td><span style="color: #f1c40f; font-size: 1.1rem;">${'&#9733;'.repeat(r.rating)}${'&#9734;'.repeat(5 - r.rating)}</span></td>
+                        <td style="max-width: 200px;"><small style="color: #7f8c8d; font-style: italic;">"${(r.review_text || 'No comment').substring(0, 60)}..."</small></td>
+                        <td>${r.product_quality ? `<span style="color: #f1c40f;">${'&#9733;'.repeat(r.product_quality)}</span>` : '-'}</td>
+                        <td>${r.delivery_rating ? `<span style="color: #f1c40f;">${'&#9733;'.repeat(r.delivery_rating)}</span>` : '-'}</td>
+                        <td><span class="status-badge ${r.is_approved ? 'approved' : 'pending'}">${r.is_approved ? 'Approved' : 'Pending'}</span></td>
+                        <td>
+                            ${!r.is_approved ? `<button class="btn-dashboard success sm" onclick="approveReview(${r.id})">Approve</button>` : `<button class="btn-dashboard outline sm" onclick="declineReview(${r.id})">Decline</button>`}
+                            <button class="action-btn delete" onclick="deleteReview(${r.id})" title="Delete">&#128465;</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load reviews</td></tr>';
+            }
+        }
+
+        async function approveReview(id) {
+            try {
+                const response = await fetch(`/api/admin/reviews/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isApproved: true })
+                });
+                if (response.ok) {
+                    showAlert('Review approved', 'success');
+                    loadReviews();
+                }
+            } catch (error) {
+                showAlert('Failed to approve review', 'error');
+            }
+        }
+
+        async function declineReview(id) {
+            try {
+                const response = await fetch(`/api/admin/reviews/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isApproved: false })
+                });
+                if (response.ok) {
+                    showAlert('Review declined', 'success');
+                    loadReviews();
+                }
+            } catch (error) {
+                showAlert('Failed to decline review', 'error');
+            }
+        }
+
+        async function deleteReview(id) {
+            if (!confirm('Delete this review?')) return;
+            try {
+                const response = await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showAlert('Review deleted', 'success');
+                    loadReviews();
+                }
+            } catch (error) {
+                showAlert('Failed to delete review', 'error');
+            }
+        }
+
+        // Messages
+        async function loadContacts() {
+            const tbody = document.getElementById('messages-table');
+            try {
+                const response = await fetch('/api/admin/contacts');
+                const result = await response.json();
+                const contacts = result.data || result || [];
+
+                if (contacts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No messages yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = contacts.map(c => `
+                    <tr>
+                        <td><strong>${escapeHtml(c.name)}</strong></td>
+                        <td><a href="mailto:${escapeHtml(c.email)}" style="color: #e94560;">${escapeHtml(c.email)}</a></td>
+                        <td>${c.phone ? `<a href="tel:${c.phone}" style="color: #1a1a2e;">${c.phone}</a>` : '-'}</td>
+                        <td style="max-width: 300px;"><small style="color: #7f8c8d; font-style: italic;">"${escapeHtml(c.message).substring(0, 100)}..."</small></td>
+                        <td>${new Date(c.created_at).toLocaleDateString('en-KE')}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load messages</td></tr>';
+            }
+        }
+
+        // Rewards Settings
+        async function loadRewardsSettings() {
+            try {
+                const response = await fetch('/api/rewards/admin/settings');
+                const data = await response.json();
+                const settings = data.settings || {};
+
+                document.getElementById('points_per_kes').value = settings.points_per_kes || '100';
+                document.getElementById('referral_bonus').value = settings.referral_bonus || '500';
+                document.getElementById('points_to_kes_rate').value = settings.points_to_kes_rate || '10';
+                document.getElementById('min_redeem_points').value = settings.min_redeem_points || '1000';
+                document.getElementById('min_points_withdrawal').value = settings.min_points_withdrawal || '5000';
+                document.getElementById('min_marketer_payout').value = settings.min_marketer_payout || '5000';
+                document.getElementById('points_enabled').checked = settings.points_enabled === 'true';
+                document.getElementById('referrals_enabled').checked = settings.referrals_enabled === 'true';
+            } catch (error) {
+                console.error('Failed to load rewards settings:', error);
+            }
+        }
+
+        document.getElementById('rewards-settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const settings = {
+                points_per_kes: document.getElementById('points_per_kes').value,
+                referral_bonus: document.getElementById('referral_bonus').value,
+                points_to_kes_rate: document.getElementById('points_to_kes_rate').value,
+                min_redeem_points: document.getElementById('min_redeem_points').value,
+                min_points_withdrawal: document.getElementById('min_points_withdrawal').value,
+                min_marketer_payout: document.getElementById('min_marketer_payout').value,
+                points_enabled: document.getElementById('points_enabled').checked ? 'true' : 'false',
+                referrals_enabled: document.getElementById('referrals_enabled').checked ? 'true' : 'false'
+            };
+
+            try {
+                const response = await fetch('/api/rewards/admin/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Settings saved', 'success');
+                } else {
+                    showAlert(data.error?.message || 'Failed to save', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to save settings', 'error');
+            }
+        });
+
+        async function loadPointsWithdrawals() {
+            const tbody = document.getElementById('withdrawals-table');
+            try {
+                const response = await fetch('/api/rewards/admin/withdrawals');
+                const data = await response.json();
+                const withdrawals = data.withdrawals || [];
+
+                if (withdrawals.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No withdrawal requests</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = withdrawals.map(w => `
+                    <tr>
+                        <td>${escapeHtml(w.name)}<br><small style="color: #7f8c8d;">${escapeHtml(w.email)}</small></td>
+                        <td>${Number(w.points).toLocaleString()}</td>
+                        <td><strong style="color: #d4a574;">KSh ${Number(w.kes_amount).toLocaleString()}</strong></td>
+                        <td><span class="status-badge ${w.status === 'approved' ? 'approved' : w.status === 'pending' ? 'pending' : 'rejected'}">${w.status}</span></td>
+                        <td>
+                            ${w.status === 'pending' ? `
+                                <button class="btn-dashboard success sm" onclick="processWithdrawal(${w.id}, 'approved')">Approve</button>
+                                <button class="btn-dashboard danger sm" onclick="processWithdrawal(${w.id}, 'rejected')">Reject</button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load withdrawals</td></tr>';
+            }
+        }
+
+        async function processWithdrawal(withdrawalId, status) {
+            const notes = status === 'rejected' ? prompt('Reason (optional):') : '';
+            try {
+                const response = await fetch(`/api/rewards/admin/withdrawals/${withdrawalId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, notes })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    loadPointsWithdrawals();
+                } else {
+                    showAlert(data.error?.message || 'Failed to process', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to process withdrawal', 'error');
+            }
+        }
+
+        // Payment Settings
+        function toggleMpesaFields() {
+            const type = document.getElementById('mpesa_type').value;
+            document.getElementById('mpesa-phone-fields').style.display = type === 'send_money' ? 'block' : 'none';
+            document.getElementById('mpesa-paybill-fields').style.display = type === 'paybill' ? 'block' : 'none';
+            document.getElementById('mpesa-till-fields').style.display = type === 'till' ? 'block' : 'none';
+        }
+
+        async function loadPaymentSettings() {
+            try {
+                const response = await fetch('/api/admin/payment-settings');
+                const settings = await response.json();
+
+                document.getElementById('cod_enabled').checked = settings.cod_enabled === 'true';
+                document.getElementById('mpesa_enabled').checked = settings.mpesa_enabled === 'true';
+                document.getElementById('bank_enabled').checked = settings.bank_enabled === 'true';
+                document.getElementById('mpesa_type').value = settings.mpesa_type || 'send_money';
+                document.getElementById('mpesa_phone').value = settings.mpesa_phone || '';
+                document.getElementById('mpesa_paybill_number').value = settings.mpesa_paybill_number || '';
+                document.getElementById('mpesa_paybill_account').value = settings.mpesa_paybill_account || '';
+                document.getElementById('mpesa_till_number').value = settings.mpesa_till_number || '';
+                document.getElementById('bank_name').value = settings.bank_name || '';
+                document.getElementById('bank_account_name').value = settings.bank_account_name || '';
+                document.getElementById('bank_account_number').value = settings.bank_account_number || '';
+                document.getElementById('bank_branch').value = settings.bank_branch || '';
+
+                toggleMpesaFields();
+            } catch (error) {
+                showAlert('Failed to load payment settings', 'error');
+            }
+        }
+
+        document.getElementById('payment-settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const settings = {
+                cod_enabled: document.getElementById('cod_enabled').checked ? 'true' : 'false',
+                mpesa_enabled: document.getElementById('mpesa_enabled').checked ? 'true' : 'false',
+                bank_enabled: document.getElementById('bank_enabled').checked ? 'true' : 'false',
+                mpesa_type: document.getElementById('mpesa_type').value,
+                mpesa_phone: document.getElementById('mpesa_phone').value,
+                mpesa_paybill_number: document.getElementById('mpesa_paybill_number').value,
+                mpesa_paybill_account: document.getElementById('mpesa_paybill_account').value,
+                mpesa_till_number: document.getElementById('mpesa_till_number').value,
+                bank_name: document.getElementById('bank_name').value,
+                bank_account_name: document.getElementById('bank_account_name').value,
+                bank_account_number: document.getElementById('bank_account_number').value,
+                bank_branch: document.getElementById('bank_branch').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/payment-settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Payment settings saved', 'success');
+                } else {
+                    showAlert(data.error || 'Failed to save', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to save payment settings', 'error');
+            }
+        });
+
+        // Product Modal Functions
+        function showAddProductModal() {
+            isEditing = false;
+            document.getElementById('modal-title').textContent = 'Add Product';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-id').value = '';
+            document.getElementById('image-preview').innerHTML = '';
+            document.getElementById('product-modal').classList.add('active');
+        }
+
+        async function editProduct(id) {
+            try {
+                const response = await fetch(`/api/products/${id}`);
+                const product = await response.json();
+
+                isEditing = true;
+                document.getElementById('modal-title').textContent = 'Edit Product';
+                document.getElementById('product-id').value = product.id;
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-description').value = product.description || '';
+                document.getElementById('product-price').value = product.price;
+                document.getElementById('product-category').value = product.category || '';
+                document.getElementById('product-stock').value = product.stock;
+                document.getElementById('product-original-price').value = product.original_price || '';
+                document.getElementById('product-discount').value = product.discount || 0;
+                document.getElementById('product-cost-price').value = product.cost_price || '';
+                document.getElementById('product-wig-texture').value = product.wig_texture || '';
+                document.getElementById('product-wig-cap-type').value = product.wig_cap_type || '';
+                document.getElementById('product-wig-origin').value = product.wig_origin || '';
+                document.getElementById('product-wig-density').value = product.wig_density || '';
+                toggleWigFields();
+
+                if (product.image_url) {
+                    document.getElementById('image-preview').innerHTML = `<img src="${product.image_url}" style="max-width: 200px; border-radius: 8px;">`;
+                }
+
+                document.getElementById('product-modal').classList.add('active');
+            } catch (error) {
+                showAlert('Failed to load product', 'error');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Delete this product?')) return;
+            try {
+                const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showAlert('Product deleted', 'success');
+                    loadProducts();
+                }
+            } catch (error) {
+                showAlert('Failed to delete product', 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('product-modal').classList.remove('active');
+        }
+
+        function toggleWigFields() {
+            const isWig = document.getElementById('product-category').value === 'Wigs';
+            document.getElementById('wig-fields').style.display = isWig ? 'block' : 'none';
+        }
+        document.getElementById('product-category').addEventListener('change', toggleWigFields);
+
+        document.getElementById('product-image').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('image-preview').innerHTML = `<img src="${e.target.result}" style="max-width: 200px; border-radius: 8px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('product-name').value);
+            formData.append('description', document.getElementById('product-description').value);
+            formData.append('price', document.getElementById('product-price').value);
+            formData.append('originalPrice', document.getElementById('product-original-price').value || '');
+            formData.append('discount', document.getElementById('product-discount').value || '0');
+            formData.append('category', document.getElementById('product-category').value);
+            formData.append('stock', document.getElementById('product-stock').value);
+            formData.append('costPrice', document.getElementById('product-cost-price').value || '0');
+
+            // Wig-specific attributes (only meaningful for the Wigs category)
+            if (document.getElementById('product-category').value === 'Wigs') {
+                formData.append('wigTexture', document.getElementById('product-wig-texture').value || '');
+                formData.append('wigCapType', document.getElementById('product-wig-cap-type').value || '');
+                formData.append('wigOrigin', document.getElementById('product-wig-origin').value || '');
+                formData.append('wigDensity', document.getElementById('product-wig-density').value || '');
+            }
+
+            const imageFile = document.getElementById('product-image').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            const productId = document.getElementById('product-id').value;
+            const url = productId ? `/api/products/${productId}` : '/api/products';
+            const method = productId ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, { method, body: formData });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(productId ? 'Product updated' : 'Product added', 'success');
+                    closeModal();
+                    loadProducts();
+                } else {
+                    showAlert(data.error || 'Failed to save product', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to save product', 'error');
+            }
+        });
+
+        // ============ HERO SLIDES ============
+
+        async function loadHeroSlides() {
+            const tbody = document.getElementById('hero-slides-table');
+            try {
+                const response = await fetch('/api/admin/hero-slides');
+                const slides = await response.json();
+
+                if (!Array.isArray(slides) || slides.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #7f8c8d;">No slides yet. Add your first slide!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = slides.map(s => {
+                    const titleHtml = `${escapeHtml(s.title_prefix || '')} ${s.title_highlight ? `<strong style="color:#c9a55a;">${escapeHtml(s.title_highlight)}</strong>` : ''}${s.title_suffix ? ' ' + escapeHtml(s.title_suffix) : ''}`;
+                    return `
+                        <tr>
+                            <td><strong>${s.display_order}</strong></td>
+                            <td>
+                                ${s.image_url ? `<img src="${escapeHtml(s.image_url)}" alt="" style="width:80px; height:50px; object-fit:cover; border-radius:6px;" onerror="this.style.display='none'">` : '<span style="color:#aaa;">No image</span>'}
+                            </td>
+                            <td><div style="max-width:280px;">${titleHtml}</div></td>
+                            <td><span class="status-badge" style="background: rgba(26,26,46,0.1); color: #1a1a2e;">${escapeHtml(s.category)}</span></td>
+                            <td><span class="status-badge ${s.is_active ? 'approved' : 'pending'}">${s.is_active ? 'Active' : 'Hidden'}</span></td>
+                            <td>
+                                <button class="action-btn edit" onclick="editSlide(${s.id})" title="Edit">&#9998;</button>
+                                <button class="action-btn delete" onclick="deleteSlide(${s.id})" title="Delete">&#128465;</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load slides</td></tr>';
+            }
+        }
+
+        function showAddSlideModal() {
+            document.getElementById('hero-slide-modal-title').textContent = 'Add Hero Slide';
+            document.getElementById('hero-slide-form').reset();
+            document.getElementById('hero-slide-id').value = '';
+            document.getElementById('hero-slide-image-preview').innerHTML = '';
+            document.getElementById('hero-slide-is-active').checked = true;
+            document.getElementById('hero-slide-display-order').value = 0;
+            document.getElementById('hero-slide-modal').classList.add('active');
+        }
+
+        async function editSlide(id) {
+            try {
+                const response = await fetch(`/api/admin/hero-slides/${id}`);
+                const s = await response.json();
+
+                document.getElementById('hero-slide-modal-title').textContent = 'Edit Hero Slide';
+                document.getElementById('hero-slide-id').value = s.id;
+                document.getElementById('hero-slide-category').value = s.category || '';
+                document.getElementById('hero-slide-badge').value = s.badge || '';
+                document.getElementById('hero-slide-title-prefix').value = s.title_prefix || '';
+                document.getElementById('hero-slide-title-highlight').value = s.title_highlight || '';
+                document.getElementById('hero-slide-title-suffix').value = s.title_suffix || '';
+                document.getElementById('hero-slide-description').value = s.description || '';
+                document.getElementById('hero-slide-extra-link-url').value = s.extra_link_url || '';
+                document.getElementById('hero-slide-extra-link-text').value = s.extra_link_text || '';
+                document.getElementById('hero-slide-link-text').value = s.link_text || '';
+                document.getElementById('hero-slide-image-url').value = (s.image_url && s.image_url.startsWith('http')) ? s.image_url : '';
+                document.getElementById('hero-slide-display-order').value = s.display_order || 0;
+                document.getElementById('hero-slide-is-active').checked = !!s.is_active;
+
+                document.getElementById('hero-slide-image-preview').innerHTML = s.image_url
+                    ? `<img src="${escapeHtml(s.image_url)}" style="max-width: 200px; border-radius: 8px;" onerror="this.style.display='none'">`
+                    : '';
+
+                document.getElementById('hero-slide-modal').classList.add('active');
+            } catch (error) {
+                showAlert('Failed to load slide', 'error');
+            }
+        }
+
+        async function deleteSlide(id) {
+            if (!confirm('Delete this slide?')) return;
+            try {
+                const response = await fetch(`/api/admin/hero-slides/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Slide deleted', 'success');
+                    loadHeroSlides();
+                } else {
+                    showAlert(data.error || 'Failed to delete', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to delete slide', 'error');
+            }
+        }
+
+        function closeSlideModal() {
+            document.getElementById('hero-slide-modal').classList.remove('active');
+        }
+
+        document.getElementById('hero-slide-image').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('hero-slide-image-preview').innerHTML = `<img src="${ev.target.result}" style="max-width: 200px; border-radius: 8px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('hero-slide-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('category', document.getElementById('hero-slide-category').value);
+            formData.append('badge', document.getElementById('hero-slide-badge').value);
+            formData.append('title_prefix', document.getElementById('hero-slide-title-prefix').value);
+            formData.append('title_highlight', document.getElementById('hero-slide-title-highlight').value);
+            formData.append('title_suffix', document.getElementById('hero-slide-title-suffix').value);
+            formData.append('description', document.getElementById('hero-slide-description').value);
+            formData.append('link_text', document.getElementById('hero-slide-link-text').value);
+            formData.append('extra_link_url', document.getElementById('hero-slide-extra-link-url').value);
+            formData.append('extra_link_text', document.getElementById('hero-slide-extra-link-text').value);
+            formData.append('image_url', document.getElementById('hero-slide-image-url').value);
+            formData.append('display_order', document.getElementById('hero-slide-display-order').value || '0');
+            formData.append('is_active', document.getElementById('hero-slide-is-active').checked ? 'true' : 'false');
+
+            const imageFile = document.getElementById('hero-slide-image').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            const id = document.getElementById('hero-slide-id').value;
+            const url = id ? `/api/admin/hero-slides/${id}` : '/api/admin/hero-slides';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, { method, body: formData });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(id ? 'Slide updated' : 'Slide added', 'success');
+                    closeSlideModal();
+                    loadHeroSlides();
+                } else {
+                    showAlert(data.error || data.message || 'Failed to save slide', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to save slide', 'error');
+            }
+        });
+
+        // Filter pills functionality
+        document.querySelectorAll('.filter-pills').forEach(container => {
+            container.querySelectorAll('.filter-pill').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    container.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    const filter = pill.dataset.filter;
+
+                    // Determine which section and reload with filter
+                    if (currentSection === 'orders') loadOrders(filter);
+                    if (currentSection === 'marketers') loadMarketers(filter);
+                    if (currentSection === 'reviews') loadReviews(filter);
+                });
+            });
+        });
+
+        // Logout
+        async function logout() {
+            try {
+                await fetch('/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        // Initialize
+        checkAdminAccess();
+    </script>
+</body>
+</html>

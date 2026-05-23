@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Wishlist | CreviaBeauty Kenya</title>
+<link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+    .wishlist-hero { padding:2.5rem 1.5rem 1.5rem; text-align:center; }
+    .wishlist-hero h1 { margin:0; font-size:2rem; }
+    .wishlist-hero p { color:#666; margin:0.4rem 0 0 0; }
+    .wishlist-empty { text-align:center; padding:4rem 1.5rem; color:#666; }
+    .wishlist-empty a { color:#7c3aed; font-weight:600; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-content">
+        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/products">Products</a></li>
+            <li><a href="/bundles">Bundles</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/cart">Cart</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="wishlist-hero">
+    <h1>My Wishlist ♥</h1>
+    <p>Save for later, buy when you're ready.</p>
+</section>
+
+<section class="products-section">
+    <div class="products-grid" id="products-grid">
+        <div class="spinner"></div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-section"><h3>CreviaBeauty Kenya</h3><p>Premium beauty products.</p></div>
+        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products">Products</a></li><li><a href="/bundles">Bundles</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p></div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+(async function() {
+    const grid = document.getElementById('products-grid');
+    try {
+        const res = await fetch('/api/wishlist');
+        if (res.status === 401) {
+            grid.innerHTML = '<div class="wishlist-empty">Please <a href="/login">log in</a> to view your wishlist.</div>';
+            return;
+        }
+        const j = await res.json();
+        if (!j.data || j.data.length === 0) {
+            grid.innerHTML = '<div class="wishlist-empty">Your wishlist is empty. Tap the ♡ on any product to save it. <a href="/products">Start browsing →</a></div>';
+            return;
+        }
+        grid.innerHTML = j.data.map(p => createProductCard(p)).join('');
+        // Hearts should appear "active" since these are all wishlisted
+        document.querySelectorAll('.product-card .wishlist-heart').forEach(b => {
+            b.classList.add('active');
+            b.textContent = '♥';
+        });
+    } catch (e) {
+        grid.innerHTML = '<div class="wishlist-empty">Could not load your wishlist.</div>';
+    }
+})();
+</script>
+</body>
+</html>

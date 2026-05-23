@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - CreviaBeauty Kenya</title>
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .orders-section {
+            padding: 3rem 0;
+            min-height: 60vh;
+        }
+        .orders-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .orders-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .orders-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .orders-header p {
+            color: var(--text-light);
+        }
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .order-header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .order-id {
+            font-weight: 600;
+        }
+        .order-date {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        .order-status {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-pending {
+            background: #ffeaa7;
+            color: #d68910;
+        }
+        .status-processing {
+            background: #81ecec;
+            color: #00838f;
+        }
+        .status-shipped {
+            background: #74b9ff;
+            color: #1565c0;
+        }
+        .status-delivered {
+            background: #55efc4;
+            color: #00695c;
+        }
+        .status-cancelled {
+            background: #fab1a0;
+            color: #c0392b;
+        }
+        .order-body {
+            padding: 1.5rem;
+        }
+        .order-items {
+            margin-bottom: 1rem;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        .item-name {
+            font-weight: 500;
+            color: var(--text);
+        }
+        .item-qty {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .item-price {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .order-total {
+            font-size: 1.2rem;
+        }
+        .order-total span {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        .shipping-info {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .no-orders {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        .no-orders h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        .no-orders p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+        .login-prompt {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .login-prompt h2 {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .item-price {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254745853914">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">Free Delivery in Nairobi | Countrywide Shipping Available</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto;">
+                <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Furnitures</span></div>
+            </a>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form class="search-bar" id="search-form" action="/products" method="GET">
+                    <input type="text" name="search" placeholder="Search for furniture..." id="search-input">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+            <!-- Desktop Auth Links -->
+            <div class="auth-links" id="auth-links">
+                <a href="/login" class="btn btn-small">Sign In</a>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/">Home</a></li>
+                <li class="nav-dropdown">
+                    <a href="/products">Categories</a>
+                    <div class="dropdown-menu">
+                        <a href="/products?category=Office Furniture">Office Furniture</a>
+                        <a href="/products?category=Living Room">Living Room</a>
+                        <a href="/products?category=Dining">Dining Sets</a>
+                        <a href="/products?category=Bedroom">Bedroom</a>
+                    </div>
+                </li>
+                <li><a href="/products">Shop All</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li id="nav-auth-link"><a href="/login">Sign In</a></li>
+                <li class="cart-icon">
+                    <a href="/cart">
+                        <span id="cart-count" class="cart-count">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Orders Section -->
+    <section class="orders-section">
+        <div class="orders-container">
+            <div class="orders-header">
+                <h1>My Orders</h1>
+                <p>Track and view your order history</p>
+            </div>
+            <div id="orders-content">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for quality office and home furniture in Kenya.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/become-marketer">Become a Marketer</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li>+254 745 853 914</li>
+                    <li>info@creviabeauty.com</li>
+                    <li>Mombasa Road, Nairobi</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/254745853914" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+        <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
+    </a>
+
+    <script src="/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOrders();
+        });
+
+        async function loadOrders() {
+            const container = document.getElementById('orders-content');
+
+            try {
+                // Check if user is logged in
+                const userResponse = await fetch('/api/user');
+                const userData = await userResponse.json();
+
+                if (!userData.loggedIn) {
+                    container.innerHTML = `
+                        <div class="login-prompt">
+                            <h2>Please Sign In</h2>
+                            <p>You need to be logged in to view your orders.</p>
+                            <a href="/login" class="btn">Sign In</a>
+                            <p style="margin-top: 1rem;">Don't have an account? <a href="/register">Create Account</a></p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Fetch orders
+                const response = await fetch('/api/orders/my-orders');
+                const data = await response.json();
+
+                if (!data.orders || data.orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-orders">
+                            <h3>No Orders Yet</h3>
+                            <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                            <a href="/products" class="btn">Browse Products</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.orders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id">Order #${order.id}</div>
+                                <div class="order-date">${new Date(order.created_at).toLocaleDateString('en-KE', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}</div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <span class="order-status status-${order.status.toLowerCase()}">${order.status}</span>
+                                <span class="order-status ${order.payment_status === 'paid' ? 'status-delivered' : 'status-pending'}">
+                                    ${order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="order-body">
+                            <!-- Payment Info Box -->
+                            <div style="background: ${order.payment_status === 'paid' ? '#e8f5e9' : '#fff8e1'}; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                    <div>
+                                        <strong style="color: ${order.payment_status === 'paid' ? '#1b5e20' : '#f57f17'};">
+                                            ${order.payment_status === 'paid' ? '✓ Payment Confirmed' : '⏳ Payment Pending'}
+                                        </strong>
+                                        <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                                            ${getPaymentMethodLabel(order.payment_method)} • Ref: <strong>${order.payment_reference || 'N/A'}</strong>
+                                        </div>
+                                    </div>
+                                    ${order.payment_status !== 'paid' && order.payment_method !== 'cod' ? `
+                                        <button onclick="showPaymentDetails('${order.payment_reference}', '${order.payment_method}', ${order.total_amount})"
+                                                class="btn btn-small" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                            View Payment Details
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div class="order-items">
+                                ${order.items.map(item => `
+                                    <div class="order-item">
+                                        <div class="item-info">
+                                            ${item.image_url
+                                                ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="item-image" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 60 60%22><rect fill=%22%23f5f5f5%22 width=%2260%22 height=%2260%22/><text x=%2230%22 y=%2235%22 text-anchor=%22middle%22 font-size=%2220%22>&#128394;</text></svg>'">`
+                                                : '<div class="item-image" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;">&#128394;</div>'
+                                            }
+                                            <div>
+                                                <div class="item-name">${escapeHtml(item.name)}</div>
+                                                <div class="item-qty">Qty: ${item.quantity}</div>
+                                            </div>
+                                        </div>
+                                        <div class="item-price">KSh ${(item.price * item.quantity).toLocaleString()}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="order-footer">
+                                <div class="shipping-info">
+                                    <strong>Shipping to:</strong> ${escapeHtml(order.shipping_address)}<br>
+                                    <strong>Phone:</strong> ${escapeHtml(order.phone)}
+                                </div>
+                                <div class="order-total">
+                                    Total: <span>KSh ${Number(order.total_amount).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Failed to load orders:', error);
+                container.innerHTML = '<p style="text-align: center; padding: 3rem;">Failed to load orders. Please try again.</p>';
+            }
+        }
+
+        function getPaymentMethodLabel(method) {
+            const labels = {
+                'cod': 'Pay on Delivery',
+                'mpesa': 'M-Pesa',
+                'bank': 'Bank Transfer'
+            };
+            return labels[method] || method;
+        }
+
+        async function showPaymentDetails(reference, method, amount) {
+            // Fetch payment settings from API
+            let settings = {};
+            try {
+                const response = await fetch('/api/orders/payment-settings');
+                settings = await response.json();
+            } catch (e) {
+                console.error('Failed to load payment settings:', e);
+            }
+
+            // Build M-Pesa details based on type
+            function getMpesaDetails() {
+                const type = settings.mpesa_type || 'send_money';
+                const amountStr = `KSh ${Number(amount).toLocaleString()}`;
+
+                if (type === 'send_money') {
+                    const phone = settings.mpesa_phone || '0712345678';
+                    return `
+                        <h4>M-Pesa Payment Instructions</h4>
+                        <p><strong>Send Money To:</strong> ${phone}</p>
+                        <p><strong>Amount:</strong> ${amountStr}</p>
+                        <p><strong>Reference:</strong> ${reference}</p>
+                        <hr style="margin: 1rem 0;">
+                        <ol style="padding-left: 1.5rem; color: #666;">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select Send Money</li>
+                            <li>Enter Phone Number: <strong>${phone}</strong></li>
+                            <li>Enter Amount: <strong>${amountStr}</strong></li>
+                            <li>Enter PIN and confirm</li>
+                            <li>Send SMS confirmation with reference: <strong>${reference}</strong></li>
+                        </ol>
+                    `;
+                } else if (type === 'paybill') {
+                    const paybill = settings.mpesa_paybill_number || '123456';
+                    return `
+                        <h4>M-Pesa Payment Instructions</h4>
+                        <p><strong>Paybill Number:</strong> ${paybill}</p>
+                        <p><strong>Account Number:</strong> ${reference}</p>
+                        <p><strong>Amount:</strong> ${amountStr}</p>
+                        <hr style="margin: 1rem 0;">
+                        <ol style="padding-left: 1.5rem; color: #666;">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select Lipa na M-Pesa</li>
+                            <li>Select Paybill</li>
+                            <li>Enter Business Number: <strong>${paybill}</strong></li>
+                            <li>Enter Account: <strong>${reference}</strong></li>
+                            <li>Enter Amount: <strong>${amountStr}</strong></li>
+                            <li>Enter PIN and confirm</li>
+                        </ol>
+                    `;
+                } else { // till
+                    const till = settings.mpesa_till_number || '789012';
+                    return `
+                        <h4>M-Pesa Payment Instructions</h4>
+                        <p><strong>Till Number:</strong> ${till}</p>
+                        <p><strong>Amount:</strong> ${amountStr}</p>
+                        <p><strong>Reference:</strong> ${reference}</p>
+                        <hr style="margin: 1rem 0;">
+                        <ol style="padding-left: 1.5rem; color: #666;">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select Lipa na M-Pesa</li>
+                            <li>Select Buy Goods and Services</li>
+                            <li>Enter Till Number: <strong>${till}</strong></li>
+                            <li>Enter Amount: <strong>${amountStr}</strong></li>
+                            <li>Enter PIN and confirm</li>
+                            <li>Send SMS confirmation with reference: <strong>${reference}</strong></li>
+                        </ol>
+                    `;
+                }
+            }
+
+            const details = {
+                mpesa: getMpesaDetails(),
+                bank: `
+                    <h4>Bank Transfer Details</h4>
+                    <p><strong>Bank:</strong> ${settings.bank_name || 'Equity Bank'}</p>
+                    <p><strong>Account Name:</strong> ${settings.bank_account_name || 'CreviaBeauty Ltd'}</p>
+                    <p><strong>Account Number:</strong> ${settings.bank_account_number || '1234567890'}</p>
+                    <p><strong>Branch:</strong> ${settings.bank_branch || 'Nairobi Branch'}</p>
+                    <p><strong>Reference:</strong> ${reference}</p>
+                    <p><strong>Amount:</strong> KSh ${Number(amount).toLocaleString()}</p>
+                    <hr style="margin: 1rem 0;">
+                    <p style="color: #666; font-size: 0.9rem;">
+                        Please use <strong>${reference}</strong> as payment reference.
+                    </p>
+                `
+            };
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem;';
+            modal.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 10px; max-width: 450px; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-family: 'Playfair Display', serif;">Payment Details</h3>
+                        <button onclick="this.closest('div').parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                        ${details[method] || '<p>Payment details not available</p>'}
+                    </div>
+                    <button onclick="this.closest('div').parentElement.remove()" class="btn" style="width: 100%; margin-top: 1rem;">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Beauty Products Online in Kenya - Perfumes, Skincare, Makeup, Wigs | CreviaBeauty</title>
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Browse our collection of premium beauty products in Kenya. Perfumes, skincare, makeup, fragrances, hair care, wigs and more. Free delivery in Nairobi.">
+    <meta name="keywords" content="buy beauty products Kenya, perfumes Nairobi, skincare for sale, makeup Kenya, fragrances, wigs Kenya, human hair wigs Nairobi, beauty shop Kenya">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://creviabeauty.com/products">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://creviabeauty.com/products">
+    <meta property="og:title" content="Shop Beauty Products Online - CreviaBeauty Kenya">
+    <meta property="og:description" content="Premium perfumes, skincare & beauty products. Free delivery in Nairobi. Best prices guaranteed.">
+    <meta property="og:image" content="https://creviabeauty.com/images/og-image.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <!-- Structured Data - Product List -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Beauty Products Collection",
+        "description": "Browse premium beauty products, perfumes and skincare in Kenya",
+        "url": "https://creviabeauty.com/products",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "CreviaBeauty",
+            "url": "https://creviabeauty.com"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254745853914">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">Free Delivery in Nairobi | Countrywide Shipping Available</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto;">
+            <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Beauty</span></div>
+        </a>
+
+        <div class="search-container">
+            <form class="search-bar" id="search-form" action="/products" method="GET">
+                <input type="text" name="search" placeholder="Search for beauty products..." id="search-input">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a href="/">Home</a></li>
+            <li class="nav-dropdown">
+                <a href="/products">Categories</a>
+                <div class="dropdown-menu">
+                    <a href="/products?category=Perfumes">Perfumes</a>
+                    <a href="/products?category=Women's Skincare">Women's Skincare</a>
+                    <a href="/products?category=Men's Skincare">Men's Skincare</a>
+                    <a href="/products?category=Makeup">Makeup</a>
+                    <a href="/products?category=Hair Care">Hair Care</a>
+                    <a href="/products?category=Body Care">Body Care</a>
+                    <a href="/products?category=Fragrances">Fragrances</a>
+                    <a href="/products?category=Beauty Tools">Beauty Tools</a>
+                    <a href="/products?category=Wigs">Wigs</a>
+                </div>
+            </li>
+            <li><a href="/products">Shop All</a></li>
+            <li><a href="/bundles">Bundles</a></li>
+            <li><a href="/quiz">Find your scent</a></li>
+            <li><a href="/blog">The Edit</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li id="nav-auth-link"><a href="/login">Sign In</a></li>
+            <li><a href="/wishlist" title="Wishlist">♥</a></li>
+            <li class="cart-icon">
+                <a href="/cart">
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Our Beauty Collection</h1>
+        <p>Premium quality beauty products, perfumes and skincare</p>
+    </div>
+
+    <!-- Products Section -->
+    <section class="products-section">
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-category="all">All Products</button>
+            <button class="filter-btn" data-category="Perfumes">Perfumes</button>
+            <button class="filter-btn" data-category="Women's Skincare">Women's Skincare</button>
+            <button class="filter-btn" data-category="Men's Skincare">Men's Skincare</button>
+            <button class="filter-btn" data-category="Makeup">Makeup</button>
+            <button class="filter-btn" data-category="Hair Care">Hair Care</button>
+            <button class="filter-btn" data-category="Body Care">Body Care</button>
+            <button class="filter-btn" data-category="Fragrances">Fragrances</button>
+            <button class="filter-btn" data-category="Beauty Tools">Beauty Tools</button>
+            <button class="filter-btn" data-category="Wigs">Wigs</button>
+        </div>
+
+        <div class="products-layout">
+            <aside class="facet-sidebar" id="facet-sidebar">
+                <div class="facet-sidebar-header">
+                    <h3>Refine</h3>
+                    <button id="clear-facets" type="button">Clear all</button>
+                </div>
+
+                <div class="facet-group" data-facet-group="quick">
+                    <label><input type="checkbox" id="facet-authentic"> ✓ Verified Authentic only</label>
+                    <label><input type="checkbox" id="facet-local"> 🇰🇪 Made in Kenya only</label>
+                    <label><input type="checkbox" id="facet-sample"> Trial / sample sizes</label>
+                </div>
+
+                <div class="facet-group" id="facet-group-brand">
+                    <h4>Brand</h4>
+                    <div class="facet-options" id="facet-brand-options"></div>
+                </div>
+
+                <div class="facet-group" id="facet-group-scent">
+                    <h4>Scent family</h4>
+                    <div class="facet-options" id="facet-scent-options"></div>
+                </div>
+
+                <div class="facet-group" id="facet-group-skin">
+                    <h4>Skin type</h4>
+                    <div class="facet-options" id="facet-skin-options"></div>
+                </div>
+
+                <div class="facet-group" id="facet-group-hair">
+                    <h4>Hair texture</h4>
+                    <div class="facet-options" id="facet-hair-options"></div>
+                </div>
+
+                <div class="facet-group" id="facet-group-wigtexture">
+                    <h4>Wig texture</h4>
+                    <div class="facet-options" id="facet-wigtexture-options"></div>
+                </div>
+
+                <div class="facet-group" id="facet-group-wigorigin">
+                    <h4>Wig origin</h4>
+                    <div class="facet-options" id="facet-wigorigin-options"></div>
+                </div>
+
+                <div class="facet-group" id="facet-group-wigcap">
+                    <h4>Wig cap</h4>
+                    <div class="facet-options" id="facet-wigcap-options"></div>
+                </div>
+
+                <div class="facet-group">
+                    <h4>Price (KES)</h4>
+                    <div class="facet-price-row">
+                        <input type="number" id="facet-min-price" placeholder="Min" min="0">
+                        <span>—</span>
+                        <input type="number" id="facet-max-price" placeholder="Max" min="0">
+                    </div>
+                </div>
+            </aside>
+
+            <div class="products-grid" id="products-grid">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .products-layout { display:grid; grid-template-columns: 260px 1fr; gap:2rem; align-items:start; max-width:1400px; margin:0 auto; padding:0 1rem; }
+        .facet-sidebar { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:1.25rem; position:sticky; top:80px; max-height: calc(100vh - 100px); overflow-y:auto; }
+        .facet-sidebar-header { display:flex; justify-content:space-between; align-items:center; padding-bottom:0.5rem; margin-bottom:0.5rem; border-bottom:1px solid #eee; }
+        .facet-sidebar-header h3 { margin:0; font-size:1rem; }
+        #clear-facets { background:none; border:none; color:#7c3aed; font-size:0.8rem; cursor:pointer; font-weight:600; }
+        #clear-facets:hover { text-decoration:underline; }
+        .facet-group { margin: 0.85rem 0; }
+        .facet-group h4 { margin: 0 0 0.4rem 0; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:#666; }
+        .facet-group.hidden { display:none; }
+        .facet-options label, .facet-group[data-facet-group="quick"] label { display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0; font-size:0.85rem; cursor:pointer; color:#333; }
+        .facet-options label:hover { color:#7c3aed; }
+        .facet-options input[type="radio"], .facet-options input[type="checkbox"], .facet-group input[type="checkbox"] { accent-color:#7c3aed; }
+        .facet-price-row { display:flex; gap:0.4rem; align-items:center; }
+        .facet-price-row input { width:80px; padding:0.35rem 0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.85rem; }
+        @media (max-width: 900px) {
+            .products-layout { grid-template-columns: 1fr; }
+            .facet-sidebar { position:static; max-height:none; }
+        }
+    </style>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for premium beauty products, perfumes and skincare in Kenya. We deliver excellence across Nairobi and nationwide.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/cart">Cart</a></li>
+                    <li><a href="/become-marketer">Become a Marketer</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Categories</h3>
+                <ul>
+                    <li><a href="/products?category=Perfumes">Perfumes</a></li>
+                    <li><a href="/products?category=Women's Skincare">Women's Skincare</a></li>
+                    <li><a href="/products?category=Men's Skincare">Men's Skincare</a></li>
+                    <li><a href="/products?category=Makeup">Makeup</a></li>
+                    <li><a href="/products?category=Fragrances">Fragrances</a></li>
+                    <li><a href="/products?category=Wigs">Wigs</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Discover</h3>
+                <ul>
+                    <li><a href="/bundles">Bundles & Kits</a></li>
+                    <li><a href="/quiz">Find your scent</a></li>
+                    <li><a href="/blog">The Edit (Blog)</a></li>
+                    <li><a href="/authenticity">Authenticity Guarantee</a></li>
+                    <li><a href="/wishlist">My Wishlist</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li>+254 745 853 914</li>
+                    <li>info@creviabeauty.com</li>
+                    <li>Mombasa Road, Nairobi</li>
+                    <li>Mon-Sat: 8am-6pm</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Live Chat Widget -->
+    <div class="live-chat-widget">
+        <div class="chat-box" id="chat-box">
+            <div class="chat-header">
+                <div>
+                    <h4>CreviaBeauty Support</h4>
+                    <div class="chat-status">Online</div>
+                </div>
+                <button class="chat-close" onclick="toggleChat()">&times;</button>
+            </div>
+            <div class="chat-body">
+                <div class="chat-message">
+                    <p>Hello! Need help finding the perfect beauty product? We're here to assist you!</p>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" placeholder="Type your message..." id="chat-input">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+        <button class="chat-toggle" onclick="toggleChat()">💬</button>
+    </div>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/254745853914" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+        <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
+    </a>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Active filter state
+        const state = {
+            category: null,
+            search: null,
+            scent_family: null,
+            skin_type: null,
+            hair_texture: null,
+            brand: null,
+            wig_texture: null,
+            wig_origin: null,
+            wig_cap_type: null,
+            is_authentic: null,
+            is_local_brand: null,
+            is_sample: null,
+            min_price: null,
+            max_price: null
+        };
+
+        // Build a query string from current state
+        function buildQuery() {
+            const p = new URLSearchParams();
+            Object.entries(state).forEach(([k, v]) => { if (v !== null && v !== '' && v !== false) p.set(k, v); });
+            p.set('limit', '100');
+            return p.toString();
+        }
+
+        // Fetch & render products
+        async function reloadProducts() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '<div class="spinner"></div>';
+            try {
+                const res = await fetch('/api/products?' + buildQuery());
+                const json = await res.json();
+                displayProducts(json.data || []);
+                hydrateWishlistHearts();
+            } catch (e) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem;">Failed to load products.</p>';
+            }
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById('products-grid');
+            if (products.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem;">No products match these filters. Try removing a filter.</p>';
+                return;
+            }
+            container.innerHTML = products.map(p => createProductCard(p)).join('');
+        }
+
+        // Load facet options from /api/products/facets and render the sidebar.
+        // Group visibility is tuned to the selected category so a Perfume shopper doesn't see Wig filters.
+        async function loadFacets() {
+            const res = await fetch('/api/products/facets' + (state.category ? '?category=' + encodeURIComponent(state.category) : ''));
+            const facets = await res.json();
+
+            const groupForCategory = (cat) => {
+                // Returns which facet groups should be visible for this category.
+                if (!cat) return ['brand','scent','skin','hair','wigtexture','wigorigin','wigcap'];
+                if (cat === 'Perfumes' || cat === 'Fragrances') return ['brand','scent'];
+                if (cat.includes('Skincare') || cat === 'Body Care') return ['brand','skin'];
+                if (cat === 'Hair Care') return ['brand','hair'];
+                if (cat === 'Wigs') return ['wigtexture','wigorigin','wigcap'];
+                return ['brand']; // Makeup, Beauty Tools — just brand
+            };
+            const visible = new Set(groupForCategory(state.category));
+            const groupMap = { brand:'brand', scent:'scent', skin:'skin', hair:'hair', wigtexture:'wigtexture', wigorigin:'wigorigin', wigcap:'wigcap' };
+            Object.keys(groupMap).forEach(k => {
+                const el = document.getElementById('facet-group-' + k);
+                if (el) el.classList.toggle('hidden', !visible.has(k));
+            });
+
+            const renderOpts = (containerId, options, stateKey) => {
+                const c = document.getElementById(containerId);
+                if (!options || options.length === 0) { c.innerHTML = '<div style="color:#999;font-size:0.8rem;">—</div>'; return; }
+                c.innerHTML = options.map(opt => `
+                    <label>
+                        <input type="radio" name="${stateKey}" value="${opt}" ${state[stateKey] === opt ? 'checked' : ''}>
+                        ${opt}
+                    </label>
+                `).join('') + `
+                    <label style="color:#999;">
+                        <input type="radio" name="${stateKey}" value="" ${!state[stateKey] ? 'checked' : ''}>
+                        Any
+                    </label>`;
+                c.querySelectorAll('input[type="radio"]').forEach(r => {
+                    r.addEventListener('change', () => {
+                        state[stateKey] = r.value || null;
+                        reloadProducts();
+                    });
+                });
+            };
+            renderOpts('facet-brand-options',       facets.brand,        'brand');
+            renderOpts('facet-scent-options',       facets.scent_family, 'scent_family');
+            renderOpts('facet-skin-options',        facets.skin_type,    'skin_type');
+            renderOpts('facet-hair-options',        facets.hair_texture, 'hair_texture');
+            renderOpts('facet-wigtexture-options',  facets.wig_texture,  'wig_texture');
+            renderOpts('facet-wigorigin-options',   facets.wig_origin,   'wig_origin');
+            renderOpts('facet-wigcap-options',      facets.wig_cap_type, 'wig_cap_type');
+        }
+
+        // Wire boolean toggles + price inputs + clear button
+        function wireSidebar() {
+            document.getElementById('facet-authentic').addEventListener('change', (e) => {
+                state.is_authentic = e.target.checked ? 'true' : null; reloadProducts();
+            });
+            document.getElementById('facet-local').addEventListener('change', (e) => {
+                state.is_local_brand = e.target.checked ? 'true' : null; reloadProducts();
+            });
+            document.getElementById('facet-sample').addEventListener('change', (e) => {
+                state.is_sample = e.target.checked ? 'true' : null; reloadProducts();
+            });
+            const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+            const onPrice = debounce(() => {
+                state.min_price = document.getElementById('facet-min-price').value || null;
+                state.max_price = document.getElementById('facet-max-price').value || null;
+                reloadProducts();
+            }, 400);
+            document.getElementById('facet-min-price').addEventListener('input', onPrice);
+            document.getElementById('facet-max-price').addEventListener('input', onPrice);
+            document.getElementById('clear-facets').addEventListener('click', () => {
+                Object.keys(state).forEach(k => { if (k !== 'category' && k !== 'search') state[k] = null; });
+                document.getElementById('facet-authentic').checked = false;
+                document.getElementById('facet-local').checked = false;
+                document.getElementById('facet-sample').checked = false;
+                document.getElementById('facet-min-price').value = '';
+                document.getElementById('facet-max-price').value = '';
+                loadFacets();
+                reloadProducts();
+            });
+        }
+
+        // Top filter pills (category quick-switch)
+        document.getElementById('filters').addEventListener('click', (e) => {
+            if (!e.target.classList.contains('filter-btn')) return;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const c = e.target.dataset.category;
+            state.category = (c === 'all') ? null : c;
+            // Reset attribute facets when switching categories
+            ['scent_family','skin_type','hair_texture','wig_texture','wig_origin','wig_cap_type','brand'].forEach(k => state[k] = null);
+            const url = c === 'all' ? '/products' : `/products?category=${encodeURIComponent(c)}`;
+            window.history.pushState({}, '', url);
+            loadFacets();
+            reloadProducts();
+        });
+
+        // Initial bootstrap
+        (function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get('category');
+            const search = urlParams.get('search');
+            if (category) {
+                state.category = category;
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.category === category);
+                });
+            }
+            if (search) {
+                state.search = search;
+                const si = document.getElementById('search-input');
+                if (si) si.value = search;
+            }
+            wireSidebar();
+            loadFacets();
+            reloadProducts();
+        })();
+
+        // Live Chat Toggle
+        function toggleChat() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.classList.toggle('active');
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (message) {
+                window.open(`https://wa.me/254745853914?text=${encodeURIComponent(message)}`, '_blank');
+                input.value = '';
+            }
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        // Load products on page load
+        loadProducts();
+    </script>
+</body>
+</html>

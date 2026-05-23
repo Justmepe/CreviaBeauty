@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beauty Bundles & Kits | CreviaBeauty Kenya</title>
+<link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+<meta name="description" content="Curated beauty bundles — skincare routines, bridal kits, fragrance discovery sets. Save up to 20% vs buying individually.">
+<link rel="stylesheet" href="/css/styles.css">
+<style>
+    .bundles-hero { background: linear-gradient(135deg, #7c3aed, #c026d3); color:#fff; padding:3.5rem 2rem; text-align:center; }
+    .bundles-hero h1 { font-size:2.4rem; margin:0 0 0.5rem 0; }
+    .bundles-hero p { font-size:1.05rem; opacity:0.92; max-width:680px; margin:0 auto; }
+    .bundles-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; max-width:1200px; margin:3rem auto; padding:0 1.5rem; }
+    .bundle-card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.08); display:flex; flex-direction:column; }
+    .bundle-image { height:200px; background-size:cover; background-position:center; position:relative; }
+    .bundle-save { position:absolute; top:1rem; right:1rem; background:#22c55e; color:#fff; font-weight:700; padding:0.35rem 0.7rem; border-radius:999px; font-size:0.8rem; }
+    .bundle-body { padding:1.25rem; display:flex; flex-direction:column; gap:0.6rem; flex:1; }
+    .bundle-name { font-size:1.2rem; font-weight:700; margin:0; color:#1f2937; }
+    .bundle-desc { color:#555; font-size:0.9rem; line-height:1.5; flex:1; }
+    .bundle-items { margin:0.5rem 0; }
+    .bundle-items-title { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:#888; margin-bottom:0.25rem; }
+    .bundle-items ul { list-style:none; padding:0; margin:0; }
+    .bundle-items li { padding:0.2rem 0; font-size:0.85rem; color:#444; }
+    .bundle-prices { display:flex; align-items:baseline; gap:0.7rem; }
+    .bundle-price { font-size:1.5rem; font-weight:700; color:#7c3aed; }
+    .bundle-original { font-size:0.95rem; text-decoration:line-through; color:#aaa; }
+    .bundle-cta { background:#7c3aed; color:#fff; border:none; padding:0.7rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem; font-size:0.95rem; }
+    .bundle-cta:hover { background:#6d28d9; }
+</style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-content">
+        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/products">Products</a></li>
+            <li><a href="/bundles" class="active">Bundles</a></li>
+            <li><a href="/quiz">Find your scent</a></li>
+            <li><a href="/contact">Contact</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="bundles-hero">
+    <h1>Curated Beauty Bundles</h1>
+    <p>Hand-picked combinations that save you money and time. A full routine, a bridal kit, or a discovery trio — ready to ship.</p>
+</section>
+
+<div class="bundles-grid" id="bundles-grid">
+    <p style="grid-column:1/-1; text-align:center; padding:2rem;">Loading…</p>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-section"><h3>CreviaBeauty Kenya</h3><p>Premium beauty bundles delivered across Kenya.</p></div>
+        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products">Products</a></li><li><a href="/bundles">Bundles</a></li><li><a href="/authenticity">Authenticity</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p></div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+(async function() {
+    try {
+        const res = await fetch('/api/bundles');
+        const j = await res.json();
+        const grid = document.getElementById('bundles-grid');
+        if (!j.data || j.data.length === 0) {
+            grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:2rem;color:#666;">No bundles available right now. Check back soon.</p>';
+            return;
+        }
+        grid.innerHTML = j.data.map(b => `
+            <div class="bundle-card">
+                <div class="bundle-image" style="background-image:url('${b.image_url || ''}')">
+                    ${b.savings_pct > 0 ? `<div class="bundle-save">Save ${b.savings_pct}%</div>` : ''}
+                </div>
+                <div class="bundle-body">
+                    <h3 class="bundle-name">${b.name.replace(/</g,'&lt;')}</h3>
+                    <p class="bundle-desc">${(b.description || '').replace(/</g,'&lt;')}</p>
+                    <div class="bundle-items">
+                        <div class="bundle-items-title">Includes</div>
+                        <ul>${b.items.map(it => `<li>• ${it.name.replace(/</g,'&lt;')}${it.quantity > 1 ? ` (×${it.quantity})` : ''}</li>`).join('')}</ul>
+                    </div>
+                    <div class="bundle-prices">
+                        <span class="bundle-price">KES ${Number(b.bundle_price).toLocaleString()}</span>
+                        ${b.individual_sum > b.bundle_price ? `<span class="bundle-original">KES ${Number(b.individual_sum).toLocaleString()}</span>` : ''}
+                    </div>
+                    <button class="bundle-cta" onclick="addBundleToCart(${b.id}, ${JSON.stringify(b.items.map(it=>it.id))})">Add Bundle to Cart</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        document.getElementById('bundles-grid').innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:2rem;color:#c00;">Failed to load bundles.</p>';
+    }
+})();
+
+async function addBundleToCart(bundleId, productIds) {
+    let added = 0;
+    for (const id of productIds) {
+        try {
+            const r = await fetch('/api/cart', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ productId: id, quantity: 1 }) });
+            if (r.ok) added++;
+        } catch {}
+    }
+    if (added > 0) {
+        showAlert(`Added ${added} bundle item${added>1?'s':''} to cart`, 'success');
+    } else {
+        showAlert('Could not add bundle — please try again', 'error');
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register as Marketer - CreviaBeauty Kenya</title>
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254723000000">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">Free Delivery in Nairobi | Countrywide Shipping Available</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+            <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto;">
+            <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Furnitures</span></div>
+        </a>
+
+        <div class="search-container">
+            <form class="search-bar" id="search-form" action="/products" method="GET">
+                <input type="text" name="search" placeholder="Search for furniture..." id="search-input">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a href="/">Home</a></li>
+            <li class="nav-dropdown">
+                <a href="/products">Categories</a>
+                <div class="dropdown-menu">
+                    <a href="/products?category=Office Furniture">Office Furniture</a>
+                    <a href="/products?category=Living Room">Living Room</a>
+                    <a href="/products?category=Dining">Dining Sets</a>
+                    <a href="/products?category=Bedroom">Bedroom</a>
+                    <a href="/products?category=Outdoor">Outdoor Furniture</a>
+                    <a href="/products?category=Recliner">Recliner Seats</a>
+                    <a href="/products?category=TV Stands">TV Stands</a>
+                    <a href="/products?category=Storage">Storage & Cabinets</a>
+                </div>
+            </li>
+            <li><a href="/products">Shop All</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li id="nav-auth-link"><a href="/login">Sign In</a></li>
+            <li class="cart-icon">
+                <a href="/cart">
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+    <!-- Register Section -->
+    <section class="auth-section">
+        <div class="auth-container fade-in">
+            <div class="auth-header">
+                <h2>Register as Marketer</h2>
+                <p>Join our affiliate program and start earning commissions</p>
+            </div>
+            <div id="alert-container"></div>
+            <form id="marketer-register-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+254 7XX XXX XXX">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Create a password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="payment-method">Payment Method</label>
+                    <select id="payment-method" name="paymentMethod" required>
+                        <option value="">Select payment method</option>
+                        <option value="mpesa">M-Pesa</option>
+                        <option value="bank">Bank Transfer</option>
+                        <option value="paypal">PayPal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment-details">Payment Details</label>
+                    <input type="text" id="payment-details" name="paymentDetails" required placeholder="M-Pesa Number or Account Details">
+                </div>
+                <button type="submit" class="auth-btn">Register as Marketer</button>
+            </form>
+            <div class="auth-footer">
+                Already have an account? <a href="/login">Sign In</a> | <a href="/register">Register as Customer</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for quality office and home furniture in Kenya.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                    <li><a href="/marketer-register">Register as Marketer</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li>+254 745 853 914</li>
+                    <li>info@creviabeauty.com</li>
+                    <li>Mombasa Road, Nairobi</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/254745853914" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+        <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
+    </a>
+
+    <script src="/js/main.js"></script>
+    <script>
+        document.getElementById('marketer-register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const paymentMethod = document.getElementById('payment-method').value;
+            const paymentDetails = document.getElementById('payment-details').value;
+            const alertContainer = document.getElementById('alert-container');
+
+            if (password.length < 6) {
+                alertContainer.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register-marketer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, password, paymentMethod, paymentDetails, userType: 'marketer' })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alertContainer.innerHTML = '<div class="alert alert-success">Marketer account created successfully! Your application is pending approval. Redirecting...</div>';
+                    setTimeout(() => {
+                        window.location.href = '/marketer';
+                    }, 2000);
+                } else {
+                    alertContainer.innerHTML = `<div class="alert alert-error">${data.error || 'Registration failed'}</div>`;
+                }
+            } catch (error) {
+                alertContainer.innerHTML = '<div class="alert alert-error">Registration failed. Please try again.</div>';
+            }
+        });
+    </script>
+</body>
+</html>

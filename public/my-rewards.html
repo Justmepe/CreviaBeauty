@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Rewards - CreviaBeauty</title>
+    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .rewards-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #2d2d44 100%);
+            border-radius: 16px;
+            padding: 2.5rem;
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .balance-card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        .points-display {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+        .kes-value {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        .referral-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        .referral-section h3 {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 1.5rem;
+        }
+        .referral-code-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .referral-code {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--primary);
+            flex: 1;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .share-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+        .share-btn.copy { background: var(--primary); color: white; }
+        .share-btn.whatsapp { background: #25D366; color: white; }
+        .share-btn.twitter { background: #1DA1F2; color: white; }
+        .share-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .section-card h3 {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #eee;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .history-table th,
+        .history-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .history-table th {
+            font-weight: 600;
+            color: #666;
+        }
+        .points-positive { color: #27ae60; }
+        .points-negative { color: #e94560; }
+        .referral-list {
+            list-style: none;
+            padding: 0;
+        }
+        .referral-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .referral-list li:last-child { border-bottom: none; }
+        .withdraw-form {
+            margin-top: 1rem;
+        }
+        .withdraw-form .form-group {
+            margin-bottom: 1rem;
+        }
+        .withdraw-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .withdraw-form input,
+        .withdraw-form select,
+        .withdraw-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: #666; }
+        .stat-value { font-weight: 600; }
+        @media (max-width: 768px) {
+            .rewards-container { padding: 1rem; }
+            .points-display { font-size: 2.5rem; }
+            .referral-code-box { flex-direction: column; align-items: stretch; }
+            .referral-code { text-align: center; }
+            .share-buttons { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="contact-info">
+                <a href="tel:+254745853914">+254 745 853 914</a>
+                <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
+            </div>
+            <div class="top-bar-right">My Rewards</div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto;">
+                <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Furnitures</span></div>
+            </a>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/my-orders">My Orders</a></li>
+                <li id="nav-auth-link"><a href="/login">Sign In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1>My Rewards</h1>
+    </div>
+
+    <div class="rewards-container">
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="text-align: center; margin-top: 1rem;">Loading rewards...</p>
+        </div>
+
+        <div id="rewards-content" style="display: none;">
+            <!-- Points Balance Card -->
+            <div class="balance-card">
+                <h2>Your Points Balance</h2>
+                <div class="points-display" id="points-balance">0</div>
+                <div class="kes-value" id="kes-value">= KSh 0</div>
+            </div>
+
+            <!-- Referral Section -->
+            <div class="referral-section">
+                <h3>Refer Friends & Earn Points</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Share your referral code with friends. When they make their first purchase, you both earn <strong id="referral-bonus-text">500</strong> bonus points!</p>
+                <div class="referral-code-box">
+                    <span class="referral-code" id="referral-code">Loading...</span>
+                </div>
+                <div class="share-buttons">
+                    <button class="share-btn copy" onclick="copyReferralCode()">Copy Code</button>
+                    <button class="share-btn whatsapp" onclick="shareWhatsApp()">WhatsApp</button>
+                    <button class="share-btn twitter" onclick="shareTwitter()">Twitter</button>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="rewards-grid">
+                <!-- Referrals -->
+                <div class="section-card">
+                    <h3>Your Referrals</h3>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Referred</span>
+                        <span class="stat-value" id="total-referred">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Bonuses Earned</span>
+                        <span class="stat-value" id="bonuses-earned">0</span>
+                    </div>
+                    <div id="referrals-list-container" style="margin-top: 1rem;">
+                        <p style="color: #666; font-size: 0.9rem;">No referrals yet. Share your code to start earning!</p>
+                    </div>
+                </div>
+
+                <!-- Withdraw Points -->
+                <div class="section-card">
+                    <h3>Withdraw Points as Cash</h3>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">Convert your points to cash. Minimum withdrawal: KSh <span id="min-withdrawal">5,000</span></p>
+                    <form class="withdraw-form" id="withdraw-form">
+                        <div class="form-group">
+                            <label for="withdraw-points">Points to Withdraw</label>
+                            <input type="number" id="withdraw-points" min="1000" required>
+                            <small style="color: #666;">= KSh <span id="withdraw-kes">0</span></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="withdraw-method">Payment Method</label>
+                            <select id="withdraw-method" required>
+                                <option value="mpesa">M-Pesa</option>
+                                <option value="bank">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="withdraw-details">Payment Details</label>
+                            <textarea id="withdraw-details" rows="2" placeholder="M-Pesa phone number or bank details" required></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">Request Withdrawal</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Points History -->
+            <div class="section-card" style="margin-top: 2rem;">
+                <h3>Points History</h3>
+                <div id="history-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Points</th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Withdrawal History -->
+            <div class="section-card" style="margin-top: 2rem;">
+                <h3>Withdrawal History</h3>
+                <div id="withdrawals-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Points</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawals-tbody">
+                            <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CreviaBeauty Kenya</h3>
+                <p>Your trusted partner for quality furniture.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        let pointsToKesRate = 10;
+        let referralBonus = 500;
+
+        async function loadRewards() {
+            try {
+                // Check if user is logged in
+                const userResponse = await fetch('/api/user');
+                const userData = await userResponse.json();
+
+                if (!userData.loggedIn) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Load balance
+                const balanceResponse = await fetch('/api/rewards/balance');
+                const balanceData = await balanceResponse.json();
+
+                pointsToKesRate = balanceData.pointsToKesRate || 10;
+                document.getElementById('points-balance').textContent = Number(balanceData.pointsBalance).toLocaleString();
+                document.getElementById('kes-value').textContent = `= KSh ${Number(balanceData.kesValue).toLocaleString()}`;
+
+                // Load referral code
+                const codeResponse = await fetch('/api/rewards/referral-code');
+                const codeData = await codeResponse.json();
+                document.getElementById('referral-code').textContent = codeData.referralCode;
+
+                // Load referrals
+                const referralsResponse = await fetch('/api/rewards/referrals');
+                const referralsData = await referralsResponse.json();
+
+                referralBonus = referralsData.referralBonus || 500;
+                document.getElementById('referral-bonus-text').textContent = referralBonus.toLocaleString();
+                document.getElementById('total-referred').textContent = referralsData.totalReferred;
+                document.getElementById('bonuses-earned').textContent = referralsData.bonusesAwarded;
+
+                if (referralsData.referrals.length > 0) {
+                    document.getElementById('referrals-list-container').innerHTML = `
+                        <ul class="referral-list">
+                            ${referralsData.referrals.slice(0, 5).map(r => `
+                                <li>
+                                    <span>${escapeHtml(r.name)}</span>
+                                    <span style="color: ${r.bonus_awarded ? '#27ae60' : '#f39c12'};">
+                                        ${r.bonus_awarded ? 'Bonus earned' : 'Pending first order'}
+                                    </span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                }
+
+                // Load history
+                loadHistory();
+                loadWithdrawals();
+
+                // Show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('rewards-content').style.display = 'block';
+
+            } catch (error) {
+                document.getElementById('loading').innerHTML = `
+                    <div style="text-align: center; padding: 3rem;">
+                        <h2 style="color: #e94560;">Error</h2>
+                        <p>${error.message}</p>
+                        <a href="/" class="btn" style="margin-top: 1rem;">Back to Home</a>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/rewards/history?limit=10');
+                const data = await response.json();
+
+                if (data.transactions.length === 0) {
+                    document.getElementById('history-tbody').innerHTML = `
+                        <tr><td colspan="4" style="text-align: center; color: #666;">No transactions yet.</td></tr>
+                    `;
+                    return;
+                }
+
+                document.getElementById('history-tbody').innerHTML = data.transactions.map(t => `
+                    <tr>
+                        <td>${new Date(t.created_at).toLocaleDateString('en-KE')}</td>
+                        <td>${escapeHtml(t.description || t.type)}</td>
+                        <td class="${t.points >= 0 ? 'points-positive' : 'points-negative'}">
+                            ${t.points >= 0 ? '+' : ''}${Number(t.points).toLocaleString()}
+                        </td>
+                        <td>${Number(t.balance_after).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load history:', error);
+            }
+        }
+
+        async function loadWithdrawals() {
+            try {
+                const response = await fetch('/api/rewards/withdrawals');
+                const data = await response.json();
+
+                if (data.withdrawals.length === 0) {
+                    document.getElementById('withdrawals-tbody').innerHTML = `
+                        <tr><td colspan="4" style="text-align: center; color: #666;">No withdrawals yet.</td></tr>
+                    `;
+                    return;
+                }
+
+                document.getElementById('withdrawals-tbody').innerHTML = data.withdrawals.map(w => `
+                    <tr>
+                        <td>${new Date(w.created_at).toLocaleDateString('en-KE')}</td>
+                        <td>${Number(w.points).toLocaleString()}</td>
+                        <td style="color: var(--gold);">KSh ${Number(w.kes_amount).toLocaleString()}</td>
+                        <td>
+                            <span style="padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.8rem; background: ${w.status === 'approved' ? '#d4edda' : w.status === 'pending' ? '#fff3cd' : '#f8d7da'}; color: ${w.status === 'approved' ? '#155724' : w.status === 'pending' ? '#856404' : '#721c24'};">
+                                ${w.status}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load withdrawals:', error);
+            }
+        }
+
+        // Calculate KES value when points change
+        document.getElementById('withdraw-points').addEventListener('input', (e) => {
+            const points = parseInt(e.target.value) || 0;
+            const kes = points / pointsToKesRate;
+            document.getElementById('withdraw-kes').textContent = Number(kes).toLocaleString();
+        });
+
+        // Handle withdrawal form
+        document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const points = parseInt(document.getElementById('withdraw-points').value);
+            const paymentMethod = document.getElementById('withdraw-method').value;
+            const paymentDetails = document.getElementById('withdraw-details').value;
+
+            try {
+                const response = await fetch('/api/rewards/withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ points, paymentMethod, paymentDetails })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Withdrawal request submitted!', 'success');
+                    loadRewards(); // Refresh data
+                    document.getElementById('withdraw-form').reset();
+                } else {
+                    showAlert(data.error?.message || 'Failed to submit request', 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to submit withdrawal request', 'error');
+            }
+        });
+
+        function copyReferralCode() {
+            const code = document.getElementById('referral-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showAlert('Code copied!', 'success');
+            }).catch(() => {
+                const el = document.createElement('textarea');
+                el.value = code;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                showAlert('Code copied!', 'success');
+            });
+        }
+
+        function shareWhatsApp() {
+            const code = document.getElementById('referral-code').textContent;
+            const text = `Shop at CreviaBeauty and use my referral code ${code} to earn ${referralBonus} bonus points! Visit: https://creviabeauty.com/register?ref=${code}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function shareTwitter() {
+            const code = document.getElementById('referral-code').textContent;
+            const text = `Shop at @CreviaFurnitures and use my referral code ${code} to earn bonus points!`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        loadRewards();
+    </script>
+</body>
+</html>
