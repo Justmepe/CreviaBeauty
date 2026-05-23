@@ -11,11 +11,14 @@ const { createOrderRules } = require('../validators/order');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 
-// Discord webhook URL for order notifications
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1507712063093477417/2igi-q1GC9orOZiycXsk89n7kR6UvuGJYo1_dYI-hn0PVS2sSjMtnyUOqwK0tczZILa0';
+// Discord webhook for new-order notifications.
+// Set DISCORD_WEBHOOK_URL in .env to enable. If unset, notifications are skipped silently —
+// so dev/test/CI runs don't need it.
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 // Send Discord notification for new orders
 async function sendDiscordOrderNotification(orderData) {
+    if (!DISCORD_WEBHOOK_URL) return;
     try {
         const paymentMethodLabels = {
             'cod': 'Cash on Delivery',
