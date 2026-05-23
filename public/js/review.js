@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                     }
                 } else {
-                    alert(data.error?.message || data.error || 'Failed to submit review');
+                    alert(getErrorMessage(data, 'Failed to submit review'));
                 }
             } catch (error) {
                 console.error('Review submission error:', error);

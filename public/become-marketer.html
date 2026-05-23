@@ -365,7 +365,7 @@
                         </div>
                     `;
                 } else {
-                    showAlert(data.error?.message || 'Failed to submit application', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to submit application'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to submit application', 'error');

@@ -163,10 +163,10 @@
                         window.location.href = redirectUrl;
                     }, 1000);
                 } else {
-                    alertContainer.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+                    alertContainer.innerHTML = `<div class="alert alert-error">${escapeHtml(getErrorMessage(data, 'Login failed. Check your email and password.'))}</div>`;
                 }
             } catch (error) {
-                alertContainer.innerHTML = '<div class="alert alert-error">Login failed. Please try again.</div>';
+                alertContainer.innerHTML = '<div class="alert alert-error">Could not reach the server. Please check your connection and try again.</div>';
             }
         });
     </script>

@@ -486,7 +486,7 @@
                     loadRewards(); // Refresh data
                     document.getElementById('withdraw-form').reset();
                 } else {
-                    showAlert(data.error?.message || 'Failed to submit request', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to submit request'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to submit withdrawal request', 'error');

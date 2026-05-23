@@ -682,7 +682,7 @@
                 const data = await response.json();
 
                 if (!data.success) {
-                    throw new Error(data.error?.message || 'Failed to load dashboard');
+                    throw new Error(getErrorMessage(data, 'Failed to load dashboard'));
                 }
 
                 dashboardData = data;
@@ -801,7 +801,7 @@
                 const data = await response.json();
 
                 if (!data.success) {
-                    throw new Error(data.error?.message || 'Failed to load products');
+                    throw new Error(getErrorMessage(data, 'Failed to load products'));
                 }
 
                 const { products, commissionRate, pagination } = data;
@@ -900,7 +900,7 @@
                     document.getElementById('payout-form').reset();
                     loadDashboard();
                 } else {
-                    showAlert(data.error?.message || 'Failed to submit', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to submit'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to submit payout request', 'error');
@@ -986,7 +986,7 @@
                     document.getElementById('user-name').textContent = name;
                     document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
                 } else {
-                    showAlert(data.error || 'Failed to update profile', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update profile'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update profile', 'error');
@@ -1020,7 +1020,7 @@
                     showAlert('Password updated successfully!', 'success');
                     document.getElementById('password-form').reset();
                 } else {
-                    showAlert(data.error || 'Failed to update password', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update password'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update password', 'error');

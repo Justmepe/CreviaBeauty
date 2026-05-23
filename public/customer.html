@@ -1036,7 +1036,7 @@
                     loadWithdrawalsData();
                     loadRewardsData();
                 } else {
-                    showAlert(data.error?.message || 'Failed to submit withdrawal request', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to submit withdrawal request'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to submit withdrawal request', 'error');
@@ -1077,7 +1077,7 @@
                     document.getElementById('welcome-name').textContent = name.split(' ')[0];
                     document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
                 } else {
-                    showAlert(data.error || 'Failed to update profile', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update profile'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update profile', 'error');
@@ -1115,7 +1115,7 @@
                     showAlert('Password updated successfully!', 'success');
                     document.getElementById('password-form').reset();
                 } else {
-                    showAlert(data.error || 'Failed to update password', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update password'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update password', 'error');

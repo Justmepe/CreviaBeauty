@@ -189,7 +189,7 @@
                         window.location.href = '/marketer';
                     }, 2000);
                 } else {
-                    alertContainer.innerHTML = `<div class="alert alert-error">${data.error || 'Registration failed'}</div>`;
+                    alertContainer.innerHTML = `<div class="alert alert-error">${getErrorMessage(data, 'Registration failed')}</div>`;
                 }
             } catch (error) {
                 alertContainer.innerHTML = '<div class="alert alert-error">Registration failed. Please try again.</div>';

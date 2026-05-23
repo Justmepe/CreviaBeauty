@@ -1149,7 +1149,7 @@
                 if (data.success) {
                     showAlert('Order status updated', 'success');
                 } else {
-                    showAlert(data.error || 'Failed to update', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update'), 'error');
                     loadOrders();
                 }
             } catch (error) {
@@ -1170,7 +1170,7 @@
                     showAlert('Payment marked as received', 'success');
                     loadOrders();
                 } else {
-                    showAlert(data.error || 'Failed to update', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update payment status', 'error');
@@ -1294,7 +1294,7 @@
                     showAlert(data.message, 'success');
                     loadMarketers();
                 } else {
-                    showAlert(data.error?.message || 'Failed to update', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update marketer status', 'error');
@@ -1336,7 +1336,7 @@
                     document.querySelector('.modal').remove();
                     loadMarketers();
                 } else {
-                    showAlert(data.error?.message || 'Failed to update', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to update'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to update commission rate', 'error');
@@ -1389,7 +1389,7 @@
                     showAlert(data.message, 'success');
                     loadMarketerPayouts();
                 } else {
-                    showAlert(data.error?.message || 'Failed to process', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to process'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to process payout', 'error');
@@ -1559,7 +1559,7 @@
                 if (data.success) {
                     showAlert('Settings saved', 'success');
                 } else {
-                    showAlert(data.error?.message || 'Failed to save', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to save'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to save settings', 'error');
@@ -1610,7 +1610,7 @@
                     showAlert(data.message, 'success');
                     loadPointsWithdrawals();
                 } else {
-                    showAlert(data.error?.message || 'Failed to process', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to process'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to process withdrawal', 'error');
@@ -1676,7 +1676,7 @@
                 if (data.success) {
                     showAlert('Payment settings saved', 'success');
                 } else {
-                    showAlert(data.error || 'Failed to save', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to save'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to save payment settings', 'error');
@@ -1798,7 +1798,7 @@
                     closeModal();
                     loadProducts();
                 } else {
-                    showAlert(data.error || 'Failed to save product', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to save product'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to save product', 'error');
@@ -1890,7 +1890,7 @@
                     showAlert('Slide deleted', 'success');
                     loadHeroSlides();
                 } else {
-                    showAlert(data.error || 'Failed to delete', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to delete'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to delete slide', 'error');
@@ -1945,7 +1945,7 @@
                     closeSlideModal();
                     loadHeroSlides();
                 } else {
-                    showAlert(data.error || data.message || 'Failed to save slide', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to save slide'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to save slide', 'error');

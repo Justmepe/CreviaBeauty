@@ -279,7 +279,7 @@ async function approveReview(id) {
             loadReviews();
         } else {
             const data = await response.json();
-            showAlert(data.error?.message || 'Failed to approve review', 'error');
+            showAlert(getErrorMessage(data, 'Failed to approve review'), 'error');
         }
     } catch (error) {
         showAlert('Failed to approve review', 'error');
@@ -301,7 +301,7 @@ async function declineReview(id) {
             loadReviews();
         } else {
             const data = await response.json();
-            showAlert(data.error?.message || 'Failed to decline review', 'error');
+            showAlert(getErrorMessage(data, 'Failed to decline review'), 'error');
         }
     } catch (error) {
         showAlert('Failed to decline review', 'error');
@@ -323,7 +323,7 @@ async function deleteReview(id) {
             loadReviews();
         } else {
             const data = await response.json();
-            showAlert(data.error?.message || 'Failed to delete review', 'error');
+            showAlert(getErrorMessage(data, 'Failed to delete review'), 'error');
         }
     } catch (error) {
         showAlert('Failed to delete review', 'error');
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     closeModal();
                     loadProducts();
                 } else {
-                    showAlert(data.error?.message || data.error || 'Failed to save product', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to save product'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to save product', 'error');

@@ -13,6 +13,20 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+// Extract a human-readable message from an API error response.
+// The backend returns { success: false, error: { code, message, details? } } for typed errors,
+// but some routes still return a plain { error: "string" } or { message: "string" } shape.
+// First validation detail is preferred so users see the offending field instead of "Validation failed".
+function getErrorMessage(data, fallback) {
+    if (!data) return fallback || 'Something went wrong';
+    const err = data.error;
+    if (err && Array.isArray(err.details) && err.details[0]?.message) return err.details[0].message;
+    if (err && typeof err === 'object' && err.message) return err.message;
+    if (typeof err === 'string' && err) return err;
+    if (typeof data.message === 'string' && data.message) return data.message;
+    return fallback || 'Something went wrong';
+}
+
 // Update cart count on page load
 document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();

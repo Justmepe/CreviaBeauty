@@ -278,7 +278,7 @@
                         document.getElementById('contact-success').classList.remove('show');
                     }, 4000);
                 } else {
-                    showAlert(data.error || 'Failed to send message', 'error');
+                    showAlert(getErrorMessage(data, 'Failed to send message'), 'error');
                 }
             } catch (error) {
                 showAlert('Failed to send message. Please try again.', 'error');

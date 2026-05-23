@@ -393,7 +393,7 @@
                         loadCart();
                         updateCartCount();
                     } else {
-                        showAlert(data.error?.message || data.error || 'Failed to place order', 'error');
+                        showAlert(getErrorMessage(data, 'Failed to place order'), 'error');
                     }
                 } catch (error) {
                     showAlert('Failed to place order', 'error');
