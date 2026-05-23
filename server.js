@@ -131,26 +131,31 @@ app.get('/sitemap.xml', async (req, res) => {
         const baseUrl = 'https://creviabeauty.com';
         const today = new Date().toISOString().split('T')[0];
 
+        // High-value pages that should be in the sitemap. Listed in priority order.
+        // Login/Register/Cart/Admin are excluded — they're already blocked in robots.txt
+        // and offer no SEO value (transactional, auth-gated).
+        const staticPages = [
+            { loc: '/',              changefreq: 'daily',   priority: '1.0' },
+            { loc: '/products',      changefreq: 'daily',   priority: '0.9' },
+            { loc: '/bundles',       changefreq: 'weekly',  priority: '0.8' },
+            { loc: '/quiz',          changefreq: 'monthly', priority: '0.8' }, // conversion page (fragrance quiz)
+            { loc: '/blog',          changefreq: 'weekly',  priority: '0.7' },
+            { loc: '/authenticity',  changefreq: 'monthly', priority: '0.7' }, // trust signal
+            { loc: '/become-marketer', changefreq: 'monthly', priority: '0.6' },
+            { loc: '/contact',       changefreq: 'monthly', priority: '0.6' }
+        ];
+
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+        for (const p of staticPages) {
+            xml += `
     <url>
-        <loc>${baseUrl}/</loc>
+        <loc>${baseUrl}${p.loc}</loc>
         <lastmod>${today}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
-    </url>
-    <url>
-        <loc>${baseUrl}/products</loc>
-        <lastmod>${today}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.9</priority>
-    </url>
-    <url>
-        <loc>${baseUrl}/contact</loc>
-        <lastmod>${today}</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <changefreq>${p.changefreq}</changefreq>
+        <priority>${p.priority}</priority>
     </url>`;
+        }
 
         // Category pages
         categories.forEach(category => {
@@ -181,6 +186,7 @@ app.get('/sitemap.xml', async (req, res) => {
 </urlset>`;
 
         res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=3600'); // 1 hour — Googlebot doesn't need it any fresher
         res.send(xml);
     } catch (error) {
         logger.error('Sitemap generation error', { error: error.message });
