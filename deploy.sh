@@ -118,9 +118,9 @@ fi
 fi
 
 echo "[6/6] Starting / reloading PM2 process '${APP_NAME}'"
-pm2 startOrReload ecosystem.config.js --only "${APP_NAME}" 2>/dev/null \
-  || pm2 start ecosystem.config.js --only "${APP_NAME}" 2>/dev/null \
-  || pm2 start server.js --name "${APP_NAME}" --env PORT=${APP_PORT}
+# Delete any stale process entry first so we don't inherit a saved exec_mode (e.g. cluster) from a prior run.
+pm2 delete "${APP_NAME}" >/dev/null 2>&1 || true
+pm2 start ecosystem.config.js --only "${APP_NAME}"
 pm2 save
 
 echo ""

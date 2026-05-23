@@ -2,12 +2,11 @@ module.exports = {
   apps: [{
     name: 'creviabeauty',
     script: 'server.js',
-    instances: 1,
+    exec_mode: 'fork',          // single process; cluster mode is unnecessary and confuses port binding
     autorestart: true,
     watch: false,
     max_memory_restart: '500M',
-    // PORT is read from .env on the VPS (so it can coexist with other apps).
-    // The values here are only a development default.
+    // PORT is read from .env on the VPS so the app can coexist with other PM2 apps.
     env: {
       NODE_ENV: 'production'
     }
