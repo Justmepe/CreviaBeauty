@@ -9,7 +9,10 @@
     "test": "jest --runInBand",
     "test:coverage": "jest --runInBand --coverage",
     "test:watch": "jest --watch",
-    "test:db:create": "node tests/create-test-db.js"
+    "test:db:create": "node tests/create-test-db.js",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug"
   },
   "keywords": [
     "beauty",
@@ -38,6 +41,7 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "jest": "^30.2.0",
     "nodemon": "^3.0.2",
     "supertest": "^7.2.2"

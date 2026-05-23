@@ -12,7 +12,7 @@ const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 
 // Discord webhook URL for order notifications
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1463641585920245782/QgRnT4d0EK-Ad6ie9GoWyWd4Ad_d1DPYz4LPx_Z8RyB8B36Ql9_dnZXzWa_AR7O3Nbta';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1507712063093477417/2igi-q1GC9orOZiycXsk89n7kR6UvuGJYo1_dYI-hn0PVS2sSjMtnyUOqwK0tczZILa0';
 
 // Send Discord notification for new orders
 async function sendDiscordOrderNotification(orderData) {

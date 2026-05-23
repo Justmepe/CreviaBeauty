@@ -44,3 +44,8 @@ Thumbs.db
 # Production
 dist/
 build/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
