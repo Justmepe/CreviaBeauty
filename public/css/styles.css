@@ -376,7 +376,7 @@ h1, h2, h3, h4, h5, h6 {
     height: 100%;
     /* Contain image fully, no cropping - letterbox if needed */
     background-size: cover;
-    /* Focus on center-top for furniture images (shows products better) */
+    /* Focus on center-top for product images */
     background-position: center top;
     background-repeat: no-repeat;
     opacity: 0;
@@ -1116,7 +1116,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ============ PAGE HEADER ============ */
 .page-header {
     background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 26, 0.85) 100%),
-                url('https://kentyfurnitures.co.ke/wp-content/uploads/2024/07/LIVING-ROOM.png') center/cover;
+                url('https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1600&h=900&fit=crop') center/cover;
     color: white;
     padding: 4rem 2rem;
     text-align: center;

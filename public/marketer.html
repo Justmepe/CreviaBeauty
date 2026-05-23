@@ -119,7 +119,7 @@
             <div class="sidebar-header">
                 <a href="/" class="sidebar-logo">
                     <img src="/assets/favicon.png" alt="CreviaBeauty">
-                    <span class="sidebar-logo-text">Crevia<span>Furnitures</span></span>
+                    <span class="sidebar-logo-text">Crevia<span>Beauty</span></span>
                 </a>
             </div>
 
@@ -333,12 +333,15 @@
                                 <input type="text" id="product-search" placeholder="Search products..." style="flex: 1; min-width: 200px; padding: 0.75rem 1rem; border: 2px solid #e0e0e0; border-radius: 8px;">
                                 <select id="product-category-filter" style="padding: 0.75rem 1rem; border: 2px solid #e0e0e0; border-radius: 8px;">
                                     <option value="">All Categories</option>
-                                    <option value="Office Furniture">Office Furniture</option>
-                                    <option value="Living Room">Living Room</option>
-                                    <option value="Dining">Dining</option>
-                                    <option value="Bedroom">Bedroom</option>
-                                    <option value="Recliner">Recliner</option>
-                                    <option value="Outdoor">Outdoor</option>
+                                    <option value="Perfumes">Perfumes</option>
+                                    <option value="Women's Skincare">Women's Skincare</option>
+                                    <option value="Men's Skincare">Men's Skincare</option>
+                                    <option value="Makeup">Makeup</option>
+                                    <option value="Hair Care">Hair Care</option>
+                                    <option value="Body Care">Body Care</option>
+                                    <option value="Fragrances">Fragrances</option>
+                                    <option value="Beauty Tools">Beauty Tools</option>
+                                    <option value="Wigs">Wigs</option>
                                 </select>
                             </div>
 
@@ -928,7 +931,7 @@
 
         function shareTwitter() {
             const code = dashboardData?.profile?.referralCode || '';
-            const text = `Shop quality furniture at @CreviaFurnitures! Use my code ${code} for great deals!`;
+            const text = `Shop premium beauty at @CreviaBeauty! Use my code ${code} for great deals!`;
             window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
         }
 

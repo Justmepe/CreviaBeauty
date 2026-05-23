@@ -55,7 +55,7 @@ if (config.isProduction) {
 
 const logger = winston.createLogger({
     level: config.logLevel,
-    defaultMeta: { service: 'crevia-furnitures' },
+    defaultMeta: { service: 'creviabeauty' },
     transports
 });
 

@@ -95,9 +95,9 @@ jest.mock('../database', () => {
     db.exec(`
         INSERT INTO products (name, description, price, category, stock)
         VALUES
-            ('Test Desk', 'A test desk', 10000, 'Office Furniture', 10),
-            ('Test Chair', 'A test chair', 5000, 'Office Furniture', 20),
-            ('Test Sofa', 'A test sofa', 50000, 'Living Room', 5);
+            ('Test Perfume', 'A test perfume', 10000, 'Perfumes', 10),
+            ('Test Perfume 2', 'Another test perfume', 5000, 'Perfumes', 20),
+            ('Test Lipstick', 'A test lipstick', 1500, 'Makeup', 5);
     `);
 
     return db;
@@ -131,10 +131,10 @@ describe('Products API', () => {
 
         it('should filter by category', async () => {
             const res = await request(app)
-                .get('/api/products?category=Office%20Furniture');
+                .get('/api/products?category=Perfumes');
 
             expect(res.statusCode).toBe(200);
-            expect(res.body.data.every(p => p.category === 'Office Furniture')).toBe(true);
+            expect(res.body.data.every(p => p.category === 'Perfumes')).toBe(true);
         });
     });
 
