@@ -12,6 +12,10 @@ const rateLimitHandler = (req, res, next, options) => {
     next(AppError.tooManyRequests(options.message));
 };
 
+// Skip rate limiting in test mode — otherwise integration tests with many requests
+// trip the limiters and produce noise unrelated to what they're testing.
+const skipInTest = () => process.env.NODE_ENV === 'test';
+
 /**
  * Global rate limiter - applies to all requests
  */
@@ -23,6 +27,7 @@ const globalLimiter = rateLimit({
     legacyHeaders: false,
     handler: rateLimitHandler,
     skip: (req) => {
+        if (skipInTest()) return true;
         // Skip rate limiting for static assets
         return req.path.startsWith('/css/') ||
                req.path.startsWith('/js/') ||
@@ -41,7 +46,8 @@ const authLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: rateLimitHandler,
-    skipSuccessfulRequests: false
+    skipSuccessfulRequests: false,
+    skip: skipInTest
 });
 
 /**
@@ -53,7 +59,8 @@ const formLimiter = rateLimit({
     message: 'Too many form submissions, please try again later',
     standardHeaders: true,
     legacyHeaders: false,
-    handler: rateLimitHandler
+    handler: rateLimitHandler,
+    skip: skipInTest
 });
 
 /**
@@ -65,7 +72,8 @@ const apiLimiter = rateLimit({
     message: 'Too many API requests, please slow down',
     standardHeaders: true,
     legacyHeaders: false,
-    handler: rateLimitHandler
+    handler: rateLimitHandler,
+    skip: skipInTest
 });
 
 module.exports = {

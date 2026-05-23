@@ -1039,9 +1039,12 @@ async function seedHeroSlides(client) {
     console.log('Hero slides seeded');
 }
 
-// Initialize on module load
-initializeDatabase().catch(err => {
+// Initialize on module load. Tests can await db.ready() to be sure schema + seeds
+// finished before issuing requests.
+const initPromise = initializeDatabase().catch(err => {
     console.error('Failed to initialize database:', err);
+    throw err;
 });
+db.ready = () => initPromise;
 
 module.exports = db;

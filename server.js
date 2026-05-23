@@ -290,7 +290,10 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // ============ START SERVER ============
 
-server = app.listen(config.port, () => {
+// In test mode, supertest drives the app directly — no need to bind a port.
+// Skipping listen() also avoids EADDRINUSE conflicts with a running dev server.
+if (config.nodeEnv !== 'test') {
+    server = app.listen(config.port, () => {
     logger.info('Server started', {
         port: config.port,
         environment: config.nodeEnv,
@@ -318,5 +321,6 @@ server = app.listen(config.port, () => {
         `);
     }
 });
+}
 
 module.exports = app;
