@@ -95,11 +95,11 @@ h1, h2, h3, h4, h5, h6 {
 .nav-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0.75rem 2rem;
+    padding: 0.75rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem;
+    gap: 1.25rem;
 }
 
 .logo {
@@ -109,6 +109,18 @@ h1, h2, h3, h4, h5, h6 {
     color: white;
     text-decoration: none;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Brand mark sits in a white circle so the dark crescent reads on the dark navbar */
+.logo img {
+    height: 42px;
+    width: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #fff;
+    margin-right: 10px;
 }
 
 .logo span {
@@ -168,7 +180,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .nav-links {
     display: flex;
-    gap: 1.5rem;
+    gap: 1.1rem;
     list-style: none;
     align-items: center;
 }
@@ -179,6 +191,13 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
     transition: color 0.3s;
     font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* The Sign In inside nav-links is for the mobile menu only —
+   desktop already shows the auth-links button */
+#nav-auth-link {
+    display: none;
 }
 
 .nav-links a:hover {
@@ -270,8 +289,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .auth-links {
     display: flex;
-    gap: 1rem;
+    gap: 0.6rem;
     align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.auth-greeting {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-right: 0.4rem;
 }
 
 .mobile-menu-btn {
@@ -368,26 +395,41 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 0;
 }
 
+/*
+ * Hero slides never crop the product photo. Each slide layers:
+ *   1. brand gradient base (the slide itself)
+ *   2. blurred image backdrop — gives each slide its own colour mood
+ *   3. dark gradient for text legibility (::before)
+ *   4. gold ambience glow behind the product (::after)
+ *   5. the FULL product photo in a boutique arch frame, floating
+ */
 .hero-slide {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* Contain image fully, no cropping - letterbox if needed */
-    background-size: cover;
-    /* Focus on center-top for product images */
-    background-position: center top;
-    background-repeat: no-repeat;
+    background: linear-gradient(120deg, #1a1a2e 0%, #2c2c54 60%, #3b2c50 100%);
     opacity: 0;
     transition: opacity 0.8s ease-in-out;
-    /* Hardware acceleration for smooth transitions */
     will-change: opacity;
     transform: translateZ(0);
+    overflow: hidden;
 }
 
 .hero-slide.active {
     opacity: 1;
+}
+
+.hero-slide-backdrop {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(42px) saturate(1.25);
+    transform: scale(1.15);
+    opacity: 0.5;
+    z-index: 0;
 }
 
 .hero-slide::before {
@@ -397,14 +439,93 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Adjusted gradient: less opaque on right to show more image */
+    z-index: 1;
     background: linear-gradient(
         105deg,
         rgba(26, 26, 46, 0.92) 0%,
         rgba(26, 26, 46, 0.85) 35%,
-        rgba(15, 15, 26, 0.6) 70%,
-        rgba(15, 15, 26, 0.4) 100%
+        rgba(15, 15, 26, 0.55) 70%,
+        rgba(15, 15, 26, 0.35) 100%
     );
+}
+
+/* Golden ambience behind the product card */
+.hero-slide::after {
+    content: '';
+    position: absolute;
+    right: 2%;
+    top: 50%;
+    width: 640px;
+    height: 640px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle,
+        rgba(201, 165, 90, 0.30) 0%,
+        rgba(201, 165, 90, 0.08) 45%,
+        transparent 70%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* The full, uncropped product photo in an arch frame with a gold ring */
+.hero-slide-product {
+    position: absolute;
+    right: 7%;
+    top: 50%;
+    width: min(26vw, 360px);
+    aspect-ratio: 3 / 4;
+    transform: translateY(-50%);
+    background-size: cover;
+    background-position: center;
+    border-radius: 999px 999px 26px 26px;
+    border: 3px solid rgba(201, 165, 90, 0.7);
+    box-shadow:
+        0 0 0 12px rgba(201, 165, 90, 0.12),
+        0 35px 60px rgba(0, 0, 0, 0.45);
+    z-index: 2;
+}
+
+.hero-slide.active .hero-slide-product {
+    animation:
+        heroEnter 0.9s ease both,
+        heroFloat 7s ease-in-out 0.9s infinite;
+}
+
+/* Brand sparkles around the arch */
+.hero-slide-product::before,
+.hero-slide-product::after {
+    content: '\2726';
+    position: absolute;
+    color: #c9a55a;
+    text-shadow: 0 0 18px rgba(201, 165, 90, 0.9);
+    animation: heroTwinkle 2.6s ease-in-out infinite;
+}
+
+.hero-slide-product::before {
+    top: -34px;
+    left: -28px;
+    font-size: 2rem;
+}
+
+.hero-slide-product::after {
+    bottom: 8px;
+    right: -38px;
+    font-size: 1.3rem;
+    animation-delay: 1.3s;
+}
+
+@keyframes heroEnter {
+    from { opacity: 0; transform: translateY(calc(-50% + 28px)) rotate(2.5deg); }
+    to   { opacity: 1; transform: translateY(-50%) rotate(0deg); }
+}
+
+@keyframes heroFloat {
+    0%, 100% { transform: translateY(-50%); }
+    50%      { transform: translateY(calc(-50% - 12px)); }
+}
+
+@keyframes heroTwinkle {
+    0%, 100% { opacity: 0.35; transform: scale(0.85); }
+    50%      { opacity: 1; transform: scale(1.15); }
 }
 
 .hero-content {
@@ -561,57 +682,117 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--primary);
 }
 
+/* Bento grid: 4 columns, the featured card spans 2x2 — 9 cards fill 12 cells exactly */
 .categories-grid {
     max-width: 1400px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 205px;
+    gap: 1.1rem;
 }
 
 .category-card {
-    background: white;
-    border-radius: 10px;
+    position: relative;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.3s, box-shadow 0.3s;
-    cursor: pointer;
     text-decoration: none;
-    color: inherit;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(26, 26, 46, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.category-card.featured {
+    grid-column: span 2;
+    grid-row: span 2;
 }
 
 .category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(26, 26, 46, 0.22);
 }
 
 .category-image {
-    width: 100%;
-    height: 200px;
-    background: var(--light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 4rem;
+    position: absolute;
+    inset: 0;
     background-size: cover;
     background-position: center;
+    background-color: var(--light);
+    transition: transform 0.5s ease;
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.06);
+}
+
+/* Legibility gradient over the lower half of every tile */
+.category-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0) 38%, rgba(26, 26, 46, 0.85) 100%);
 }
 
 .category-info {
-    padding: 1.5rem;
-    text-align: center;
+    position: absolute;
+    left: 1.15rem;
+    right: 1.15rem;
+    bottom: 1.05rem;
+    z-index: 1;
 }
 
 .category-name {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
     font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.15rem;
 }
 
-.category-count {
-    color: var(--text-light);
-    font-size: 0.9rem;
+.category-card.featured .category-name {
+    font-size: 2.1rem;
+}
+
+.category-sub {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+/* Gold call-to-action slides in on hover */
+.category-cta {
+    display: inline-block;
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-top: 0.45rem;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.category-card:hover .category-cta {
+    opacity: 1;
+    transform: none;
+}
+
+/* Live product count, filled by index.js */
+.category-chip {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    display: none;
+}
+
+.category-chip.show {
+    display: inline-block;
 }
 
 /* ============ PRODUCTS SECTION ============ */
@@ -2267,8 +2448,15 @@ footer {
         font-size: 2.8rem;
     }
 
-    .hero-slide {
-        background-position: center center;
+    /* Smaller arch card so it doesn't crowd the text */
+    .hero-slide-product {
+        width: 230px;
+        right: 4%;
+    }
+
+    .hero-slide::after {
+        width: 420px;
+        height: 420px;
     }
 
     .hero-slide::before {
@@ -2340,6 +2528,11 @@ footer {
         display: none;
     }
 
+    /* In the collapsed mobile menu the Sign In link comes back */
+    #nav-auth-link {
+        display: list-item;
+    }
+
     /* Navbar mobile - ensure visibility */
     .navbar {
         display: block !important;
@@ -2402,8 +2595,15 @@ footer {
         justify-content: center;
     }
 
-    .hero-slide {
-        background-position: center center;
+    /* On phones the text needs the full width — the blurred backdrop carries the visual */
+    .hero-slide-product,
+    .hero-slide::after {
+        display: none;
+    }
+
+    .hero-slide-backdrop {
+        filter: blur(28px) saturate(1.25);
+        opacity: 0.65;
     }
 
     .hero-slide::before {
@@ -2474,6 +2674,7 @@ footer {
 
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 180px;
     }
 
     .footer-content {
@@ -2613,7 +2814,13 @@ footer {
 
 @media (max-width: 480px) {
     .categories-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 150px;
+        gap: 0.7rem;
+    }
+
+    .category-card.featured .category-name {
+        font-size: 1.4rem;
     }
 
     .top-bar-content {

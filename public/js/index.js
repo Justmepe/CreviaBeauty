@@ -33,13 +33,19 @@ async function loadHeroImages() {
             return;
         }
 
-        // Background slides
+        // Two layers per slide so product photos are never cropped:
+        // a blurred cover backdrop fills the banner, and the full image
+        // floats on the right as a product card.
         const heroBackground = document.getElementById('hero-background');
         if (heroBackground) {
-            heroBackground.innerHTML = heroSlides.map((slide, index) => `
-                <div class="hero-slide ${index === 0 ? 'active' : ''}"
-                     style="background-image: url('${escapeHtml(slide.image_url)}');"></div>
-            `).join('');
+            heroBackground.innerHTML = heroSlides.map((slide, index) => {
+                const img = escapeHtml(slide.image_url);
+                return `
+                <div class="hero-slide ${index === 0 ? 'active' : ''}">
+                    <div class="hero-slide-backdrop" style="background-image: url('${img}');"></div>
+                    <div class="hero-slide-product" style="background-image: url('${img}');"></div>
+                </div>`;
+            }).join('');
         }
 
         // Dots
@@ -145,6 +151,8 @@ async function loadFeaturedProducts() {
             container.innerHTML = featured.map(product => createProductCard(product)).join('');
             if (typeof hydrateWishlistHearts === 'function') hydrateWishlistHearts();
         }
+
+        fillCategoryCounts();
     } catch (error) {
         console.error('Failed to load products:', error);
         const container = document.getElementById('featured-products');
@@ -152,6 +160,33 @@ async function loadFeaturedProducts() {
             container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem;">Failed to load products. Please refresh the page.</p>';
         }
     }
+}
+
+// Fill the "N products" chips on the Shop by Category tiles.
+// The API caps limit at 100, so walk pages until the catalog is fully counted.
+async function fillCategoryCounts() {
+    try {
+        const products = [];
+        for (let page = 1; page <= 5; page++) {
+            const response = await fetch(`/api/products?limit=100&page=${page}`);
+            const result = await response.json();
+            const batch = result.data || [];
+            products.push(...batch);
+            if (!result.pagination || page >= result.pagination.pages) break;
+        }
+        const counts = {};
+        products.forEach(p => {
+            if (p.category) counts[p.category] = (counts[p.category] || 0) + 1;
+        });
+        document.querySelectorAll('.category-card[data-category]').forEach(card => {
+            const n = counts[card.dataset.category];
+            const chip = card.querySelector('.category-chip');
+            if (n && chip) {
+                chip.textContent = `${n} product${n === 1 ? '' : 's'}`;
+                chip.classList.add('show');
+            }
+        });
+    } catch (e) { /* chips are optional decoration */ }
 }
 
 // Load customer reviews with carousel animation

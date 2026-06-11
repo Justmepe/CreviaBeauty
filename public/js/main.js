@@ -69,8 +69,9 @@ async function checkUserAuth() {
         const data = await response.json();
 
         if (data.loggedIn) {
-            // Build navigation links based on user role
-            let desktopLinks = `<span style="margin-right: 1rem; font-size: 0.9rem; color: rgba(255,255,255,0.9);">Hi, ${escapeHtml(data.user.name)}</span>`;
+            // Greet with the first name only so the navbar stays on one line
+            const firstName = String(data.user.name || '').trim().split(/\s+/)[0] || 'there';
+            let desktopLinks = `<span class="auth-greeting">Hi, ${escapeHtml(firstName)}</span>`;
             let mobileLinks = '';
 
             if (data.user.isAdmin) {

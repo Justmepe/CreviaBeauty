@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="ZhDlMIa8qlmUBZryhGMQQxVk3xfGzvb1NRGgOyM8Gy0">
     <title>CreviaBeauty - Premium Beauty Products, Perfumes & Skincare in Kenya</title>
-    <link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
-    <link rel="apple-touch-icon" href="/assets/logo.JPG">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="apple-touch-icon" href="/assets/favicon.png">
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="Kenya's leading beauty store. Shop premium perfumes, skincare, makeup, and beauty products for women and men. Free delivery in Nairobi. Best prices guaranteed.">
@@ -54,7 +54,7 @@
         "@type": "Store",
         "name": "CreviaBeauty",
         "url": "https://creviabeauty.com",
-        "logo": "https://creviabeauty.com/images/logo.png",
+        "logo": "https://creviabeauty.com/assets/Logo.png",
         "description": "Premium beauty store in Kenya offering perfumes, skincare, makeup, and beauty products for women and men.",
         "address": {
             "@type": "PostalAddress",
@@ -111,7 +111,7 @@
     <nav class="navbar">
     <div class="nav-container">
         <a href="/" class="logo">
-            <img src="/assets/favicon.png" alt="CreviaBeauty Logo" style="height: 40px; width: auto; margin-right: 10px; vertical-align: middle;">
+            <img src="/assets/favicon.png" alt="CreviaBeauty Logo">
             Crevia<span>Beauty</span>
         </a>
 
@@ -150,7 +150,7 @@
             </li>
             <li><a href="/products">Shop All</a></li>
             <li><a href="/bundles">Bundles</a></li>
-            <li><a href="/quiz">Find your scent</a></li>
+            <li><a href="/quiz">Quizzes</a></li>
             <li><a href="/blog">The Edit</a></li>
             <li><a href="/contact">Contact</a></li>
             <li id="nav-auth-link"><a href="/login">Sign In</a></li>
@@ -209,76 +209,95 @@
     <!-- Categories Section -->
     <section class="categories-section">
         <h2 class="section-title">Shop by Category</h2>
+        <!-- Bento grid: Perfumes is the 2x2 feature, 8 tiles fill around it (12 cells, no orphans) -->
         <div class="categories-grid">
-            <a href="/products?category=Perfumes" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1541643600914-78b084683601?w=400');"></div>
+            <a href="/products?category=Perfumes" class="category-card featured" data-category="Perfumes">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1541643600914-78b084683601?w=900');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Perfumes</div>
-                    <div class="category-count">Designer & Luxury Scents</div>
+                    <div class="category-sub">Designer &amp; luxury scents · batch-code verified</div>
+                    <span class="category-cta">Shop Perfumes &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Women's Skincare" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400');"></div>
+            <a href="/products?category=Women's Skincare" class="category-card" data-category="Women's Skincare">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Women's Skincare</div>
-                    <div class="category-count">Serums, Moisturizers, Cleansers</div>
+                    <div class="category-sub">Serums, moisturizers, cleansers</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Men's Skincare" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1581182800629-7d90925ad072?w=400');"></div>
+            <a href="/products?category=Men's Skincare" class="category-card" data-category="Men's Skincare">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1581182800629-7d90925ad072?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Men's Skincare</div>
-                    <div class="category-count">Grooming & Care</div>
+                    <div class="category-sub">Grooming &amp; care</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Makeup" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400');"></div>
+            <a href="/products?category=Makeup" class="category-card" data-category="Makeup">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Makeup</div>
-                    <div class="category-count">Lipsticks, Foundations, Palettes</div>
+                    <div class="category-sub">Lipsticks, foundations, palettes</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Hair Care" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=400');"></div>
+            <a href="/products?category=Hair Care" class="category-card" data-category="Hair Care">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Hair Care</div>
-                    <div class="category-count">Shampoos, Treatments, Oils</div>
+                    <div class="category-sub">Shampoos, treatments, oils</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Body Care" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400');"></div>
+            <a href="/products?category=Body Care" class="category-card" data-category="Body Care">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Body Care</div>
-                    <div class="category-count">Lotions, Scrubs, Body Wash</div>
+                    <div class="category-sub">Lotions, scrubs, body wash</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Fragrances" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400');"></div>
+            <a href="/products?category=Fragrances" class="category-card" data-category="Fragrances">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1594035910387-fea47794261f?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Fragrances</div>
-                    <div class="category-count">Colognes & Body Mists</div>
+                    <div class="category-sub">Colognes &amp; body mists</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Beauty Tools" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400');"></div>
+            <a href="/products?category=Beauty Tools" class="category-card" data-category="Beauty Tools">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Beauty Tools</div>
-                    <div class="category-count">Brushes, Mirrors, Accessories</div>
+                    <div class="category-sub">Brushes, mirrors, accessories</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
 
-            <a href="/products?category=Wigs" class="category-card">
-                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1634315775834-3e1ac73de6b6?w=400');"></div>
+            <a href="/products?category=Wigs" class="category-card" data-category="Wigs">
+                <div class="category-image" style="background-image: url('https://images.unsplash.com/photo-1634315775834-3e1ac73de6b6?w=500');"></div>
+                <span class="category-chip"></span>
                 <div class="category-info">
                     <div class="category-name">Wigs</div>
-                    <div class="category-count">Human Hair, Synthetic, HD Lace</div>
+                    <div class="category-sub">Human hair, synthetic, HD lace</div>
+                    <span class="category-cta">Shop &rarr;</span>
                 </div>
             </a>
         </div>
@@ -286,34 +305,49 @@
 
     <!-- Discovery Tiles: Bundles + Quiz + Authenticity -->
     <section class="discovery-tiles">
-        <a class="discovery-tile" href="/bundles" style="background: linear-gradient(135deg, #7c3aed, #c026d3);">
-            <div class="discovery-tile-icon">🎁</div>
+        <a class="discovery-tile tile-bundles" href="/bundles">
+            <span class="discovery-chip">Save up to 20%</span>
+            <span class="discovery-tile-icon">&#10022;</span>
             <h3>Curated Bundles</h3>
-            <p>Skincare routines, bridal kits, fragrance trios. Save up to 20%.</p>
-            <span class="discovery-tile-cta">Shop bundles →</span>
+            <p>Skincare routines, bridal kits, fragrance trios. Ready to gift or keep.</p>
+            <span class="discovery-tile-cta">Shop bundles &rarr;</span>
         </a>
-        <a class="discovery-tile" href="/quiz" style="background: linear-gradient(135deg, #ec4899, #f97316);">
-            <div class="discovery-tile-icon">✨</div>
-            <h3>Find Your Scent</h3>
-            <p>5 questions. Find your fragrance family.</p>
-            <span class="discovery-tile-cta">Take the quiz →</span>
+        <a class="discovery-tile tile-quiz" href="/quiz">
+            <span class="discovery-tile-icon">&#10023;</span>
+            <h3>Find Your Match</h3>
+            <p>Scent, hair, skincare or wig. Four quick quizzes with real product matches.</p>
+            <span class="discovery-tile-cta">Take a quiz &rarr;</span>
         </a>
-        <a class="discovery-tile" href="/authenticity" style="background: linear-gradient(135deg, #166534, #15803d);">
-            <div class="discovery-tile-icon">✓</div>
+        <a class="discovery-tile tile-authentic" href="/authenticity">
+            <img src="/assets/favicon.png" alt="" class="discovery-mark">
             <h3>Verified Authentic</h3>
-            <p>Every premium product is sourced direct. Refund if not.</p>
-            <span class="discovery-tile-cta">Our guarantee →</span>
+            <p>Every premium product sourced direct and batch-code verifiable. Refund if not.</p>
+            <span class="discovery-tile-cta">Our guarantee &rarr;</span>
         </a>
     </section>
 
     <style>
-        .discovery-tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem; max-width:1200px; margin:3rem auto; padding:0 1.5rem; }
-        .discovery-tile { display:block; text-decoration:none; color:#fff; padding:2rem 1.5rem; border-radius:14px; transition:transform 0.15s; box-shadow:0 4px 14px rgba(0,0,0,0.1); }
-        .discovery-tile:hover { transform:translateY(-3px); }
-        .discovery-tile-icon { font-size:2.2rem; margin-bottom:0.5rem; }
-        .discovery-tile h3 { margin:0 0 0.4rem 0; font-size:1.4rem; }
-        .discovery-tile p { margin:0 0 0.8rem 0; opacity:0.92; line-height:1.5; }
-        .discovery-tile-cta { display:inline-block; font-weight:600; opacity:0.95; }
+        .discovery-tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.1rem; max-width:1400px; margin:3rem auto; padding:0 2rem; }
+        .discovery-tile { position:relative; display:block; text-decoration:none; padding:2.1rem 1.8rem; border-radius:18px; transition:transform 0.25s, box-shadow 0.25s; box-shadow:0 4px 14px rgba(26,26,46,0.1); overflow:hidden; }
+        .discovery-tile:hover { transform:translateY(-4px); box-shadow:0 14px 30px rgba(26,26,46,0.2); }
+
+        /* Bundles: the hero's navy-plum gradient */
+        .tile-bundles { background:linear-gradient(120deg, #1a1a2e 0%, #2c2c54 60%, #3b2c50 100%); color:#fff; }
+        /* Quiz: the one light card — champagne draws the eye to the lead magnet */
+        .tile-quiz { background:linear-gradient(120deg, #f5ebd6 0%, #e9d6ae 100%); color:#1a1a2e; }
+        /* Authenticity: deep navy with a gold ring, like a certificate */
+        .tile-authentic { background:#1a1a2e; color:#fff; border:1px solid rgba(201,165,90,0.6); box-shadow:0 0 0 5px rgba(201,165,90,0.08), 0 4px 14px rgba(26,26,46,0.1); }
+
+        .discovery-tile-icon { display:block; font-size:1.7rem; margin-bottom:0.7rem; color:var(--gold); }
+        .tile-quiz .discovery-tile-icon { color:#a8853f; }
+        .discovery-mark { display:block; height:42px; width:42px; border-radius:50%; object-fit:cover; background:#fff; margin-bottom:0.7rem; }
+        .discovery-tile h3 { margin:0 0 0.45rem 0; font-size:1.45rem; font-family:'Playfair Display', serif; }
+        .discovery-tile p { margin:0 0 1rem 0; line-height:1.55; font-size:0.95rem; opacity:0.88; }
+        .tile-quiz p { color:#4a3f2c; opacity:1; }
+        .discovery-tile-cta { display:inline-block; font-weight:700; color:var(--gold); transition:transform 0.25s ease; }
+        .tile-quiz .discovery-tile-cta { color:#1a1a2e; }
+        .discovery-tile:hover .discovery-tile-cta { transform:translateX(5px); }
+        .discovery-chip { position:absolute; top:1.1rem; right:1.1rem; background:var(--gold); color:#1a1a2e; border-radius:999px; font-size:0.72rem; font-weight:700; padding:0.3rem 0.8rem; letter-spacing:0.04em; }
     </style>
 
     <!-- Featured Products Section -->
@@ -370,7 +404,7 @@
                 <h3>Discover</h3>
                 <ul>
                     <li><a href="/bundles">Bundles & Kits</a></li>
-                    <li><a href="/quiz">Find your scent</a></li>
+                    <li><a href="/quiz">Quizzes</a></li>
                     <li><a href="/blog">The Edit (Blog)</a></li>
                     <li><a href="/authenticity">Authenticity Guarantee</a></li>
                     <li><a href="/wishlist">My Wishlist</a></li>
