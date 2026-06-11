@@ -5,19 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Wishlist | CreviaBeauty Kenya</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
+    /* styles.css has no .nav-content rules - style this page's navbar here */
+    .navbar .nav-content { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
+    .navbar .logo { display:inline-flex; align-items:center; font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
+    .navbar .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
+    .navbar .logo b { color:#c9a55a; }
+    .navbar .nav-links { display:flex; gap:1.1rem; list-style:none; margin:0; padding:0; align-items:center; }
+    .navbar .nav-links a { white-space:nowrap; }
+    @media (max-width:640px) { .navbar .nav-links { display:none; } }
     .wishlist-hero { padding:2.5rem 1.5rem 1.5rem; text-align:center; }
     .wishlist-hero h1 { margin:0; font-size:2rem; }
     .wishlist-hero p { color:#666; margin:0.4rem 0 0 0; }
     .wishlist-empty { text-align:center; padding:4rem 1.5rem; color:#666; }
-    .wishlist-empty a { color:#7c3aed; font-weight:600; }
+    .wishlist-empty a { color:#a8853f; font-weight:600; }
 </style>
 </head>
 <body>
 <nav class="navbar">
     <div class="nav-content">
-        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <a href="/" class="logo"><img src="/assets/favicon.png" alt="CreviaBeauty">Crevia<b>Beauty</b></a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/products">Products</a></li>

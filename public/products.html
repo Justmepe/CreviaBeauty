@@ -199,14 +199,14 @@
         .facet-sidebar { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:1.25rem; position:sticky; top:80px; max-height: calc(100vh - 100px); overflow-y:auto; }
         .facet-sidebar-header { display:flex; justify-content:space-between; align-items:center; padding-bottom:0.5rem; margin-bottom:0.5rem; border-bottom:1px solid #eee; }
         .facet-sidebar-header h3 { margin:0; font-size:1rem; }
-        #clear-facets { background:none; border:none; color:#7c3aed; font-size:0.8rem; cursor:pointer; font-weight:600; }
+        #clear-facets { background:none; border:none; color:#a8853f; font-size:0.8rem; cursor:pointer; font-weight:600; }
         #clear-facets:hover { text-decoration:underline; }
         .facet-group { margin: 0.85rem 0; }
         .facet-group h4 { margin: 0 0 0.4rem 0; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:#666; }
         .facet-group.hidden { display:none; }
         .facet-options label, .facet-group[data-facet-group="quick"] label { display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0; font-size:0.85rem; cursor:pointer; color:#333; }
-        .facet-options label:hover { color:#7c3aed; }
-        .facet-options input[type="radio"], .facet-options input[type="checkbox"], .facet-group input[type="checkbox"] { accent-color:#7c3aed; }
+        .facet-options label:hover { color:#a8853f; }
+        .facet-options input[type="radio"], .facet-options input[type="checkbox"], .facet-group input[type="checkbox"] { accent-color:#a8853f; }
         .facet-price-row { display:flex; gap:0.4rem; align-items:center; }
         .facet-price-row input { width:80px; padding:0.35rem 0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.85rem; }
         @media (max-width: 900px) {
@@ -361,7 +361,7 @@
                 if (cat.includes('Skincare') || cat === 'Body Care') return ['brand','skin'];
                 if (cat === 'Hair Care') return ['brand','hair'];
                 if (cat === 'Wigs') return ['wigtexture','wigorigin','wigcap'];
-                return ['brand']; // Makeup, Beauty Tools — just brand
+                return ['brand']; // Makeup, Beauty Tools, just brand
             };
             const visible = new Set(groupForCategory(state.category));
             const groupMap = { brand:'brand', scent:'scent', skin:'skin', hair:'hair', wigtexture:'wigtexture', wigorigin:'wigorigin', wigcap:'wigcap' };

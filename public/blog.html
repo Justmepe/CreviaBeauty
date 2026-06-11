@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beauty Edit | CreviaBeauty Kenya</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png">
-<meta name="description" content="Beauty tips, guides, and edits from CreviaBeauty — wigs, fragrance, skincare and makeup advice for Kenyan beauty lovers.">
+<meta name="description" content="Beauty tips, guides, and edits from CreviaBeauty, wigs, fragrance, skincare and makeup advice for Kenyan beauty lovers.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://creviabeauty.com/blog">
 <meta property="og:type" content="website">
@@ -24,7 +24,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-    /* styles.css has no .nav-content rules (it styles .nav-container) — style the blog navbar here */
+    /* styles.css has no .nav-content rules (it styles .nav-container), style the blog navbar here */
     .navbar .nav-content { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
     .navbar .logo { display:inline-flex; align-items:center; font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
     .navbar .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
@@ -99,7 +99,7 @@ async function loadArticles() {
         const articles = await response.json();
 
         if (!Array.isArray(articles) || articles.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#888; padding:3rem 1.5rem;">No articles yet — check back soon.</p>';
+            container.innerHTML = '<p style="text-align:center; color:#888; padding:3rem 1.5rem;">No articles yet, check back soon.</p>';
             return;
         }
 

@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beauty Bundles & Kits | CreviaBeauty Kenya</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png">
-<meta name="description" content="Curated beauty bundles — skincare routines, bridal kits, fragrance discovery sets. Save up to 20% vs buying individually.">
+<meta name="description" content="Curated beauty bundles, skincare routines, bridal kits, fragrance discovery sets. Save up to 20% vs buying individually.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://creviabeauty.com/bundles">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://creviabeauty.com/bundles">
 <meta property="og:title" content="Beauty Bundles & Kits | CreviaBeauty Kenya">
-<meta property="og:description" content="Skincare routines, bridal kits, and fragrance discovery sets — save up to 20% vs buying individually.">
+<meta property="og:description" content="Skincare routines, bridal kits, and fragrance discovery sets, save up to 20% vs buying individually.">
 <meta property="og:image" content="https://creviabeauty.com/images/og-image.jpg">
 <meta property="og:locale" content="en_KE">
 <meta property="og:site_name" content="CreviaBeauty">
@@ -19,9 +19,20 @@
 <meta name="twitter:title" content="Beauty Bundles & Kits | CreviaBeauty Kenya">
 <meta name="twitter:description" content="Curated skincare, bridal and fragrance discovery bundles. Save up to 20%.">
 <meta name="twitter:image" content="https://creviabeauty.com/images/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-    .bundles-hero { background: linear-gradient(135deg, #7c3aed, #c026d3); color:#fff; padding:3.5rem 2rem; text-align:center; }
+    /* styles.css has no .nav-content rules - style this page's navbar here */
+    .navbar .nav-content { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
+    .navbar .logo { display:inline-flex; align-items:center; font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
+    .navbar .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
+    .navbar .logo b { color:#c9a55a; }
+    .navbar .nav-links { display:flex; gap:1.1rem; list-style:none; margin:0; padding:0; align-items:center; }
+    .navbar .nav-links a { white-space:nowrap; }
+    @media (max-width:640px) { .navbar .nav-links { display:none; } }
+    .bundles-hero { background: linear-gradient(120deg, #1a1a2e 0%, #2c2c54 70%, #3b2c50 100%); color:#fff; padding:3.5rem 2rem; text-align:center; }
     .bundles-hero h1 { font-size:2.4rem; margin:0 0 0.5rem 0; }
     .bundles-hero p { font-size:1.05rem; opacity:0.92; max-width:680px; margin:0 auto; }
     .bundles-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; max-width:1200px; margin:3rem auto; padding:0 1.5rem; }
@@ -36,16 +47,16 @@
     .bundle-items ul { list-style:none; padding:0; margin:0; }
     .bundle-items li { padding:0.2rem 0; font-size:0.85rem; color:#444; }
     .bundle-prices { display:flex; align-items:baseline; gap:0.7rem; }
-    .bundle-price { font-size:1.5rem; font-weight:700; color:#7c3aed; }
+    .bundle-price { font-size:1.5rem; font-weight:700; color:#a8853f; }
     .bundle-original { font-size:0.95rem; text-decoration:line-through; color:#aaa; }
-    .bundle-cta { background:#7c3aed; color:#fff; border:none; padding:0.7rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem; font-size:0.95rem; }
-    .bundle-cta:hover { background:#6d28d9; }
+    .bundle-cta { background:#c9a55a; color:#1a1a2e; border:none; padding:0.7rem; border-radius:8px; font-weight:600; cursor:pointer; margin-top:0.5rem; font-size:0.95rem; }
+    .bundle-cta:hover { filter:brightness(1.07); }
 </style>
 </head>
 <body>
 <nav class="navbar">
     <div class="nav-content">
-        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <a href="/" class="logo"><img src="/assets/favicon.png" alt="CreviaBeauty">Crevia<b>Beauty</b></a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/products">Products</a></li>
@@ -58,7 +69,7 @@
 
 <section class="bundles-hero">
     <h1>Curated Beauty Bundles</h1>
-    <p>Hand-picked combinations that save you money and time. A full routine, a bridal kit, or a discovery trio — ready to ship.</p>
+    <p>Hand-picked combinations that save you money and time. A full routine, a bridal kit, or a discovery trio, ready to ship.</p>
 </section>
 
 <div class="bundles-grid" id="bundles-grid">
@@ -120,7 +131,7 @@ async function addBundleToCart(bundleId, productIds) {
     if (added > 0) {
         showAlert(`Added ${added} bundle item${added>1?'s':''} to cart`, 'success');
     } else {
-        showAlert('Could not add bundle — please try again', 'error');
+        showAlert('Could not add bundle, please try again', 'error');
     }
 }
 </script>
