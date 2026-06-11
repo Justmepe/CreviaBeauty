@@ -253,7 +253,7 @@ def discover_topic():
             best = {**c, "score": score, "product": product_term}
 
     if best is None or best["score"] <= 0:
-        sys.exit("Discovery found no usable topics — sources may be unreachable. Try --auto (calendar) instead.")
+        raise RuntimeError("Discovery found no usable topics right now (sources unreachable or all candidates used)")
 
     print(f"  - picked: \"{best['title']}\" (from {best['origin']}, score {best['score']})")
     save_used_topic(slugify(best["title"]))
@@ -465,16 +465,23 @@ def main():
     if args.watch:
         print(f"Continuous mode: researching every {args.watch}h. Ctrl+C to stop.")
         while True:
-            topic, pillar, product_term, notes = resolve_task()
+            # Failures (sources down, all candidates used) must not exit the
+            # process — under PM2 that becomes a restart loop. Retry sooner instead.
+            delay_hours = args.watch
             try:
+                topic, pillar, product_term, notes = resolve_task()
                 run_once(topic, pillar, product_term, notes, args.copy)
             except Exception as e:
                 print(f"[error] run failed: {e}")
+                delay_hours = min(args.watch, 4)
             wake = datetime.now().strftime("%H:%M")
-            print(f"\nSleeping {args.watch}h (since {wake})...")
-            time.sleep(args.watch * 3600)
+            print(f"\nSleeping {delay_hours}h (since {wake})...")
+            time.sleep(delay_hours * 3600)
     else:
-        topic, pillar, product_term, notes = resolve_task()
+        try:
+            topic, pillar, product_term, notes = resolve_task()
+        except RuntimeError as e:
+            sys.exit(str(e))
         run_once(topic, pillar, product_term, notes, args.copy)
 
 
