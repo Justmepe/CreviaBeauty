@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beauty Edit | CreviaBeauty Kenya</title>
-<link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
 <meta name="description" content="Beauty tips, guides, and edits from CreviaBeauty — wigs, fragrance, skincare and makeup advice for Kenyan beauty lovers.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://creviabeauty.com/blog">
@@ -19,35 +19,56 @@
 <meta name="twitter:title" content="The Beauty Edit | CreviaBeauty Kenya">
 <meta name="twitter:description" content="Wigs, fragrance, skincare and makeup guides for Kenyan beauty lovers.">
 <meta name="twitter:image" content="https://creviabeauty.com/images/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-    .blog-hero { background: linear-gradient(135deg, #1e293b, #475569); color:#fff; padding:3rem 1.5rem; text-align:center; }
-    .blog-hero h1 { margin:0 0 0.4rem 0; font-size:2.2rem; }
+    /* styles.css has no .nav-content rules (it styles .nav-container) — style the blog navbar here */
+    .navbar .nav-content { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
+    .navbar .logo { display:inline-flex; align-items:center; font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
+    .navbar .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
+    .navbar .logo b { color:#c9a55a; }
+    .navbar .nav-links { display:flex; gap:1.1rem; list-style:none; margin:0; padding:0; align-items:center; }
+    .navbar .nav-links a { white-space:nowrap; }
+    @media (max-width:640px) { .navbar .nav-links { display:none; } }
+
+    .blog-hero { background: linear-gradient(120deg, #1a1a2e 0%, #2c2c54 70%, #3b2c50 100%); color:#fff; padding:3rem 1.5rem; text-align:center; }
+    .blog-hero h1 { margin:0 0 0.4rem 0; font-size:2.2rem; font-family:'Playfair Display', serif; }
     .blog-hero p { opacity:0.9; }
-    .blog-grid { max-width:1100px; margin:2.5rem auto; padding:0 1.5rem; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; }
-    .blog-card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.07); display:flex; flex-direction:column; cursor:pointer; transition:transform 0.15s; }
-    .blog-card:hover { transform:translateY(-3px); }
-    .blog-img { height:180px; background-size:cover; background-position:center; }
+    .blog-wrap { max-width:1100px; margin:2.5rem auto 3rem; padding:0 1.5rem; }
+    .blog-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem; }
+    .blog-card { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 12px rgba(26,26,46,0.08); display:flex; flex-direction:column; cursor:pointer; transition:transform 0.18s, box-shadow 0.18s; height:100%; }
+    .blog-card:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(26,26,46,0.14); }
+    .blog-img { height:190px; background-size:cover; background-position:center; transition:transform 0.4s ease; }
+    .blog-card:hover .blog-img { transform:scale(1.04); }
+    .blog-img-clip { overflow:hidden; }
     .blog-body { padding:1.25rem; }
-    .blog-cat { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:#7c3aed; font-weight:700; }
-    .blog-title { font-size:1.15rem; font-weight:700; margin:0.4rem 0; line-height:1.35; }
-    .blog-excerpt { color:#555; font-size:0.9rem; line-height:1.5; }
-    .blog-meta { color:#888; font-size:0.78rem; margin-top:0.6rem; }
-    .article-wrap { max-width:760px; margin:2rem auto; padding:0 1.5rem; }
-    .article-wrap h2 { margin-top:1.5rem; font-size:1.4rem; }
-    .article-wrap p { line-height:1.7; color:#333; }
-    .article-back { color:#7c3aed; text-decoration:none; font-weight:600; }
+    .blog-cat { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:#a8853f; font-weight:700; }
+    .blog-title { font-family:'Playfair Display', serif; font-size:1.2rem; font-weight:700; margin:0.45rem 0; line-height:1.3; color:#1a1a2e; }
+    .blog-excerpt { color:#555; font-size:0.9rem; line-height:1.55; }
+    .blog-meta { color:#999; font-size:0.78rem; margin-top:0.7rem; }
+
+    /* Featured (latest) article: full-width magazine card */
+    .blog-featured { display:grid; grid-template-columns:1.2fr 1fr; background:#fff; border-radius:18px; overflow:hidden; box-shadow:0 4px 18px rgba(26,26,46,0.1); margin-bottom:1.75rem; cursor:pointer; transition:transform 0.18s, box-shadow 0.18s; }
+    .blog-featured:hover { transform:translateY(-4px); box-shadow:0 14px 32px rgba(26,26,46,0.16); }
+    .blog-featured .blog-img { height:100%; min-height:320px; }
+    .blog-featured .blog-body { padding:2.2rem; display:flex; flex-direction:column; justify-content:center; }
+    .blog-featured .blog-title { font-size:1.9rem; line-height:1.22; }
+    .blog-featured .blog-excerpt { font-size:1rem; }
+    .blog-featured-tag { display:inline-block; background:#c9a55a; color:#1a1a2e; font-size:0.68rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border-radius:999px; padding:0.3rem 0.8rem; margin-bottom:0.8rem; align-self:flex-start; }
+    @media (max-width:760px) { .blog-featured { grid-template-columns:1fr; } .blog-featured .blog-img { min-height:220px; } .blog-featured .blog-body { padding:1.5rem; } .blog-featured .blog-title { font-size:1.45rem; } }
 </style>
 </head>
 <body>
 <nav class="navbar">
     <div class="nav-content">
-        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <a href="/" class="logo"><img src="/assets/favicon.png" alt="CreviaBeauty">Crevia<b>Beauty</b></a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/products">Products</a></li>
             <li><a href="/bundles">Bundles</a></li>
-            <li><a href="/quiz">Find your scent</a></li>
+            <li><a href="/quiz">Quizzes</a></li>
             <li><a href="/blog" class="active">The Edit</a></li>
         </ul>
     </div>
@@ -63,106 +84,76 @@
 <footer>
     <div class="footer-content">
         <div class="footer-section"><h3>CreviaBeauty Kenya</h3><p>Premium beauty in Kenya.</p></div>
-        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products">Products</a></li><li><a href="/quiz">Find your scent</a></li></ul></div>
+        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products">Products</a></li><li><a href="/quiz">Quizzes</a></li></ul></div>
     </div>
     <div class="footer-bottom"><p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p></div>
 </footer>
 
 <script>
-const ARTICLES = [
-    {
-        slug: 'first-time-wig-buyer',
-        category: 'Wigs',
-        title: 'Buying your first wig: a no-BS Nairobi guide',
-        excerpt: 'Headband, lace front, frontal, HD lace — what actually matters when you\'re starting out, and what to spend on later.',
-        img: 'https://images.unsplash.com/photo-1634315775834-3e1ac73de6b6?w=800',
-        date: 'May 2026',
-        body: `
-            <p>If you\'re buying your first wig in Nairobi, you have three real choices: a synthetic headband wig (cheapest, easiest), a semi-human bob (mid-budget, looks more natural) or a human-hair closure unit (most expensive, most versatile).</p>
-            <h2>Start with a headband wig</h2>
-            <p>Headband wigs slip on in 30 seconds — no glue, no lace, no skill required. They\'re forgiving while you learn how to handle a unit, and they\'re cheap enough (KES 2,500–4,500) that you won\'t cry if the cap gets stretched out.</p>
-            <h2>Upgrade to a closure when you\'re ready</h2>
-            <p>A 4×4 closure wig (KES 16,000–22,000 in human hair) gives you a realistic parting and lasts 6–12 months with good care. Skip "lace front" until you\'ve practised laying lace once or twice.</p>
-            <h2>HD lace is the luxury tier, not the starting tier</h2>
-            <p>HD lace melts into the scalp beautifully but it\'s also more delicate. Earn the right to wear it.</p>
-        `
-    },
-    {
-        slug: 'natural-hair-wash-day',
-        category: 'Hair Care',
-        title: 'A Nairobi wash-day routine for 4C hair',
-        excerpt: 'The exact 4-product routine for cleansing, deep conditioning, and styling 4C hair — using brands you can actually buy here.',
-        img: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=800',
-        date: 'May 2026',
-        body: `
-            <p>4C hair needs moisture, gentle cleansing, and slip — in that order. Here\'s a routine using products available at CreviaBeauty.</p>
-            <h2>Step 1 — Pre-poo and detangle</h2>
-            <p>Section dry hair into four. Apply Mielle Rosemary Mint Hair Oil to the lengths and finger-detangle gently. Skip the brush.</p>
-            <h2>Step 2 — Cleanse</h2>
-            <p>Use Shea Moisture Jamaican Black Castor Oil shampoo on the scalp only. Rinse with cool water — hot water roughs up the cuticle.</p>
-            <h2>Step 3 — Deep condition</h2>
-            <p>Apply As I Am Coconut CoWash from mid-shaft to ends. Cover with a plastic cap for 20 minutes. Rinse with cool water.</p>
-            <h2>Step 4 — Leave-in and style</h2>
-            <p>While damp, apply Cantu Shea Butter Leave-In, followed by Marini Naturals Curl Cream. Twist or braid into your style of choice.</p>
-        `
-    },
-    {
-        slug: 'top-fragrances-nairobi-weather',
-        category: 'Fragrances',
-        title: 'Top 5 fragrances for Nairobi weather',
-        excerpt: 'Nairobi\'s climate is warm-dry. Some perfumes go off in this heat. Here are five that hold up.',
-        img: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=800',
-        date: 'May 2026',
-        body: `
-            <p>Nairobi sits at altitude with low humidity and warm daytime temperatures. Heavy oriental perfumes can become cloying; light citrus can vanish too fast. The sweet spot is fresh-aromatic with a woody base.</p>
-            <h2>1. Dior Sauvage EDT</h2>
-            <p>Bergamot opening, ambroxan base. Holds 6–8 hours in dry heat. Office-safe.</p>
-            <h2>2. Jo Malone Wood Sage & Sea Salt</h2>
-            <p>Unisex, fresh, mineral. Perfect for daytime.</p>
-            <h2>3. Chanel No. 5</h2>
-            <p>The classic. Heavier — best for evening.</p>
-            <h2>4. Tom Ford Black Orchid</h2>
-            <p>Going-out scent. Sillage for days. Use sparingly.</p>
-            <h2>5. Sol de Janeiro Cheirosa ʼ62 Body Mist</h2>
-            <p>Layer over any perfume for warmth and skin-cling. Cult favourite for a reason.</p>
-        `
-    }
-];
+// Articles are DB-driven (published via the admin Content Studio).
+// Cards link to server-rendered /blog/<slug> pages.
+async function loadArticles() {
+    const container = document.getElementById('blog-container');
+    try {
+        const response = await fetch('/api/articles');
+        const articles = await response.json();
 
-function renderList() {
-    document.getElementById('blog-container').innerHTML = `
-        <div class="blog-grid">
-            ${ARTICLES.map(a => `
-                <article class="blog-card" onclick="renderArticle('${a.slug}')">
-                    <div class="blog-img" style="background-image:url('${a.img}')"></div>
-                    <div class="blog-body">
-                        <div class="blog-cat">${a.category}</div>
-                        <h3 class="blog-title">${a.title}</h3>
-                        <p class="blog-excerpt">${a.excerpt}</p>
-                        <div class="blog-meta">${a.date} · 4 min read</div>
-                    </div>
-                </article>
-            `).join('')}
-        </div>
-    `;
+        if (!Array.isArray(articles) || articles.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#888; padding:3rem 1.5rem;">No articles yet — check back soon.</p>';
+            return;
+        }
+
+        const [featured, ...rest] = articles;
+        const img = a => (a.hero_image_url || '/assets/Logo.png').replace(/'/g, '%27');
+
+        container.innerHTML = `
+            <div class="blog-wrap">
+                <a href="/blog/${encodeURIComponent(featured.slug)}" style="text-decoration:none; color:inherit;">
+                    <article class="blog-featured">
+                        <div class="blog-img-clip"><div class="blog-img" style="background-image:url('${img(featured)}')"></div></div>
+                        <div class="blog-body">
+                            <span class="blog-featured-tag">Latest</span>
+                            <div class="blog-cat">${escapeText(featured.category || 'Beauty')}</div>
+                            <h2 class="blog-title">${escapeText(featured.title)}</h2>
+                            <p class="blog-excerpt">${escapeText((featured.intro || '').substring(0, 220))}${(featured.intro || '').length > 220 ? '…' : ''}</p>
+                            <div class="blog-meta">${formatDate(featured.published_at)}</div>
+                        </div>
+                    </article>
+                </a>
+                <div class="blog-grid">
+                    ${rest.map(a => `
+                        <a href="/blog/${encodeURIComponent(a.slug)}" style="text-decoration:none; color:inherit;">
+                            <article class="blog-card">
+                                <div class="blog-img-clip"><div class="blog-img" style="background-image:url('${img(a)}')"></div></div>
+                                <div class="blog-body">
+                                    <div class="blog-cat">${escapeText(a.category || 'Beauty')}</div>
+                                    <h3 class="blog-title">${escapeText(a.title)}</h3>
+                                    <p class="blog-excerpt">${escapeText((a.intro || '').substring(0, 140))}${(a.intro || '').length > 140 ? '…' : ''}</p>
+                                    <div class="blog-meta">${formatDate(a.published_at)}</div>
+                                </div>
+                            </article>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = '<p style="text-align:center; color:#e94560; padding:3rem 1.5rem;">Failed to load articles. Please refresh.</p>';
+    }
 }
-function renderArticle(slug) {
-    const a = ARTICLES.find(x => x.slug === slug);
-    if (!a) return renderList();
-    document.getElementById('blog-container').innerHTML = `
-        <div class="article-wrap">
-            <a href="#" class="article-back" onclick="event.preventDefault(); renderList();">← Back to the Edit</a>
-            <div class="blog-cat" style="margin-top:1rem;">${a.category}</div>
-            <h1 style="margin:0.3rem 0;">${a.title}</h1>
-            <div class="blog-meta">${a.date}</div>
-            <div class="blog-img" style="background-image:url('${a.img}'); height:280px; border-radius:12px; margin:1.5rem 0;"></div>
-            ${a.body}
-            <p style="margin-top:2rem;"><a href="/products" class="article-back">Shop products in this article →</a></p>
-        </div>
-    `;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+function escapeText(text) {
+    const div = document.createElement('div');
+    div.textContent = text == null ? '' : String(text);
+    return div.innerHTML;
 }
-renderList();
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-KE', { year: 'numeric', month: 'long' });
+}
+
+loadArticles();
 </script>
 </body>
 </html>

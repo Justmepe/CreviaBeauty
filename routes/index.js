@@ -15,6 +15,7 @@ const rewardsRoutes = require('./rewards');
 const wishlistRoutes = require('./wishlist');
 const bundlesRoutes = require('./bundles');
 const heroSlidesRoutes = require('./heroSlides');
+const articlesRoutes = require('./articles');
 
 module.exports = (app, db) => {
     // Auth routes
@@ -54,4 +55,9 @@ module.exports = (app, db) => {
     const heroSlides = heroSlidesRoutes(db);
     app.use('/api/hero-slides', heroSlides.public);
     app.use('/api/admin/hero-slides', heroSlides.admin);
+
+    // Articles (Content Studio) — split into public + admin routers
+    const articles = articlesRoutes(db);
+    app.use('/api/articles', articles.public);
+    app.use('/api/admin/articles', articles.admin);
 };

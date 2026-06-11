@@ -59,6 +59,11 @@ app.use(globalLimiter);
 
 // ============ BODY PARSING & SANITIZATION ============
 
+// Pasted Claude responses (full articles) far exceed the global 10kb cap.
+// Mounting a larger parser on the articles admin path first means the global
+// parser below skips these requests (body already parsed).
+app.use('/api/admin/articles', express.json({ limit: '2mb' }));
+
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
@@ -109,6 +114,45 @@ app.get('/bundles', (req, res) => res.sendFile(path.join(publicDir, 'bundles.htm
 app.get('/authenticity', (req, res) => res.sendFile(path.join(publicDir, 'authenticity.html')));
 app.get('/quiz', (req, res) => res.sendFile(path.join(publicDir, 'quiz.html')));
 app.get('/blog', (req, res) => res.sendFile(path.join(publicDir, 'blog.html')));
+
+// Article pages are server-rendered so each gets its own meta tags / OG / JSON-LD
+const { renderArticlePage } = require('./utils/renderArticle');
+const { requireAdmin } = require('./middleware/auth');
+
+// Admin-only preview of a draft (or any) article, rendered with the exact
+// branded template the public page uses — review before publishing.
+app.get('/admin/preview/:id', requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) return res.redirect(302, '/admin');
+        const result = await db.query(
+            `SELECT slug, title, category, hero_image_url, intro, meta_title, meta_description, tags, content, status, published_at
+             FROM articles WHERE id = $1`,
+            [id]
+        );
+        if (!result.rows[0]) return res.redirect(302, '/admin');
+        res.set('Cache-Control', 'no-store');
+        res.send(renderArticlePage(result.rows[0], { preview: true }));
+    } catch (error) {
+        logger.error('Article preview error', { id: req.params.id, error: error.message });
+        res.redirect(302, '/admin');
+    }
+});
+app.get('/blog/:slug', async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT slug, title, category, hero_image_url, intro, meta_title, meta_description, tags, content, published_at
+             FROM articles WHERE slug = $1 AND status = 'published'`,
+            [req.params.slug]
+        );
+        if (!result.rows[0]) return res.redirect(302, '/blog');
+        res.set('Cache-Control', 'public, max-age=300');
+        res.send(renderArticlePage(result.rows[0]));
+    } catch (error) {
+        logger.error('Article render error', { slug: req.params.slug, error: error.message });
+        res.redirect(302, '/blog');
+    }
+});
 
 // Static files with cache headers
 app.use(express.static('public', {
@@ -165,6 +209,23 @@ app.get('/sitemap.xml', async (req, res) => {
         <lastmod>${today}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
+    </url>`;
+        });
+
+        // Article pages
+        const articlesResult = await db.query(
+            "SELECT slug, published_at, updated_at FROM articles WHERE status = 'published' ORDER BY published_at DESC"
+        );
+        articlesResult.rows.forEach(article => {
+            const lastmod = (article.updated_at || article.published_at)
+                ? new Date(article.updated_at || article.published_at).toISOString().split('T')[0]
+                : today;
+            xml += `
+    <url>
+        <loc>${baseUrl}/blog/${article.slug}</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
     </url>`;
         });
 

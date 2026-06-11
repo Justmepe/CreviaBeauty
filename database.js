@@ -464,6 +464,28 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_hero_slides_active ON hero_slides(is_active);
         `);
 
+        // Articles — engine-published blog content (Content Studio)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS articles (
+                id SERIAL PRIMARY KEY,
+                slug VARCHAR(160) UNIQUE NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                category VARCHAR(100),
+                hero_image_url TEXT,
+                intro TEXT,
+                meta_title VARCHAR(160),
+                meta_description VARCHAR(300),
+                tags TEXT,
+                content JSONB NOT NULL DEFAULT '{}',
+                status VARCHAR(20) DEFAULT 'published',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
+            CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at);
+        `);
+
         // Add marketer/rewards columns to users table (migration)
         await client.query(`
             DO $$
@@ -589,6 +611,12 @@ async function initializeDatabase() {
         const heroSlidesCount = await client.query('SELECT COUNT(*) as count FROM hero_slides');
         if (parseInt(heroSlidesCount.rows[0].count) === 0) {
             await seedHeroSlides(client);
+        }
+
+        // Check if articles exist
+        const articlesCount = await client.query('SELECT COUNT(*) as count FROM articles');
+        if (parseInt(articlesCount.rows[0].count) === 0) {
+            await seedArticles(client);
         }
 
         console.log('Database initialized successfully');
@@ -1002,17 +1030,18 @@ async function seedPointsSettings(client) {
 async function seedHeroSlides(client) {
     // Mirror the original 9 hardcoded slides. Image picked from one product per category at seed time;
     // admins can change everything afterwards via /admin#hero-slides.
+    // Problem-led copy ($100M Offers framing) — keep in sync with scripts/update-hero-copy.js
     const slides = [
         // [category, badge, title_prefix, title_highlight, title_suffix, description, link_text, extra_link_url, extra_link_text]
-        ['Perfumes',          'AUTHORISED DISTRIBUTOR', 'Premium',     'Perfumes',          'Collection',  'Authentic Dior, Chanel, Tom Ford and Jo Malone — sourced direct, batch-code verifiable. Free delivery in Nairobi.', 'Shop Perfumes',          null,    null],
-        ["Women's Skincare",  'INGREDIENT-LED',         'Luxurious',   "Women's Skincare",  null,          'Every product comes with full ingredient and allergen info. From La Mer to CeraVe — pick what your skin actually needs.', "Shop Women's Skincare",  null,    null],
-        ["Men's Skincare",    'EVERYDAY ESSENTIALS',    'Premium',     "Men's Skincare",    null,          'A focused grooming line. Cleanse, hydrate, and protect — without the ten-step overwhelm.',                       "Shop Men's Skincare",    null,    null],
-        ['Makeup',            'SHADE-MATCHED FOR YOU',  'Professional','Makeup',            'Essentials',  'Foundations in 12 shades. Matte and satin lipsticks. Local Kenyan brands alongside Fenty, MAC and Urban Decay.', 'Shop Makeup',            null,    null],
-        ['Fragrances',        'LUXURY SCENTS',          'Exclusive',   'Fragrances',        null,          'Long-lasting, designer fragrances. Not sure where to start?',                                                    'Shop Fragrances',        '/quiz', 'Take our 5-question scent quiz.'],
-        ['Hair Care',         'TYPE 4 FRIENDLY',        'Quality',     'Hair Care',         'for Kenya',   "Cantu, Shea Moisture, Marini Naturals, Mielle and Aunt Jackie's — filter by your hair texture and find your routine.", 'Shop Hair Care',     null,    null],
-        ['Body Care',         'BODY EDIT',              'Indulgent',   'Body Care',         null,          "Whipped butters, bath rituals, and cult favourites like Sol de Janeiro's Bum Bum cream.",                       'Shop Body Care',         null,    null],
-        ['Beauty Tools',      'PRO TOOLS',              'Salon-Grade', 'Beauty Tools',      null,          'Dyson Airwrap, Real Techniques brushes, and the kit pieces that change a routine.',                              'Shop Beauty Tools',      null,    null],
-        ['Wigs',              'NEW CATEGORY',           'Premium',     'Wigs',              'Collection',  'From everyday headband wigs to luxury HD lace units — human hair, synthetic, and glueless styles for every look.', 'Shop Wigs',              null,    null]
+        ['Perfumes',          'BATCH-CODE VERIFIED',    'Never Wonder If It\'s', 'Fake',              'Again',        'Every bottle sourced direct and batch-code verifiable: Dior, Chanel, Tom Ford, Jo Malone. Authenticity guaranteed · Free delivery in Nairobi.', 'Shop Perfumes', '/quiz', 'Not sure where to start? Take the 5-question scent quiz.'],
+        ["Women's Skincare",  'INGREDIENT-LED',         'Skincare That Matches', 'Your Skin,',        'Not The Hype', 'Full ingredient and allergen info on every product. From La Mer to CeraVe, pick what your skin actually needs. Authenticity guaranteed · Free delivery in Nairobi.', "Shop Women's Skincare", null, null],
+        ["Men's Skincare",    'NO-OVERWHELM GROOMING',  'Look Sharp In',         'Two Steps,',        'Not Ten',      'Cleanse, hydrate, done. A focused grooming line without the ten-step overwhelm. Free delivery in Nairobi.', "Shop Men's Skincare", null, null],
+        ['Makeup',            'SHADE-MATCHED FOR YOU',  'Foundation That Actually', 'Matches',        null,           'Foundations in 12 shades for African skin tones. Kenyan brands like Suzie Beauty alongside Fenty, MAC and Urban Decay. Free delivery in Nairobi.', 'Shop Makeup', null, null],
+        ['Fragrances',        'FIND YOUR SIGNATURE',    'Find The Scent That Feels Like', 'You',      null,           'Five questions, one signature scent. Long-lasting designer fragrances, authenticity guaranteed.', 'Shop Fragrances', '/quiz', 'Take the 5-question scent quiz.'],
+        ['Hair Care',         'TYPE 4 FRIENDLY',        'Wash Day Without The',  'Guesswork',         null,           "Filter by your texture: 4A, 4B, 4C. Cantu, Shea Moisture, Marini Naturals, Mielle and Aunt Jackie's. Free delivery in Nairobi.", 'Shop Hair Care', null, null],
+        ['Body Care',         'BODY EDIT',              'The Glow That',         'Doesn\'t Wash Off', null,           "Whipped butters, bath rituals, and cult favourites like Sol de Janeiro's Bum Bum cream. Free delivery in Nairobi.", 'Shop Body Care', null, null],
+        ['Beauty Tools',      'PRO TOOLS',              'Your Makeup Is Fine. Your', 'Tools',         'Aren\'t.',     'Dyson Airwrap, Real Techniques brushes: the kit pieces that change a routine. Authenticity guaranteed.', 'Shop Beauty Tools', null, null],
+        ['Wigs',              'BEGINNER FRIENDLY',      'Salon Hair,',           'Zero',              'Salon Hours',  'Glueless, beginner-friendly styles, from everyday headband wigs to luxury HD lace. Human hair and synthetic. Free delivery in Nairobi.', 'Shop Wigs', null, null]
     ];
 
     // Pick one product image per category (first row) so the seeded slides have a sensible default image
@@ -1037,6 +1066,87 @@ async function seedHeroSlides(client) {
             description, linkText, extraUrl, extraText, i]);
     }
     console.log('Hero slides seeded');
+}
+
+async function seedArticles(client) {
+    // The three articles that used to be hardcoded in public/blog.html, now DB-driven.
+    const articles = [
+        {
+            slug: 'first-time-wig-buyer',
+            title: 'Buying your first wig: a no-BS Nairobi guide',
+            category: 'Wigs',
+            hero_image_url: 'https://images.unsplash.com/photo-1634315775834-3e1ac73de6b6?w=1200',
+            intro: 'If you\'re buying your first wig in Nairobi, you have three real choices: a synthetic headband wig (cheapest, easiest), a semi-human bob (mid-budget, looks more natural) or a human-hair closure unit (most expensive, most versatile).',
+            meta_title: 'Buying Your First Wig in Nairobi: A No-BS Guide',
+            meta_description: 'Headband, lace front, frontal, HD lace — what actually matters when you\'re starting out, and what to spend on later.',
+            tags: 'wigs,beginner,nairobi',
+            content: {
+                sections: [
+                    { heading: 'Start with a headband wig', paragraphs: ['Headband wigs slip on in 30 seconds — no glue, no lace, no skill required. They\'re forgiving while you learn how to handle a unit, and they\'re cheap enough (KES 2,500–4,500) that you won\'t cry if the cap gets stretched out.'] },
+                    { heading: 'Upgrade to a closure when you\'re ready', paragraphs: ['A 4×4 closure wig (KES 16,000–22,000 in human hair) gives you a realistic parting and lasts 6–12 months with good care. Skip "lace front" until you\'ve practised laying lace once or twice.'] },
+                    { heading: 'HD lace is the luxury tier, not the starting tier', paragraphs: ['HD lace melts into the scalp beautifully but it\'s also more delicate. Earn the right to wear it.'] }
+                ],
+                cta_text: 'Ready to start? Browse our wig collection — from everyday headband wigs to luxury HD lace units.',
+                cta_link: '/products?category=Wigs',
+                carousel: []
+            },
+            published_at: '2026-05-10'
+        },
+        {
+            slug: 'natural-hair-wash-day',
+            title: 'A Nairobi wash-day routine for 4C hair',
+            category: 'Hair Care',
+            hero_image_url: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1200',
+            intro: '4C hair needs moisture, gentle cleansing, and slip — in that order. Here\'s a routine using products available at CreviaBeauty.',
+            meta_title: 'A Nairobi Wash-Day Routine for 4C Hair',
+            meta_description: 'The exact 4-product routine for cleansing, deep conditioning, and styling 4C hair — using brands you can actually buy here.',
+            tags: 'hair care,4c,wash day',
+            content: {
+                sections: [
+                    { heading: 'Step 1 — Pre-poo and detangle', paragraphs: ['Section dry hair into four. Apply Mielle Rosemary Mint Hair Oil to the lengths and finger-detangle gently. Skip the brush.'] },
+                    { heading: 'Step 2 — Cleanse', paragraphs: ['Use Shea Moisture Jamaican Black Castor Oil shampoo on the scalp only. Rinse with cool water — hot water roughs up the cuticle.'] },
+                    { heading: 'Step 3 — Deep condition', paragraphs: ['Apply As I Am Coconut CoWash from mid-shaft to ends. Cover with a plastic cap for 20 minutes. Rinse with cool water.'] },
+                    { heading: 'Step 4 — Leave-in and style', paragraphs: ['While damp, apply Cantu Shea Butter Leave-In, followed by Marini Naturals Curl Cream. Twist or braid into your style of choice.'] }
+                ],
+                cta_text: 'Every product in this routine is in stock — filter Hair Care by your texture.',
+                cta_link: '/products?category=Hair%20Care',
+                carousel: []
+            },
+            published_at: '2026-05-17'
+        },
+        {
+            slug: 'top-fragrances-nairobi-weather',
+            title: 'Top 5 fragrances for Nairobi weather',
+            category: 'Fragrances',
+            hero_image_url: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=1200',
+            intro: 'Nairobi sits at altitude with low humidity and warm daytime temperatures. Heavy oriental perfumes can become cloying; light citrus can vanish too fast. The sweet spot is fresh-aromatic with a woody base.',
+            meta_title: 'Top 5 Fragrances for Nairobi Weather',
+            meta_description: 'Nairobi\'s climate is warm-dry. Some perfumes go off in this heat. Here are five that hold up.',
+            tags: 'fragrances,perfume,nairobi',
+            content: {
+                sections: [
+                    { heading: '1. Dior Sauvage EDT', paragraphs: ['Bergamot opening, ambroxan base. Holds 6–8 hours in dry heat. Office-safe.'] },
+                    { heading: '2. Jo Malone Wood Sage & Sea Salt', paragraphs: ['Unisex, fresh, mineral. Perfect for daytime.'] },
+                    { heading: '3. Chanel No. 5', paragraphs: ['The classic. Heavier — best for evening.'] },
+                    { heading: '4. Tom Ford Black Orchid', paragraphs: ['Going-out scent. Sillage for days. Use sparingly.'] },
+                    { heading: '5. Sol de Janeiro Cheirosa ʼ62 Body Mist', paragraphs: ['Layer over any perfume for warmth and skin-cling. Cult favourite for a reason.'] }
+                ],
+                cta_text: 'All five are authentic, batch-code verifiable, and in stock in our Perfumes collection.',
+                cta_link: '/products?category=Perfumes',
+                carousel: []
+            },
+            published_at: '2026-05-24'
+        }
+    ];
+
+    for (const a of articles) {
+        await client.query(`
+            INSERT INTO articles (slug, title, category, hero_image_url, intro, meta_title, meta_description, tags, content, status, published_at)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'published',$10)
+            ON CONFLICT (slug) DO NOTHING
+        `, [a.slug, a.title, a.category, a.hero_image_url, a.intro, a.meta_title, a.meta_description, a.tags, JSON.stringify(a.content), a.published_at]);
+    }
+    console.log('Blog articles seeded');
 }
 
 // Initialize on module load. Tests can await db.ready() to be sure schema + seeds
