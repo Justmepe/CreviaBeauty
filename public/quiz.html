@@ -3,174 +3,467 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Find Your Perfect Scent | CreviaBeauty Kenya</title>
-<link rel="icon" type="image/jpeg" href="/assets/logo.JPG">
-<meta name="description" content="Take our 5-question scent-finder quiz. Discover whether your signature is fresh, woody, floral, or oriental — and shop matching fragrances.">
+<title>Find Your Match | CreviaBeauty Quizzes</title>
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<meta name="description" content="Quick beauty quizzes: find your signature scent, your hair routine, your skincare match, or your first wig. Matched to products you can buy in Kenya.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://creviabeauty.com/quiz">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://creviabeauty.com/quiz">
-<meta property="og:title" content="Find Your Perfect Scent | CreviaBeauty Kenya">
-<meta property="og:description" content="Take our 5-question scent quiz and discover your signature fragrance — Dior, Chanel, Tom Ford and more.">
+<meta property="og:title" content="Find Your Match | CreviaBeauty Quizzes">
+<meta property="og:description" content="Quick quizzes that match you to the right beauty products: scent, hair, skincare and wigs.">
 <meta property="og:image" content="https://creviabeauty.com/images/og-image.jpg">
 <meta property="og:locale" content="en_KE">
 <meta property="og:site_name" content="CreviaBeauty">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Find Your Perfect Scent | CreviaBeauty Kenya">
-<meta name="twitter:description" content="Take our 5-question scent quiz and discover your signature fragrance.">
+<meta name="twitter:title" content="Find Your Match | CreviaBeauty Quizzes">
+<meta name="twitter:description" content="Quick quizzes that match you to the right beauty products.">
 <meta name="twitter:image" content="https://creviabeauty.com/images/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/styles.css">
 <style>
-    .quiz-hero { background: linear-gradient(135deg, #ec4899, #8b5cf6); color:#fff; padding:3rem 1.5rem; text-align:center; }
-    .quiz-hero h1 { margin:0 0 0.5rem 0; font-size:2.2rem; }
-    .quiz-wrap { max-width:680px; margin:2.5rem auto; padding:0 1.5rem; }
-    .quiz-card { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); padding:1.75rem; min-height:380px; display:flex; flex-direction:column; }
-    .quiz-progress { background:#f3e8ff; height:6px; border-radius:999px; overflow:hidden; margin-bottom:1.25rem; }
-    .quiz-progress > div { background:#7c3aed; height:100%; transition:width 0.3s; width:0%; }
-    .quiz-q { font-size:1.25rem; font-weight:600; margin:0 0 1.25rem 0; color:#1f2937; }
-    .quiz-answers { display:grid; gap:0.6rem; }
-    .quiz-answer { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:0.85rem 1rem; cursor:pointer; font-size:0.95rem; color:#333; text-align:left; transition:all 0.15s; }
-    .quiz-answer:hover { border-color:#7c3aed; background:#faf5ff; transform:translateX(3px); }
-    .quiz-result { text-align:center; padding:1rem 0; }
-    .quiz-result-family { font-size:2rem; font-weight:700; color:#7c3aed; margin:0.5rem 0; }
-    .quiz-result-desc { color:#555; line-height:1.55; margin-bottom:1.25rem; }
-    .quiz-cta { display:inline-block; padding:0.9rem 1.6rem; background:#7c3aed; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; }
-    .quiz-cta:hover { background:#6d28d9; }
-    .quiz-restart { background:none; border:none; color:#7c3aed; cursor:pointer; margin-top:1rem; font-size:0.85rem; }
+    /* styles.css has no .nav-content rules (it styles .nav-container) — style this page's navbar here */
+    .navbar .nav-content { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
+    .navbar .logo { display:inline-flex; align-items:center; font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
+    .navbar .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
+    .navbar .logo b { color:#c9a55a; }
+    .navbar .nav-links { display:flex; gap:1.1rem; list-style:none; margin:0; padding:0; align-items:center; }
+    .navbar .nav-links a { white-space:nowrap; }
+    @media (max-width:640px) { .navbar .nav-links { display:none; } }
+
+    .quiz-hero { background: linear-gradient(120deg, #1a1a2e 0%, #2c2c54 70%, #3b2c50 100%); color:#fff; padding:3.2rem 1.5rem; text-align:center; }
+    .quiz-hero h1 { margin:0 0 0.5rem 0; font-size:2.3rem; font-family:'Playfair Display', serif; }
+    .quiz-hero p { opacity:0.85; margin:0; }
+    .quiz-hero .quiz-spark { color:#c9a55a; font-size:1.4rem; display:block; margin-bottom:0.4rem; }
+
+    .quiz-wrap { max-width:760px; margin:2.5rem auto 3rem; padding:0 1.5rem; }
+    .quiz-card { background:#fff; border-radius:20px; box-shadow:0 8px 30px rgba(26,26,46,0.12); padding:2.2rem; min-height:430px; display:flex; flex-direction:column; }
+    .quiz-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.9rem; }
+    .quiz-count { font-size:0.74rem; letter-spacing:0.14em; text-transform:uppercase; color:#a8853f; font-weight:700; }
+    .quiz-back-btn { background:none; border:none; color:#aaa; cursor:pointer; font-size:0.85rem; padding:0; }
+    .quiz-back-btn:hover { color:#a8853f; }
+    .quiz-progress { background:#f1ead9; height:6px; border-radius:999px; overflow:hidden; margin-bottom:1.5rem; }
+    .quiz-progress > div { background:linear-gradient(90deg, #c9a55a, #e4c98a); height:100%; transition:width 0.35s ease; width:0%; }
+    .quiz-anim { animation:qIn 0.35s ease; }
+    @keyframes qIn { from { opacity:0; transform:translateX(26px); } to { opacity:1; transform:none; } }
+
+    /* Quiz picker (hub) */
+    .quiz-pick-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:1rem; }
+    .quiz-pick { background:#fafaf7; border:1px solid #e8e4da; border-radius:16px; padding:1.4rem 1.2rem; cursor:pointer; text-align:left; transition:all 0.15s; }
+    .quiz-pick:hover { border-color:#c9a55a; background:#fbf6ec; transform:translateY(-3px); box-shadow:0 10px 22px rgba(201,165,90,0.2); }
+    .quiz-pick-icon { font-size:1.8rem; display:block; margin-bottom:0.5rem; }
+    .quiz-pick-title { font-family:'Playfair Display', serif; font-weight:700; font-size:1.12rem; color:#1a1a2e; display:block; margin-bottom:0.3rem; }
+    .quiz-pick-desc { color:#666; font-size:0.86rem; line-height:1.5; display:block; }
+    .quiz-pick-meta { color:#a8853f; font-size:0.74rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-top:0.7rem; }
+
+    .quiz-q { font-family:'Playfair Display', serif; font-size:1.45rem; font-weight:600; margin:0 0 1.4rem 0; color:#1a1a2e; line-height:1.3; }
+    .quiz-answers { display:grid; gap:0.7rem; }
+    .quiz-answer { display:flex; align-items:center; gap:0.95rem; background:#fafaf7; border:1px solid #e8e4da; border-radius:14px; padding:0.85rem 1.05rem; cursor:pointer; font-size:0.96rem; color:#333; text-align:left; transition:all 0.15s; }
+    .quiz-answer:hover { border-color:#c9a55a; background:#fbf6ec; transform:translateX(5px); box-shadow:0 4px 14px rgba(201,165,90,0.2); }
+    .quiz-answer.selected { border-color:#c9a55a; background:#fbf6ec; }
+    .quiz-letter { width:34px; height:34px; border-radius:50%; background:#f1ead9; color:#a8853f; font-weight:700; font-size:0.85rem; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; }
+    .quiz-answer:hover .quiz-letter, .quiz-answer.selected .quiz-letter { background:#c9a55a; color:#1a1a2e; }
+
+    .quiz-result { text-align:center; padding:0.5rem 0; }
+    .quiz-eyebrow { font-size:0.74rem; text-transform:uppercase; letter-spacing:0.16em; color:#999; }
+    .quiz-result-family { font-family:'Playfair Display', serif; font-size:2.2rem; font-weight:700; color:#a8853f; margin:0.5rem 0 0.2rem; }
+    .quiz-flourish { color:#c9a55a; letter-spacing:0.6em; font-size:0.95rem; margin-bottom:0.8rem; }
+    .quiz-result-desc { color:#555; line-height:1.65; margin:0 auto 0.4rem; max-width:480px; }
+    .quiz-notes { display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin:1rem 0 0.4rem; }
+    .quiz-note { background:#f7f1e3; color:#7a6230; border-radius:999px; padding:0.35rem 0.95rem; font-size:0.82rem; font-weight:600; }
+    .quiz-products { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:0.9rem; margin:1.5rem 0 0.4rem; }
+    .quiz-product { border:1px solid #eee; border-radius:14px; overflow:hidden; text-decoration:none; color:inherit; background:#fff; transition:transform 0.15s, box-shadow 0.15s; }
+    .quiz-product:hover { transform:translateY(-3px); box-shadow:0 10px 22px rgba(26,26,46,0.12); }
+    .quiz-product img { width:100%; height:125px; object-fit:cover; display:block; }
+    .qp-body { padding:0.6rem 0.75rem; text-align:left; }
+    .qp-name { font-size:0.8rem; font-weight:600; color:#1a1a2e; line-height:1.35; display:block; }
+    .qp-price { color:#a8853f; font-weight:700; font-size:0.82rem; }
+    .quiz-cta { display:inline-block; padding:0.85rem 1.8rem; background:#c9a55a; color:#1a1a2e; border-radius:999px; text-decoration:none; font-weight:700; margin-top:0.9rem; }
+    .quiz-cta:hover { filter:brightness(1.07); }
+    .quiz-restart { background:none; border:none; color:#a8853f; cursor:pointer; margin-top:1.1rem; font-size:0.85rem; }
 </style>
 </head>
 <body>
 <nav class="navbar">
     <div class="nav-content">
-        <a href="/" class="logo"><span>CreviaBeauty</span></a>
+        <a href="/" class="logo"><img src="/assets/favicon.png" alt="CreviaBeauty">Crevia<b>Beauty</b></a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/products">Products</a></li>
             <li><a href="/bundles">Bundles</a></li>
-            <li><a href="/quiz" class="active">Find your scent</a></li>
+            <li><a href="/quiz" class="active">Quizzes</a></li>
+            <li><a href="/blog">The Edit</a></li>
         </ul>
     </div>
 </nav>
 
 <section class="quiz-hero">
-    <h1>Find Your Perfect Scent</h1>
-    <p>5 quick questions. We'll match you to a fragrance family.</p>
+    <span class="quiz-spark">&#10022;</span>
+    <h1 id="quiz-hero-title">Find Your Match</h1>
+    <p id="quiz-hero-sub">Quick quizzes that match you to the right products. No guesswork.</p>
 </section>
 
 <div class="quiz-wrap">
     <div class="quiz-card" id="quiz-card">
-        <div class="quiz-progress"><div id="quiz-progress-bar"></div></div>
+        <div class="quiz-top">
+            <span class="quiz-count" id="quiz-count"></span>
+            <button class="quiz-back-btn" id="quiz-back" onclick="goBack()" style="display:none;"></button>
+        </div>
+        <div class="quiz-progress" id="quiz-progress" style="display:none;"><div id="quiz-progress-bar"></div></div>
         <div id="quiz-step"></div>
     </div>
 </div>
 
 <footer>
     <div class="footer-content">
-        <div class="footer-section"><h3>CreviaBeauty Kenya</h3><p>Find your signature scent.</p></div>
-        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products?category=Perfumes">Perfumes</a></li><li><a href="/bundles">Bundles</a></li></ul></div>
+        <div class="footer-section"><h3>CreviaBeauty Kenya</h3><p>Find your perfect match.</p></div>
+        <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="/">Home</a></li><li><a href="/products">Products</a></li><li><a href="/bundles">Bundles</a></li></ul></div>
     </div>
     <div class="footer-bottom"><p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p></div>
 </footer>
 
 <script>
-// Scent-family quiz. Each answer awards points to one of 4 families.
-const FAMILIES = {
-    fresh:     { name: 'Fresh / Aromatic',  desc: 'Light, clean, energising. Citrus, bergamot, herbs and sea breeze. Best for hot Nairobi days and the office.', filter: 'Fresh / Aromatic' },
-    floral:    { name: 'Floral Aldehyde',   desc: 'Romantic, classic, feminine. Layered florals — rose, jasmine, ylang-ylang. Timeless evening wear.',            filter: 'Floral Aldehyde' },
-    woody:     { name: 'Fresh / Woody',     desc: 'Grounded, modern, unisex. Cedar, sandalwood, vetiver with a clean top. Effortless everyday signature.',         filter: 'Fresh / Woody' },
-    oriental:  { name: 'Oriental / Woody',  desc: 'Warm, sensual, magnetic. Amber, vanilla, spices and dark florals. The "going-out" scent that people remember.', filter: 'Oriental / Woody' }
+// ============ QUIZ DEFINITIONS ============
+// Each result matches products either by an exact API facet (match.param/value)
+// or by a category fetch + keyword scoring (match.category/keywords).
+
+const QUIZZES = {
+    scent: {
+        icon: '\u{1F338}',
+        title: 'Find Your Scent',
+        pick: 'Fragrance family in 5 questions. Fresh, floral, woody or oriental?',
+        heroTitle: 'Find Your Perfect Scent',
+        heroSub: "5 quick questions. We'll match you to a fragrance family.",
+        questions: [
+            { q: 'How would you describe the vibe you want to give off?', answers: [
+                { t: 'Clean and approachable', f: 'fresh' },
+                { t: 'Romantic and classic', f: 'floral' },
+                { t: 'Modern and effortless', f: 'woody' },
+                { t: 'Bold and unforgettable', f: 'oriental' }
+            ]},
+            { q: 'When do you wear perfume most?', answers: [
+                { t: 'Daytime: work, errands, walking around CBD', f: 'fresh' },
+                { t: 'Special occasions: weddings, dinners', f: 'floral' },
+                { t: 'Every day, on repeat', f: 'woody' },
+                { t: 'Date night and going out', f: 'oriental' }
+            ]},
+            { q: 'Which smells do you reach for at home?', answers: [
+                { t: 'Citrus peels, fresh laundry, sea air', f: 'fresh' },
+                { t: 'Fresh-cut flowers, talcum powder', f: 'floral' },
+                { t: 'Tea, cedar, leather, freshly cut grass', f: 'woody' },
+                { t: 'Vanilla, incense, warm spices, sweet treats', f: 'oriental' }
+            ]},
+            { q: 'Pick a city for your dream trip:', answers: [
+                { t: 'Diani Beach', f: 'fresh' },
+                { t: 'Paris', f: 'floral' },
+                { t: 'Tokyo', f: 'woody' },
+                { t: 'Marrakesh', f: 'oriental' }
+            ]},
+            { q: 'How long do you want your scent to last?', answers: [
+                { t: 'Light, fades by lunch is fine', f: 'fresh' },
+                { t: 'All-day soft cloud', f: 'floral' },
+                { t: 'Subtle but lasts till evening', f: 'woody' },
+                { t: 'Trail of scent everywhere I go', f: 'oriental' }
+            ]}
+        ],
+        results: {
+            fresh:    { name: 'Fresh / Aromatic', desc: 'Light, clean, energising. Best for hot Nairobi days and the office.', notes: ['Citrus', 'Bergamot', 'Sea breeze', 'Herbs'], match: { param: 'scent_family', value: 'Fresh / Aromatic' }, ctaUrl: '/products?scent_family=Fresh%20%2F%20Aromatic' },
+            floral:   { name: 'Floral Aldehyde', desc: 'Romantic, classic, feminine. Timeless evening wear.', notes: ['Rose', 'Jasmine', 'Ylang-ylang', 'Soft powder'], match: { param: 'scent_family', value: 'Floral Aldehyde' }, ctaUrl: '/products?scent_family=Floral%20Aldehyde' },
+            woody:    { name: 'Fresh / Woody', desc: 'Grounded, modern, unisex. An effortless everyday signature.', notes: ['Cedar', 'Sandalwood', 'Vetiver', 'Sage'], match: { param: 'scent_family', value: 'Fresh / Woody' }, ctaUrl: '/products?scent_family=Fresh%20%2F%20Woody' },
+            oriental: { name: 'Oriental / Woody', desc: 'Warm, sensual, magnetic. The going-out scent that people remember.', notes: ['Amber', 'Vanilla', 'Spice', 'Incense'], match: { param: 'scent_family', value: 'Oriental / Woody' }, ctaUrl: '/products?scent_family=Oriental%20%2F%20Woody' }
+        }
+    },
+
+    hair: {
+        icon: '\u{1F487}‍♀️',
+        title: 'Find Your Hair Routine',
+        pick: 'Your texture, your struggle, your routine. Built for type 3 and 4 hair.',
+        heroTitle: 'Find Your Hair Routine',
+        heroSub: 'Four questions, one routine that actually fits your texture.',
+        questions: [
+            { q: 'Your hair texture is closest to:', answers: [
+                { t: 'Tight 4C coils', f: 'moisture' },
+                { t: 'Defined 3B/3C curls', f: 'definition' },
+                { t: 'Relaxed or colour-treated', f: 'repair' },
+                { t: 'Mostly in braids or protective styles', f: 'scalp' }
+            ]},
+            { q: 'Your biggest hair struggle right now?', answers: [
+                { t: 'Dryness that comes back by evening', f: 'moisture' },
+                { t: 'Frizz and curls that will not clump', f: 'definition' },
+                { t: 'Breakage and shedding', f: 'repair' },
+                { t: 'Itchy scalp or slow growth', f: 'scalp' }
+            ]},
+            { q: 'Wash day usually looks like:', answers: [
+                { t: 'A long detangling session', f: 'moisture' },
+                { t: 'Chasing curl definition that dies by day 2', f: 'definition' },
+                { t: 'Babying fragile strands', f: 'repair' },
+                { t: 'Quick wash, focus on the scalp', f: 'scalp' }
+            ]},
+            { q: 'The result you actually want:', answers: [
+                { t: 'Soft, moisturised coils that stay soft', f: 'moisture' },
+                { t: 'Bouncy, defined wash-and-go curls', f: 'definition' },
+                { t: 'Strong hair that keeps its length', f: 'repair' },
+                { t: 'A healthy scalp and faster growth', f: 'scalp' }
+            ]}
+        ],
+        results: {
+            moisture:   { name: 'Moisture-First Routine', desc: 'Your coils need layered moisture that lasts past one evening: cleanse gently, deep condition, then seal it in.', notes: ['Leave-in', 'Curl cream', 'Shea butter', 'Seal with oil'], match: { category: 'Hair Care', keywords: ['4C', '4B', 'Leave-In', 'Curl Cream', 'Shea', 'CoWash'] }, ctaUrl: '/products?category=Hair%20Care' },
+            definition: { name: 'Curl Definition Routine', desc: 'Your curls want clump and hold: a curl smoothie plus a custard on soaking-wet hair changes everything.', notes: ['Curl smoothie', 'Custard', 'Wash-and-go', 'Refresh spray'], match: { category: 'Hair Care', keywords: ['Curl', 'Smoothie', 'Custard', '3B', '3C', 'Coconut'] }, ctaUrl: '/products?category=Hair%20Care' },
+            repair:     { name: 'Repair & Strengthen', desc: 'Your hair is asking for protein and bond repair before anything else. Strength first, length follows.', notes: ['Bond builder', 'Castor oil', 'Protein balance', 'Low heat'], match: { category: 'Hair Care', keywords: ['Olaplex', 'Castor', 'Strengthen', 'Repair', 'Damaged'] }, ctaUrl: '/products?category=Hair%20Care' },
+            scalp:      { name: 'Scalp & Growth Routine', desc: 'Growth starts at the scalp: stimulate, keep it clean, and leave the lengths alone.', notes: ['Rosemary + mint', 'Scalp oiling', 'Low manipulation'], match: { category: 'Hair Care', keywords: ['Rosemary', 'Scalp', 'Mint', 'Oil', 'Growth'] }, ctaUrl: '/products?category=Hair%20Care' }
+        }
+    },
+
+    skin: {
+        icon: '✨',
+        title: 'Find Your Skincare Match',
+        pick: 'Stop guessing your skin type. Four questions, a routine that fits.',
+        heroTitle: 'Find Your Skincare Match',
+        heroSub: 'Answer for your skin as it is today, not the skin you had at 18.',
+        questions: [
+            { q: 'An hour after washing your face, your skin feels:', answers: [
+                { t: 'Tight, sometimes flaky', f: 'dry' },
+                { t: 'Shiny pretty much everywhere', f: 'oily' },
+                { t: 'Shiny T-zone, normal cheeks', f: 'combo' },
+                { t: 'Comfortable, but looking dull or tired', f: 'mature' }
+            ]},
+            { q: 'Your main skin goal right now?', answers: [
+                { t: 'Calm it down and hydrate', f: 'dry' },
+                { t: 'Clear breakouts and control oil', f: 'oily' },
+                { t: 'Balance without ten products', f: 'combo' },
+                { t: 'Firmness, glow, fewer fine lines', f: 'mature' }
+            ]},
+            { q: 'New products usually:', answers: [
+                { t: 'Sting or leave my skin red', f: 'dry' },
+                { t: 'Slide off or break me out', f: 'oily' },
+                { t: 'Work on some areas, not others', f: 'combo' },
+                { t: 'Feel fine but show no results', f: 'mature' }
+            ]},
+            { q: 'Your ideal routine size:', answers: [
+                { t: 'Minimal and gentle', f: 'dry' },
+                { t: 'Oil-control basics that work', f: 'oily' },
+                { t: 'Flexible, adjusts by zone', f: 'combo' },
+                { t: 'Targeted treatments, I am committed', f: 'mature' }
+            ]}
+        ],
+        results: {
+            dry:    { name: 'Dry / Sensitive', desc: 'Your barrier needs repair before anything fancy: gentle cleanse, ceramides, hydrate, protect.', notes: ['Ceramides', 'Hyaluronic acid', 'Fragrance-free'], match: { category: "Women's Skincare", keywords: ['Hydrating', 'Dry', 'Sensitive', 'Ceramide', 'CeraVe'] }, ctaUrl: '/products?category=Women%27s%20Skincare' },
+            oily:   { name: 'Oily / Acne-Prone', desc: 'Oil control without stripping: salicylic acid, light layers, and consistency over intensity.', notes: ['Salicylic acid', 'Oil-free', 'Non-comedogenic'], match: { category: "Women's Skincare", keywords: ['Oily', 'Acne', 'Cleanser', 'Black Soap', 'Salicylic'] }, ctaUrl: '/products?category=Women%27s%20Skincare' },
+            combo:  { name: 'Combination / Balanced', desc: 'Your skin wants balance: one solid cleanser, one hydrator, and zone-targeted extras only where needed.', notes: ['Gentle cleanse', 'Light hydration', 'Zone targeting'], match: { category: "Women's Skincare", keywords: ['All skin types', 'Combination', 'Normal', 'Serum'] }, ctaUrl: '/products?category=Women%27s%20Skincare' },
+            mature: { name: 'Renewal & Glow', desc: 'Your skin responds to actives with a plan: repair serums at night, hydration and protection by day.', notes: ['Night repair', 'Peptides', 'Glow'], match: { category: "Women's Skincare", keywords: ['Night Repair', 'Mature', 'Advanced', 'Cream', 'Serum'] }, ctaUrl: '/products?category=Women%27s%20Skincare' }
+        }
+    },
+
+    wig: {
+        icon: '\u{1F451}',
+        title: 'Find Your First (or Next) Wig',
+        pick: 'Headband to HD lace: match your skill, budget and the look you want.',
+        heroTitle: 'Find Your Perfect Wig',
+        heroSub: 'Skill level, budget, look. Four questions and you know exactly what to buy.',
+        questions: [
+            { q: 'Your wig experience level:', answers: [
+                { t: 'Never worn one (be honest, it is fine)', f: 'starter' },
+                { t: 'Worn a few, but lace scares me', f: 'glueless' },
+                { t: 'I can lay lace properly', f: 'hdlace' },
+                { t: 'Experienced, here for a statement', f: 'colour' }
+            ]},
+            { q: 'Morning hair time you can actually commit:', answers: [
+                { t: '30 seconds, max', f: 'starter' },
+                { t: 'About 5 minutes', f: 'glueless' },
+                { t: '15+ minutes for a flawless melt', f: 'hdlace' },
+                { t: 'Depends on the occasion', f: 'colour' }
+            ]},
+            { q: 'Budget that feels right:', answers: [
+                { t: 'Under KES 5,000', f: 'starter' },
+                { t: 'KES 8,000 to 20,000', f: 'glueless' },
+                { t: 'KES 25,000 and up, quality first', f: 'hdlace' },
+                { t: 'Whatever the look needs', f: 'colour' }
+            ]},
+            { q: 'The look you are going for:', answers: [
+                { t: 'Quick, cute, everyday', f: 'starter' },
+                { t: 'Natural, with a realistic parting', f: 'glueless' },
+                { t: 'Undetectable, scalp-like finish', f: 'hdlace' },
+                { t: 'Bold colour, fringe, something seen', f: 'colour' }
+            ]}
+        ],
+        results: {
+            starter:  { name: 'Headband Starter', desc: 'No glue, no lace, no skills needed: slip on and go. The right first wig while you learn.', notes: ['Headband cap', '30-second install', 'Budget friendly'], match: { category: 'Wigs', keywords: ['Headband', 'Synthetic', 'Bob'] }, ctaUrl: '/products?category=Wigs' },
+            glueless: { name: 'Glueless Closure', desc: 'A realistic parting without lace skills: 4x4 or 5x5 closures with adjustable straps and combs.', notes: ['4x4 / 5x5 closure', 'Glueless cap', 'Beginner lace'], match: { category: 'Wigs', keywords: ['Glueless', 'Closure', '4x4', '5x5'] }, ctaUrl: '/products?category=Wigs' },
+            hdlace:   { name: 'HD Lace Pro', desc: 'Melt-into-scalp HD lace, pre-plucked hairlines, high density. The undetectable tier.', notes: ['HD lace', '13x4 / 13x6', 'Pre-plucked'], match: { category: 'Wigs', keywords: ['HD Lace', '13x4', '13x6', '360', 'Full Lace'] }, ctaUrl: '/products?category=Wigs' },
+            colour:   { name: 'Statement Piece', desc: 'Colour, fringe, drama. Pre-coloured units and bold cuts that do not need explaining.', notes: ['Honey blonde', 'Highlights', 'Fringe & pixie'], match: { category: 'Wigs', keywords: ['Honey', 'Blonde', 'Coloured', 'Highlighted', 'Pixie', 'Fringe'] }, ctaUrl: '/products?category=Wigs' }
+        }
+    }
 };
 
-const QUESTIONS = [
-    {
-        q: 'How would you describe the vibe you want to give off?',
-        answers: [
-            { t: 'Clean and approachable',         f: 'fresh' },
-            { t: 'Romantic and classic',            f: 'floral' },
-            { t: 'Modern and effortless',           f: 'woody' },
-            { t: 'Bold and unforgettable',          f: 'oriental' }
-        ]
-    },
-    {
-        q: 'When do you wear perfume most?',
-        answers: [
-            { t: 'Daytime — work, errands, walking around CBD', f: 'fresh' },
-            { t: 'Special occasions — weddings, dinners',        f: 'floral' },
-            { t: 'Every day, on repeat',                          f: 'woody' },
-            { t: 'Date night and going out',                      f: 'oriental' }
-        ]
-    },
-    {
-        q: 'Which smells do you reach for at home?',
-        answers: [
-            { t: 'Citrus peels, fresh laundry, sea air',          f: 'fresh' },
-            { t: 'Fresh-cut flowers, talcum powder',              f: 'floral' },
-            { t: 'Tea, cedar, leather, freshly cut grass',        f: 'woody' },
-            { t: 'Vanilla, incense, warm spices, sweet treats',   f: 'oriental' }
-        ]
-    },
-    {
-        q: 'Pick a city for your dream trip:',
-        answers: [
-            { t: 'Diani Beach',                                    f: 'fresh' },
-            { t: 'Paris',                                          f: 'floral' },
-            { t: 'Tokyo',                                          f: 'woody' },
-            { t: 'Marrakesh',                                      f: 'oriental' }
-        ]
-    },
-    {
-        q: 'How long do you want your scent to last?',
-        answers: [
-            { t: 'Light — fades by lunch is fine',                 f: 'fresh' },
-            { t: 'All-day soft cloud',                             f: 'floral' },
-            { t: 'Subtle but lasts till evening',                  f: 'woody' },
-            { t: 'Trail of scent everywhere I go',                 f: 'oriental' }
-        ]
-    }
-];
+// ============ ENGINE ============
 
-let step = 0;
-const score = { fresh:0, floral:0, woody:0, oriental:0 };
+let activeQuiz = null;   // key into QUIZZES
+let history = [];        // answered result-keys, in order
+
+function el(id) { return document.getElementById(id); }
+
+function animateStep(card) {
+    card.classList.remove('quiz-anim');
+    void card.offsetWidth;
+    card.classList.add('quiz-anim');
+}
+
+function setHero(title, sub) {
+    el('quiz-hero-title').textContent = title;
+    el('quiz-hero-sub').textContent = sub;
+}
+
+function renderPicker() {
+    activeQuiz = null;
+    history = [];
+    setHero('Find Your Match', 'Quick quizzes that match you to the right products. No guesswork.');
+    el('quiz-count').textContent = 'Pick your quiz';
+    el('quiz-back').style.display = 'none';
+    el('quiz-progress').style.display = 'none';
+
+    const card = el('quiz-step');
+    card.innerHTML = `
+        <div class="quiz-pick-grid">
+            ${Object.entries(QUIZZES).map(([key, q]) => `
+                <button class="quiz-pick" onclick="startQuiz('${key}')">
+                    <span class="quiz-pick-icon">${q.icon}</span>
+                    <span class="quiz-pick-title">${q.title}</span>
+                    <span class="quiz-pick-desc">${q.pick}</span>
+                    <span class="quiz-pick-meta">${q.questions.length} questions &rarr;</span>
+                </button>
+            `).join('')}
+        </div>
+    `;
+    animateStep(card);
+}
+
+function startQuiz(key) {
+    activeQuiz = key;
+    history = [];
+    const quiz = QUIZZES[key];
+    setHero(quiz.heroTitle, quiz.heroSub);
+    el('quiz-progress').style.display = 'block';
+    render();
+}
 
 function render() {
-    const card = document.getElementById('quiz-step');
-    const bar = document.getElementById('quiz-progress-bar');
-    if (step < QUESTIONS.length) {
-        bar.style.width = ((step / QUESTIONS.length) * 100) + '%';
-        const q = QUESTIONS[step];
+    const quiz = QUIZZES[activeQuiz];
+    const card = el('quiz-step');
+    const bar = el('quiz-progress-bar');
+    const back = el('quiz-back');
+    const step = history.length;
+
+    back.style.display = 'inline';
+    back.innerHTML = step > 0 && step < quiz.questions.length ? '&larr; Previous question' : '&larr; All quizzes';
+    el('quiz-count').textContent = step < quiz.questions.length
+        ? `${quiz.title} · Question ${step + 1} of ${quiz.questions.length}`
+        : 'Your result';
+
+    if (step < quiz.questions.length) {
+        bar.style.width = ((step / quiz.questions.length) * 100) + '%';
+        const q = quiz.questions[step];
         card.innerHTML = `
-            <div class="quiz-q">Q${step + 1} of ${QUESTIONS.length}. ${q.q}</div>
+            <div class="quiz-q">${q.q}</div>
             <div class="quiz-answers">
-                ${q.answers.map((a, i) => `<button class="quiz-answer" onclick="answer('${a.f}')">${a.t}</button>`).join('')}
+                ${q.answers.map((a, i) => `
+                    <button class="quiz-answer" onclick="answer('${a.f}', this)">
+                        <span class="quiz-letter">${String.fromCharCode(65 + i)}</span>
+                        <span>${a.t}</span>
+                    </button>`).join('')}
             </div>
         `;
+        animateStep(card);
     } else {
         bar.style.width = '100%';
-        // Find winning family
-        const winner = Object.entries(score).sort((a,b) => b[1] - a[1])[0][0];
-        const fam = FAMILIES[winner];
-        card.innerHTML = `
-            <div class="quiz-result">
-                <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Your scent family</div>
-                <div class="quiz-result-family">${fam.name}</div>
-                <p class="quiz-result-desc">${fam.desc}</p>
-                <a class="quiz-cta" href="/products?scent_family=${encodeURIComponent(fam.filter)}">See matching fragrances →</a>
-                <div><button class="quiz-restart" onclick="restart()">Retake quiz</button></div>
-            </div>
-        `;
+        renderResult(card, quiz);
     }
 }
-function answer(family) {
-    score[family]++;
-    step++;
+
+function renderResult(card, quiz) {
+    const score = {};
+    history.forEach(f => { score[f] = (score[f] || 0) + 1; });
+    const winner = Object.entries(score).sort((a, b) => b[1] - a[1])[0][0];
+    const res = quiz.results[winner];
+
+    card.innerHTML = `
+        <div class="quiz-result">
+            <div class="quiz-eyebrow">Your match</div>
+            <div class="quiz-result-family">${res.name}</div>
+            <div class="quiz-flourish">&#10022; &#10022; &#10022;</div>
+            <p class="quiz-result-desc">${res.desc}</p>
+            <div class="quiz-notes">${res.notes.map(n => `<span class="quiz-note">${n}</span>`).join('')}</div>
+            <div class="quiz-products" id="quiz-products"></div>
+            <a class="quiz-cta" href="${res.ctaUrl}">See all matching products &rarr;</a>
+            <div><button class="quiz-restart" onclick="renderPicker()">Take another quiz</button></div>
+        </div>
+    `;
+    animateStep(card);
+    loadMatches(res.match);
+}
+
+// Pull real matching products so the result converts, not just informs
+async function loadMatches(match) {
+    const box = el('quiz-products');
+    if (!box) return;
+    try {
+        let products = [];
+        if (match.param) {
+            const response = await fetch(`/api/products?${match.param}=${encodeURIComponent(match.value)}`);
+            const result = await response.json();
+            products = (result.data || result || []).slice(0, 3);
+        } else {
+            const response = await fetch(`/api/products?category=${encodeURIComponent(match.category)}`);
+            const result = await response.json();
+            const all = result.data || result || [];
+            const kw = match.keywords.map(k => k.toLowerCase());
+            products = all
+                .map(p => {
+                    const haystack = `${p.name} ${p.description || ''} ${p.hair_texture || ''} ${p.skin_type || ''} ${p.wig_cap_type || ''} ${p.wig_texture || ''}`.toLowerCase();
+                    return { p, hits: kw.filter(k => haystack.includes(k)).length };
+                })
+                .sort((a, b) => b.hits - a.hits)
+                .slice(0, 3)
+                .map(x => x.p);
+        }
+        if (products.length === 0) return;
+        box.innerHTML = products.map(p => `
+            <a class="quiz-product" href="/products?search=${encodeURIComponent(p.name)}">
+                ${p.image_url ? `<img src="${p.image_url}" alt="" loading="lazy">` : ''}
+                <span class="qp-body">
+                    <span class="qp-name">${p.name}</span>
+                    <span class="qp-price">KSh ${Number(p.price).toLocaleString()}</span>
+                </span>
+            </a>
+        `).join('');
+    } catch (e) { /* result still works without the preview */ }
+}
+
+function answer(resultKey, btn) {
+    if (btn) btn.classList.add('selected');
+    setTimeout(() => {
+        history.push(resultKey);
+        render();
+    }, 180);
+}
+
+function goBack() {
+    if (!activeQuiz || history.length === 0) {
+        renderPicker();
+        return;
+    }
+    history.pop();
     render();
 }
-function restart() {
-    step = 0;
-    Object.keys(score).forEach(k => score[k] = 0);
-    render();
+
+// Deep links: /quiz?type=hair jumps straight into a quiz (old links default to the picker)
+const requested = new URLSearchParams(location.search).get('type');
+if (requested && QUIZZES[requested]) {
+    startQuiz(requested);
+} else {
+    renderPicker();
 }
-render();
 </script>
 </body>
 </html>
