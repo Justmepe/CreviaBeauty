@@ -197,9 +197,12 @@ def save_used_topic(slug):
 
 
 def score_candidate(title):
-    """How usable is this headline as a Crevia topic? Product-keyword matches drive the score."""
+    """How usable is this headline as a Crevia topic? Product-keyword matches drive the score.
+    No beauty keyword at all -> rejected, so fashion/lifestyle headlines can't slip through."""
     lower = title.lower()
     matches = [term for word, term in PRODUCT_KEYWORDS.items() if word in lower]
+    if not matches:
+        return -1, ""
     score = len(matches) * 10
     words = len(title.split())
     if 4 <= words <= 16:
@@ -207,7 +210,7 @@ def score_candidate(title):
     for signal in ("how to", "why", "mistake", "trend", "viral", "best", "fix", "secret"):
         if signal in lower:
             score += 3
-    return score, (matches[0] if matches else "")
+    return score, matches[0]
 
 
 def discover_topic():
