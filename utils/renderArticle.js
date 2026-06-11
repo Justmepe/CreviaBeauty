@@ -61,7 +61,7 @@ function renderArticlePage(article, options = {}) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title} | CreviaBeauty Kenya</title>
-<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
 <meta name="description" content="${description}">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="${url}">
@@ -137,7 +137,7 @@ function renderArticlePage(article, options = {}) {
 ${previewBanner}
 <nav class="navbar">
     <div class="nav-content">
-        <a href="/" class="logo"><img src="/assets/favicon.png" alt="CreviaBeauty">Crevia<b>Beauty</b></a>
+        <a href="/" class="logo"><img src="/assets/favicon.png?v=2" alt="CreviaBeauty">Crevia<b>Beauty</b></a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/products">Products</a></li>

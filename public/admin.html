@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - CreviaBeauty</title>
-    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css?v=2">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
@@ -31,7 +31,7 @@
 
             <div class="sidebar-header">
                 <a href="/" class="sidebar-logo">
-                    <img src="/assets/favicon.png" alt="CreviaBeauty">
+                    <img src="/assets/favicon.png?v=2" alt="CreviaBeauty">
                     <span class="sidebar-logo-text">Crevia<span>Beauty</span></span>
                 </a>
             </div>
@@ -1004,7 +1004,7 @@
         </div>
     </div>
 
-    <script src="/js/main.js"></script>
+    <script src="/js/main.js?v=2"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
@@ -2428,7 +2428,7 @@
 
         // Brand mark for the slides; preloaded so it's ready by the time a deck renders
         const brandMark = new Image();
-        brandMark.src = '/assets/favicon.png';
+        brandMark.src = '/assets/favicon.png?v=2';
 
         // Warm the brand fonts so canvas text renders in Cinzel/Montserrat, not the fallback
         if (document.fonts && document.fonts.load) {
