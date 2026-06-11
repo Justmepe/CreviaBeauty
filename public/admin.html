@@ -2584,19 +2584,20 @@
                 }
             }
 
-            // Footer
-            ctx.strokeStyle = 'rgba(201,165,90,0.45)';
+            // Footer: centred and stacked — luxury brands don't split info into corners
+            ctx.strokeStyle = 'rgba(201,165,90,0.55)';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(80, 960);
-            ctx.lineTo(W - 80, 960);
+            ctx.moveTo(W / 2 - 55, 930);
+            ctx.lineTo(W / 2 + 55, 930);
             ctx.stroke();
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#c9a55a';
             ctx.font = `600 30px ${BODY_FONT}`;
-            ctx.fillText('@creviabeauty', 80, 988);
-            ctx.fillStyle = 'rgba(255,255,255,0.42)';
-            ctx.textAlign = 'right';
-            ctx.fillText('creviabeauty.com', W - 80, 988);
+            ctx.fillText('✦  @creviabeauty', W / 2, 956);
+            ctx.fillStyle = 'rgba(255,255,255,0.38)';
+            ctx.font = `400 25px ${BODY_FONT}`;
+            ctx.fillText('creviabeauty.com', W / 2, 1000);
             ctx.textAlign = 'left';
 
             return canvas;
