@@ -26,6 +26,7 @@ Output: engine/output/<slug>-prompt.txt (and stdout).
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -45,7 +46,8 @@ except ImportError:
 ENGINE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = ENGINE_DIR / "output"
 CALENDAR_FILE = ENGINE_DIR / "calendar.json"
-SITE_URL = "http://localhost:3000"
+# Local dev runs on 3000; production (VPS) runs on 3010 — override via env
+SITE_URL = os.environ.get("CREVIA_SITE_URL", "http://localhost:3000")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
