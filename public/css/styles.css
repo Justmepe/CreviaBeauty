@@ -717,7 +717,9 @@ h1, h2, h3, h4, h5, h6 {
     inset: 0;
     background-size: cover;
     background-position: center;
-    background-color: var(--light);
+    background-color: #1a1410;
+    /* On-brand fallback when a category has no product image yet (no stock photos). */
+    background-image: linear-gradient(135deg, #2a2018 0%, #14100c 100%);
     transition: transform 0.5s ease;
 }
 
