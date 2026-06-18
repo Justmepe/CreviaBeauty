@@ -766,29 +766,35 @@
                     <label for="product-name">Product Name</label>
                     <input type="text" id="product-name" required placeholder="Enter product name">
                 </div>
+                <style>
+                    #desc-editor:empty:before { content: attr(data-placeholder); color: #bbb; }
+                    #desc-editor:focus { outline: none; border-color: #c9a24b; box-shadow: 0 0 0 3px rgba(201,162,75,0.15); }
+                    #desc-editor ul, #desc-editor ol { padding-left: 1.4rem; margin: 0.4rem 0; }
+                    #desc-editor li { margin-bottom: 0.3rem; }
+                    #desc-editor p { margin: 0 0 0.6rem; }
+                    .desc-toolbar button:hover { background: #f3f3f3 !important; }
+                </style>
                 <div class="form-group">
-                    <label for="product-description">Description</label>
-                    <!-- Formatting toolbar: select text in the box, then click a button -->
+                    <label>Description</label>
+                    <!-- Rich-text toolbar: select text in the box and click a button. -->
                     <div class="desc-toolbar" style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
-                        <button type="button" onclick="descFmt('bold')" title="Bold (select text first)"
+                        <button type="button" onmousedown="event.preventDefault()" onclick="rtCmd('bold')" title="Bold"
                                 style="font-weight:700; min-width:36px; padding:6px 10px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;">B</button>
-                        <button type="button" onclick="descFmt('italic')" title="Italic (select text first)"
+                        <button type="button" onmousedown="event.preventDefault()" onclick="rtCmd('italic')" title="Italic"
                                 style="font-style:italic; min-width:36px; padding:6px 10px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;">I</button>
-                        <button type="button" onclick="descFmt('bullet')" title="Bulleted list (select lines first)"
+                        <button type="button" onmousedown="event.preventDefault()" onclick="rtCmd('insertUnorderedList')" title="Bulleted list"
                                 style="padding:6px 12px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;">• Bullets</button>
-                        <button type="button" onclick="descFmt('number')" title="Numbered list (select lines first)"
+                        <button type="button" onmousedown="event.preventDefault()" onclick="rtCmd('insertOrderedList')" title="Numbered list"
                                 style="padding:6px 12px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;">1. Numbered</button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="rtCmd('removeFormat')" title="Clear formatting"
+                                style="padding:6px 12px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer; color:#888;">Clear</button>
                     </div>
-                    <textarea id="product-description" placeholder="Type the description, then select text and use the buttons above to format it." oninput="updateDescPreview()"
-                              style="width:100%; min-height:180px; resize:vertical; padding:0.75rem; font-size:0.95rem; line-height:1.6; box-sizing:border-box;"></textarea>
-                    <small style="color:#888; display:block; margin-top:4px;">
-                        Select text then click a button. Leave a blank line between paragraphs. (Power users: <b>**bold**</b>, <i>*italic*</i>, <code>-</code> bullets, <code>1.</code> numbers also work.)
-                    </small>
-                    <div style="margin-top:10px;">
-                        <div style="font-size:0.8rem; color:#888; margin-bottom:4px;">Live preview</div>
-                        <div id="desc-preview" class="desc-preview"
-                             style="border:1px solid #eee; border-radius:8px; padding:0.75rem 1rem; min-height:40px; background:#fafafa; line-height:1.6; color:#444;"></div>
-                    </div>
+                    <div id="desc-editor" contenteditable="true" oninput="syncDescFromEditor()"
+                         data-placeholder="Type the description here, then select text and use the buttons to format it."
+                         style="min-height:180px; width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:8px; padding:0.75rem; font-size:0.95rem; line-height:1.6; overflow:auto; background:#fff;"></div>
+                    <!-- Hidden field holding the sanitizer-safe markup actually submitted -->
+                    <textarea id="product-description" style="display:none;"></textarea>
+                    <small style="color:#888; display:block; margin-top:4px;">What you see here is exactly how the description shows on the store.</small>
                 </div>
                 <div class="form-group">
                     <label for="product-price">Selling Price (KSh)</label>
@@ -1875,7 +1881,7 @@
             document.getElementById('images-preview').innerHTML = '';
             document.getElementById('existing-gallery').innerHTML = '';
             toggleWigFields(); // hide wig + subcategory fields for a fresh product
-            updateDescPreview();
+            loadDescEditor('');
             document.getElementById('product-modal').classList.add('active');
         }
 
@@ -1888,8 +1894,7 @@
                 document.getElementById('modal-title').textContent = 'Edit Product';
                 document.getElementById('product-id').value = product.id;
                 document.getElementById('product-name').value = product.name;
-                document.getElementById('product-description').value = product.description || '';
-                updateDescPreview();
+                loadDescEditor(product.description || '');
                 document.getElementById('product-price').value = product.price;
                 document.getElementById('product-category').value = product.category || '';
                 document.getElementById('product-subcategory').value = product.subcategory || '';
@@ -1972,45 +1977,81 @@
         }
         document.getElementById('product-category').addEventListener('change', toggleWigFields);
 
-        // ── Description formatting toolbar ──────────────────────────────────────
-        // Inserts lightweight markup into the textarea (survives the server
-        // sanitizer) and renders through renderRichText() for storefront + preview.
-        function descStripMarker(l) { return l.replace(/^\s*(?:[-*]\s+|\d+[.)]\s+)/, ''); }
-        function descWrap(ta, before, after) {
-            const s = ta.selectionStart, e = ta.selectionEnd;
-            const sel = ta.value.slice(s, e) || 'text';
-            ta.value = ta.value.slice(0, s) + before + sel + after + ta.value.slice(e);
-            ta.focus();
-            ta.selectionStart = s + before.length;
-            ta.selectionEnd = s + before.length + sel.length;
-            updateDescPreview();
+        // ── Rich-text description editor (WYSIWYG) ──────────────────────────────
+        // The editor shows real bold/italic/bullets (no symbols). On every change
+        // its HTML is serialized to lightweight markup stored in the hidden
+        // #product-description field — that markup passes the server sanitizer and
+        // renders identically on the storefront via renderRichText().
+        function rtCmd(cmd) {
+            const ed = document.getElementById('desc-editor');
+            ed.focus();
+            try { document.execCommand('styleWithCSS', false, false); } catch (e) {}
+            document.execCommand(cmd, false, null);
+            syncDescFromEditor();
         }
-        function descList(ta, fn) {
-            const v = ta.value, s = ta.selectionStart, e = ta.selectionEnd;
-            const lineStart = v.lastIndexOf('\n', s - 1) + 1;
-            let lineEnd = v.indexOf('\n', e);
-            if (lineEnd === -1) lineEnd = v.length;
-            const block = v.slice(lineStart, lineEnd) || 'item';
-            const out = block.split('\n').map(fn).join('\n');
-            ta.value = v.slice(0, lineStart) + out + v.slice(lineEnd);
-            ta.focus();
-            ta.selectionStart = lineStart;
-            ta.selectionEnd = lineStart + out.length;
-            updateDescPreview();
+
+        // Serialize editor HTML -> markdown (only bold/italic/lists/line breaks).
+        function rtInline(node) {
+            if (node.nodeType === 3) return node.nodeValue.replace(/\s+/g, ' ');
+            if (node.nodeType !== 1) return '';
+            const tag = node.nodeName.toLowerCase();
+            const inner = Array.from(node.childNodes).map(rtInline).join('');
+            if (tag === 'br') return '';
+            if ((tag === 'strong' || tag === 'b') && inner.trim()) return '**' + inner.trim() + '**';
+            if ((tag === 'em' || tag === 'i') && inner.trim()) return '*' + inner.trim() + '*';
+            return inner;
         }
-        function descFmt(type) {
-            const ta = document.getElementById('product-description');
-            if (type === 'bold')   return descWrap(ta, '**', '**');
-            if (type === 'italic') return descWrap(ta, '*', '*');
-            if (type === 'bullet') return descList(ta, (l) => l.trim() ? '- ' + descStripMarker(l) : l);
-            if (type === 'number') { let n = 0; return descList(ta, (l) => l.trim() ? (++n) + '. ' + descStripMarker(l) : l); }
+        // Walk the editor, accumulating inline content (text/bold/italic) into one
+        // line, and ending the line at block boundaries (div/p/br) and lists. This
+        // keeps "**bold** rest of sentence" on a single line.
+        function htmlToMarkdown(root) {
+            const lines = [];
+            let cur = '', curOpen = false;
+            const endLine = () => { if (curOpen) { lines.push(cur.trim()); cur = ''; curOpen = false; } };
+            const addInline = (s) => { cur += s; curOpen = true; };
+            const walk = (nodes) => {
+                Array.from(nodes).forEach(n => {
+                    if (n.nodeType === 3) { addInline(n.nodeValue); return; }
+                    if (n.nodeType !== 1) return;
+                    const tag = n.nodeName.toLowerCase();
+                    if (tag === 'br') { endLine(); return; }
+                    if (tag === 'ul' || tag === 'ol') {
+                        endLine();
+                        let i = 0;
+                        Array.from(n.children).forEach(li => {
+                            const t = rtInline(li).trim();
+                            if (t) lines.push((tag === 'ol' ? (++i) + '. ' : '- ') + t);
+                        });
+                        return;
+                    }
+                    if (tag === 'div' || tag === 'p') {
+                        endLine();
+                        const before = lines.length;
+                        walk(n.childNodes);
+                        endLine();
+                        if (lines.length === before) lines.push('');        // empty block = blank line
+                        else if (tag === 'p') lines.push('');               // paragraphs keep a blank-line gap
+                        return;
+                    }
+                    addInline(rtInline(n)); // inline element (b, strong, i, em, span, ...)
+                });
+            };
+            walk(root.childNodes);
+            endLine();
+            return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
         }
-        function updateDescPreview() {
-            const ta = document.getElementById('product-description');
-            const prev = document.getElementById('desc-preview');
-            if (!ta || !prev) return;
-            const html = (typeof renderRichText === 'function') ? renderRichText(ta.value) : '';
-            prev.innerHTML = html || '<span style="color:#bbb;">Nothing to preview yet.</span>';
+        function syncDescFromEditor() {
+            const ed = document.getElementById('desc-editor');
+            const hidden = document.getElementById('product-description');
+            if (ed && hidden) hidden.value = htmlToMarkdown(ed);
+        }
+        // Load stored markup into the editor as real formatting (markdown -> HTML).
+        function loadDescEditor(markup) {
+            const ed = document.getElementById('desc-editor');
+            const hidden = document.getElementById('product-description');
+            if (!ed) return;
+            ed.innerHTML = (markup && typeof renderRichText === 'function') ? renderRichText(markup) : '';
+            if (hidden) hidden.value = markup || '';
         }
 
         document.getElementById('product-image').addEventListener('change', (e) => {
@@ -2045,6 +2086,7 @@
 
             const formData = new FormData();
             formData.append('name', document.getElementById('product-name').value);
+            syncDescFromEditor();
             formData.append('description', document.getElementById('product-description').value);
             formData.append('price', document.getElementById('product-price').value);
             formData.append('originalPrice', document.getElementById('product-original-price').value || '');
