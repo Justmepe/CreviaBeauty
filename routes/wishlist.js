@@ -22,8 +22,11 @@ module.exports = (db) => {
         res.json({ data: result.rows });
     }));
 
-    // Get just the product IDs (for fast heart-icon hydration on listing pages)
-    router.get('/ids', requireAuth, asyncHandler(async (req, res) => {
+    // Get just the product IDs (for fast heart-icon hydration on listing pages).
+    // Public-tolerant: anonymous visitors simply have an empty wishlist, so we
+    // return [] with 200 instead of 401 (keeps the console clean on every page).
+    router.get('/ids', asyncHandler(async (req, res) => {
+        if (!req.session || !req.session.userId) return res.json({ ids: [] });
         const result = await db.query(`SELECT product_id FROM wishlists WHERE user_id = $1`, [req.session.userId]);
         res.json({ ids: result.rows.map(r => r.product_id) });
     }));

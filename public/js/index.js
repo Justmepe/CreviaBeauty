@@ -260,8 +260,8 @@ function sendChatMessage() {
 
 // Initialize homepage
 document.addEventListener('DOMContentLoaded', () => {
-    // Load hero slideshow
-    loadHeroImages();
+    // Hero is now handled by /assets/hero/crevia-hero.js (animated + live data).
+    // loadHeroImages();
 
     // Load featured products
     loadFeaturedProducts();

@@ -37,15 +37,12 @@
     <meta name="geo.position" content="-1.286389;36.817223">
     <meta name="ICBM" content="-1.286389, 36.817223">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css?v=2">
+    <link rel="stylesheet" href="/assets/hero/crevia-hero.css?v=3">
 
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">
@@ -164,46 +161,30 @@
     </div>
 </nav>
 
-    <!-- Hero Section with Promotional Banners -->
-    <section class="hero">
-        <!-- Background Slideshow - Dynamically loaded from products -->
-        <div class="hero-background" id="hero-background">
-            <div class="hero-slide active" style="background: linear-gradient(135deg, var(--primary) 0%, #2c2c54 100%);"></div>
+    <!-- Animated Hero — cinematic scene on desktop, dynamic product hero on mobile.
+         Both layers are fed live by /assets/hero/crevia-hero.js (newest products first). -->
+    <section class="crevia-hero">
+        <!-- Desktop: scaled 1920x900 React animation canvas -->
+        <div class="crevia-hero-canvas-wrap" id="crevia-hero-wrap">
+            <div class="crevia-hero-canvas" id="crevia-hero-canvas"></div>
         </div>
 
-        <!-- Navigation Arrows -->
-        <button class="hero-nav prev" onclick="changeSlide(-1)">&#10094;</button>
-        <button class="hero-nav next" onclick="changeSlide(1)">&#10095;</button>
-
-        <!-- Hero Content - Changes with each slide -->
-        <div class="hero-content" id="hero-content">
-            <div class="hero-text">
-                <div class="promo-badge">WELCOME</div>
-                <h1>Premium <span class="highlight">Beauty</span> in Kenya</h1>
-                <p>Discover quality perfumes, skincare and beauty products. Loading our collection...</p>
-                <div class="hero-buttons">
-                    <a href="/products" class="btn">Shop Now</a>
-                    <a href="/products" class="btn btn-outline-white">View All Products</a>
-                </div>
-                <div class="hero-features">
-                    <div class="hero-feature">
-                        <span class="hero-feature-icon">🚚</span>
-                        <span>Free Delivery</span>
-                    </div>
-                    <div class="hero-feature">
-                        <span class="hero-feature-icon">💯</span>
-                        <span>Quality Guaranteed</span>
-                    </div>
-                    <div class="hero-feature">
-                        <span class="hero-feature-icon">💰</span>
-                        <span>Best Prices</span>
+        <!-- Mobile + initial/no-JS fallback: lightweight dynamic hero.
+             Pre-filled with sensible defaults; crevia-hero.js replaces it with
+             the newest products once they load. -->
+        <div class="crevia-hero-fallback" id="crevia-hero-fallback">
+            <div class="ch-fb-slide active">
+                <div class="ch-fb-info">
+                    <span class="ch-fb-badge">Premium Beauty · Kenya</span>
+                    <h1 class="ch-fb-name">Beauty so good, saying no feels silly.</h1>
+                    <div class="ch-fb-price">100% Authentic · Free Nairobi delivery</div>
+                    <div class="ch-fb-cta">
+                        <a class="btn" href="/products">Shop Now</a>
+                        <a class="btn btn-outline-white" href="/products">View All</a>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Slide Dots - Dynamically generated -->
-        <div class="hero-dots" id="hero-dots"></div>
     </section>
 
     <!-- Categories Section -->
@@ -456,5 +437,7 @@
 
     <script src="/js/main.js?v=2"></script>
     <script src="/js/index.js?v=2"></script>
+    <script>window.CREVIA_HERO_VER = 'v3';</script>
+    <script src="/assets/hero/crevia-hero.js?v=3" defer></script>
 </body>
 </html>

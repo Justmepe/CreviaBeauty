@@ -95,6 +95,10 @@ app.use(session({
 
 const publicDir = path.resolve(__dirname, 'public');
 
+// Browsers auto-request /favicon.ico for the tab icon; serve the existing PNG
+// so it doesn't 404 on every page.
+app.get('/favicon.ico', (req, res) => res.redirect(301, '/assets/favicon.png'));
+
 // Static HTML page routes (before static middleware for explicit routing)
 app.get('/products', (req, res) => res.sendFile(path.join(publicDir, 'products.html')));
 app.get('/cart', (req, res) => res.sendFile(path.join(publicDir, 'cart.html')));
@@ -154,10 +158,18 @@ app.get('/blog/:slug', async (req, res) => {
     }
 });
 
-// Static files with cache headers
+// Static files with cache headers.
+// HTML documents are served no-cache so the browser always re-fetches the
+// markup (and therefore picks up any bumped ?v= asset URLs immediately).
+// Hashed/versioned assets still get the long max-age in production.
 app.use(express.static('public', {
     maxAge: config.isProduction ? '1d' : 0,
-    etag: true
+    etag: true,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+        }
+    }
 }));
 
 app.use('/uploads', express.static('uploads', {
