@@ -174,19 +174,30 @@ async function fillCategoryCounts() {
             products.push(...batch);
             if (!result.pagination || page >= result.pagination.pages) break;
         }
+        // Products come back newest-first (created_at DESC), so the first image
+        // seen per category is the newest — use it as the tile image.
         const counts = {};
+        const catImage = {};
         products.forEach(p => {
-            if (p.category) counts[p.category] = (counts[p.category] || 0) + 1;
+            if (!p.category) return;
+            counts[p.category] = (counts[p.category] || 0) + 1;
+            if (p.image_url && !catImage[p.category]) catImage[p.category] = p.image_url;
         });
         document.querySelectorAll('.category-card[data-category]').forEach(card => {
-            const n = counts[card.dataset.category];
+            const cat = card.dataset.category;
+            const n = counts[cat];
             const chip = card.querySelector('.category-chip');
             if (n && chip) {
                 chip.textContent = `${n} product${n === 1 ? '' : 's'}`;
                 chip.classList.add('show');
             }
+            // Replace the hardcoded stock photo with a real product image.
+            const imgEl = card.querySelector('.category-image');
+            if (imgEl && catImage[cat]) {
+                imgEl.style.backgroundImage = `url("${catImage[cat].replace(/"/g, '%22')}")`;
+            }
         });
-    } catch (e) { /* chips are optional decoration */ }
+    } catch (e) { /* chips/images are optional decoration */ }
 }
 
 // Load customer reviews with carousel animation
