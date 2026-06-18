@@ -407,6 +407,19 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants(product_id);
         `);
 
+        // Additional product images (gallery — same product, different angles).
+        // products.image_url remains the cover; these are the extra shots.
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS product_images (
+                id SERIAL PRIMARY KEY,
+                product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+                image_url TEXT NOT NULL,
+                sort_order INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id, sort_order);
+        `);
+
         // Bundles + bundle items
         await client.query(`
             CREATE TABLE IF NOT EXISTS bundles (

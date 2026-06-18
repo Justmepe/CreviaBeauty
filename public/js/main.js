@@ -253,6 +253,18 @@ async function viewProduct(productId) {
         const safeImageUrl = escapeHtml(product.image_url || '');
         const safeBrand = escapeHtml(product.brand || '');
 
+        // Gallery: cover first, then any extra angle shots. Thumbnails only if >1.
+        const galleryImages = (Array.isArray(product.images) && product.images.length)
+            ? product.images
+            : [product.image_url].filter(Boolean);
+        const thumbsBlock = galleryImages.length > 1 ? `
+            <div class="modal-thumbs">
+                ${galleryImages.map((u, i) => `
+                    <button type="button" class="modal-thumb${i === 0 ? ' active' : ''}" data-src="${escapeHtml(u)}" onclick="setModalImage(this)">
+                        <img src="${escapeHtml(u)}" alt="" loading="lazy">
+                    </button>`).join('')}
+            </div>` : '';
+
         // Shade picker block (if product has variants)
         const variantsBlock = (product.variants && product.variants.length > 0) ? `
             <div class="modal-section">
@@ -331,10 +343,13 @@ async function viewProduct(productId) {
                 <button class="modal-close" onclick="closeProductModal()">&times;</button>
                 <div class="modal-body">
                     <div class="modal-image">
-                        <img src="${safeImageUrl}" alt="${safeName}"
-                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f5f5f5%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 font-size=%2240%22>✨</text></svg>'">
-                        ${product.discount > 0 ? `<div class="modal-discount">-${product.discount}% OFF</div>` : ''}
-                        ${heartBtn}
+                        <div class="modal-image-main">
+                            <img id="modal-main-img" src="${safeImageUrl}" alt="${safeName}"
+                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23f5f5f5%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 font-size=%2240%22>✨</text></svg>'">
+                            ${product.discount > 0 ? `<div class="modal-discount">-${product.discount}% OFF</div>` : ''}
+                            ${heartBtn}
+                        </div>
+                        ${thumbsBlock}
                     </div>
                     <div class="modal-details">
                         <div class="modal-category">${safeCategory}${safeBrand ? ' · ' + safeBrand : ''}</div>
@@ -433,12 +448,52 @@ async function viewProduct(productId) {
                 .modal-image {
                     position: relative;
                     background: #f8f9fa;
+                    display: flex;
+                    flex-direction: column;
                 }
-                .modal-image img {
+                .modal-image-main {
+                    position: relative;
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 16px;
+                    min-height: 0;
+                }
+                .modal-image-main img {
+                    width: 100%;
+                    height: 100%;
+                    max-height: 78vh;
+                    object-fit: contain;   /* show the whole product photo, never crop */
+                    min-height: 300px;
+                }
+                .modal-thumbs {
+                    display: flex;
+                    gap: 8px;
+                    padding: 10px 16px 16px;
+                    overflow-x: auto;
+                    flex-wrap: nowrap;
+                }
+                .modal-thumb {
+                    flex: 0 0 auto;
+                    width: 60px;
+                    height: 60px;
+                    padding: 0;
+                    border: 2px solid transparent;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    background: #fff;
+                    transition: border-color 0.2s;
+                }
+                .modal-thumb.active {
+                    border-color: #c9a24b;
+                }
+                .modal-thumb img {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
-                    min-height: 300px;
+                    display: block;
                 }
                 .modal-discount {
                     position: absolute;
@@ -604,6 +659,14 @@ async function hydrateWishlistHearts() {
             }
         });
     } catch { /* ignore */ }
+}
+
+// Swap the Quick View main image when a gallery thumbnail is clicked
+function setModalImage(btn) {
+    const main = document.getElementById('modal-main-img');
+    if (main && btn.dataset.src) main.src = btn.dataset.src;
+    document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
 }
 
 // Close product modal

@@ -180,18 +180,39 @@ module.exports = (db) => {
         const variants = await db.query('SELECT * FROM product_variants WHERE product_id = $1 ORDER BY id', [req.params.id]);
         product.variants = variants.rows;
 
+        // Gallery: extra angle shots. `gallery` keeps ids (for admin delete/cover);
+        // `images` is the flat cover-first list the storefront renders.
+        const gallery = await db.query(
+            'SELECT id, image_url FROM product_images WHERE product_id = $1 ORDER BY sort_order, id',
+            [req.params.id]
+        );
+        product.gallery = gallery.rows;
+        product.images = [product.image_url, ...gallery.rows.map(r => r.image_url)].filter(Boolean);
+
         res.json(product);
     }));
 
+    // Cover image is field "image" (one); extra angle shots are field "images" (many).
+    const productUpload = upload.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'images', maxCount: 12 }
+    ]);
+    const coverFile = (req) => (req.files && req.files.image && req.files.image[0]) || null;
+    const galleryFiles = (req) => (req.files && req.files.images) || [];
+
     // Add product (admin only)
-    router.post('/', requireAdmin, upload.single('image'), invalidateCache('products'), productRules, asyncHandler(async (req, res) => {
+    router.post('/', requireAdmin, productUpload, invalidateCache('products'), productRules, asyncHandler(async (req, res) => {
         const {
             name, description, price, originalPrice, discount, category, stock, costPrice,
             wigTexture, wigCapType, wigOrigin, wigDensity,
             brand, isLocalBrand, scentFamily, skinType, hairTexture, ingredients, allergens,
             isAuthenticVerified, isSample, size
         } = req.body;
-        const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+        const cover = coverFile(req);
+        const extras = galleryFiles(req);
+        // No dedicated cover uploaded? Use the first gallery shot as the cover.
+        const coverName = cover ? cover.filename : (extras[0] && extras[0].filename) || null;
+        const image_url = coverName ? `/uploads/${coverName}` : null;
 
         const result = await db.query(`
             INSERT INTO products (
@@ -209,13 +230,25 @@ module.exports = (db) => {
             !!isAuthenticVerified, !!isSample, size || null
         ]);
 
-        logger.info('Product created', { productId: result.rows[0].id, name, category });
+        const newId = result.rows[0].id;
 
-        res.json({ success: true, productId: result.rows[0].id });
+        // Gallery = the extra shots. If there was no dedicated cover, the first
+        // extra became the cover above, so skip it here.
+        const galleryStart = cover ? 0 : 1;
+        for (let i = galleryStart; i < extras.length; i++) {
+            await db.query(
+                'INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)',
+                [newId, `/uploads/${extras[i].filename}`, i]
+            );
+        }
+
+        logger.info('Product created', { productId: newId, name, category, gallery: Math.max(0, extras.length - galleryStart) });
+
+        res.json({ success: true, productId: newId });
     }));
 
     // Update product (admin only)
-    router.put('/:id', requireAdmin, upload.single('image'), invalidateCache('products'), productIdRules, productRules, asyncHandler(async (req, res) => {
+    router.put('/:id', requireAdmin, productUpload, invalidateCache('products'), productIdRules, productRules, asyncHandler(async (req, res) => {
         const {
             name, description, price, originalPrice, discount, category, stock, costPrice,
             wigTexture, wigCapType, wigOrigin, wigDensity,
@@ -246,10 +279,13 @@ module.exports = (db) => {
             !!isAuthenticVerified, !!isSample, size || null
         ];
 
+        const cover = coverFile(req);
+        const extras = galleryFiles(req);
+
         let query, params;
-        if (req.file) {
+        if (cover) {
             query = `UPDATE products SET ${setBase}, image_url = $23 WHERE id = $24`;
-            params = [...baseParams, `/uploads/${req.file.filename}`, productId];
+            params = [...baseParams, `/uploads/${cover.filename}`, productId];
         } else {
             query = `UPDATE products SET ${setBase} WHERE id = $23`;
             params = [...baseParams, productId];
@@ -257,8 +293,52 @@ module.exports = (db) => {
 
         await db.query(query, params);
 
-        logger.info('Product updated', { productId, name });
+        // Append any newly uploaded angle shots to the gallery (after existing ones).
+        if (extras.length) {
+            const max = await db.query('SELECT COALESCE(MAX(sort_order), 0) AS m FROM product_images WHERE product_id = $1', [productId]);
+            let order = parseInt(max.rows[0].m, 10) || 0;
+            for (const f of extras) {
+                order += 1;
+                await db.query(
+                    'INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)',
+                    [productId, `/uploads/${f.filename}`, order]
+                );
+            }
+        }
 
+        logger.info('Product updated', { productId, name, addedImages: extras.length });
+
+        res.json({ success: true });
+    }));
+
+    // Delete a gallery image (admin only)
+    router.delete('/:id/images/:imageId', requireAdmin, invalidateCache('products'), asyncHandler(async (req, res) => {
+        const result = await db.query(
+            'DELETE FROM product_images WHERE id = $1 AND product_id = $2 RETURNING id',
+            [req.params.imageId, req.params.id]
+        );
+        if (result.rows.length === 0) throw AppError.notFound('Image not found');
+        res.json({ success: true });
+    }));
+
+    // Promote a gallery image to cover (admin only): the old cover drops into the gallery.
+    router.put('/:id/images/:imageId/cover', requireAdmin, invalidateCache('products'), asyncHandler(async (req, res) => {
+        const productId = req.params.id;
+        const prod = await db.query('SELECT image_url FROM products WHERE id = $1', [productId]);
+        if (prod.rows.length === 0) throw AppError.notFound('Product not found');
+        const img = await db.query('SELECT image_url FROM product_images WHERE id = $1 AND product_id = $2', [req.params.imageId, productId]);
+        if (img.rows.length === 0) throw AppError.notFound('Image not found');
+
+        const oldCover = prod.rows[0].image_url;
+        const newCover = img.rows[0].image_url;
+        if (oldCover) {
+            // Swap: the old cover takes this gallery slot, the new cover is promoted.
+            await db.query('UPDATE product_images SET image_url = $1 WHERE id = $2', [oldCover, req.params.imageId]);
+        } else {
+            // No prior cover — just consume the gallery row.
+            await db.query('DELETE FROM product_images WHERE id = $1', [req.params.imageId]);
+        }
+        await db.query('UPDATE products SET image_url = $1 WHERE id = $2', [newCover, productId]);
         res.json({ success: true });
     }));
 

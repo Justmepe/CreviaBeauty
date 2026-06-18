@@ -878,9 +878,17 @@
                     <small style="color: #856404;">Used for marketer commission calculation</small>
                 </div>
                 <div class="form-group">
-                    <label for="product-image">Product Image</label>
+                    <label for="product-image">Cover Image</label>
                     <input type="file" id="product-image" accept="image/*">
                     <div id="image-preview" style="margin-top: 10px;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="product-images">Additional Images (different angles)</label>
+                    <input type="file" id="product-images" accept="image/*" multiple>
+                    <small style="color:#888;">Select one or more extra shots of the same product. They appear in the product gallery.</small>
+                    <div id="images-preview" style="margin-top: 10px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    <!-- Existing gallery (edit mode): thumbnails with delete / set-cover -->
+                    <div id="existing-gallery" style="margin-top: 12px; display:flex; flex-wrap:wrap; gap:8px;"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Save Product</button>
             </form>
@@ -1004,7 +1012,7 @@
         </div>
     </div>
 
-    <script src="/js/main.js?v=2"></script>
+    <script src="/js/main.js?v=3"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
@@ -1833,6 +1841,8 @@
             document.getElementById('product-form').reset();
             document.getElementById('product-id').value = '';
             document.getElementById('image-preview').innerHTML = '';
+            document.getElementById('images-preview').innerHTML = '';
+            document.getElementById('existing-gallery').innerHTML = '';
             document.getElementById('product-modal').classList.add('active');
         }
 
@@ -1861,11 +1871,46 @@
                 if (product.image_url) {
                     document.getElementById('image-preview').innerHTML = `<img src="${product.image_url}" style="max-width: 200px; border-radius: 8px;">`;
                 }
+                document.getElementById('images-preview').innerHTML = '';
+                document.getElementById('product-images').value = '';
+                renderExistingGallery(product.id, product.gallery || []);
 
                 document.getElementById('product-modal').classList.add('active');
             } catch (error) {
                 showAlert('Failed to load product', 'error');
             }
+        }
+
+        // Render the saved gallery (angle shots) with delete + set-as-cover controls.
+        function renderExistingGallery(productId, gallery) {
+            const box = document.getElementById('existing-gallery');
+            if (!gallery.length) { box.innerHTML = ''; return; }
+            box.innerHTML = '<div style="width:100%;font-size:0.8rem;color:#888;margin-bottom:4px;">Current gallery</div>' +
+                gallery.map(g => `
+                    <div style="position:relative;width:90px;">
+                        <img src="${escapeHtml(g.image_url)}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
+                        <button type="button" title="Set as cover" onclick="setCoverImage(${productId}, ${g.id})"
+                            style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:4px;font-size:0.65rem;padding:2px 5px;cursor:pointer;">Cover</button>
+                        <button type="button" title="Delete" onclick="deleteGalleryImage(${productId}, ${g.id})"
+                            style="position:absolute;top:2px;right:2px;background:rgba(220,40,60,0.9);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:1;">&times;</button>
+                    </div>`).join('');
+        }
+
+        async function deleteGalleryImage(productId, imageId) {
+            if (!confirm('Remove this image?')) return;
+            try {
+                const res = await fetch(`/api/products/${productId}/images/${imageId}`, { method: 'DELETE' });
+                if (res.ok) { showAlert('Image removed', 'success'); editProduct(productId); }
+                else showAlert('Failed to remove image', 'error');
+            } catch { showAlert('Failed to remove image', 'error'); }
+        }
+
+        async function setCoverImage(productId, imageId) {
+            try {
+                const res = await fetch(`/api/products/${productId}/images/${imageId}/cover`, { method: 'PUT' });
+                if (res.ok) { showAlert('Cover updated', 'success'); editProduct(productId); loadProducts(); }
+                else showAlert('Failed to set cover', 'error');
+            } catch { showAlert('Failed to set cover', 'error'); }
         }
 
         async function deleteProduct(id) {
@@ -1902,6 +1947,22 @@
             }
         });
 
+        // Preview the additional angle shots before upload
+        document.getElementById('product-images').addEventListener('change', (e) => {
+            const box = document.getElementById('images-preview');
+            box.innerHTML = '';
+            Array.from(e.target.files).forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #eee;';
+                    box.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
         document.getElementById('product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -1926,6 +1987,12 @@
             const imageFile = document.getElementById('product-image').files[0];
             if (imageFile) {
                 formData.append('image', imageFile);
+            }
+
+            // Additional angle shots -> appended to the product gallery
+            const extraFiles = document.getElementById('product-images').files;
+            for (let i = 0; i < extraFiles.length; i++) {
+                formData.append('images', extraFiles[i]);
             }
 
             const productId = document.getElementById('product-id').value;
