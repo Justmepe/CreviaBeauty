@@ -813,25 +813,16 @@
                     <select id="product-category" required>
                         <option value="">Select category</option>
                         <option value="Perfumes">Perfumes</option>
-                        <option value="Women's Skincare">Women's Skincare</option>
-                        <option value="Men's Skincare">Men's Skincare</option>
-                        <option value="Makeup">Makeup</option>
-                        <option value="Hair Care">Hair Care</option>
-                        <option value="Body Care">Body Care</option>
-                        <option value="Fragrances">Fragrances</option>
-                        <option value="Beauty Tools">Beauty Tools</option>
-                        <option value="Wigs">Wigs</option>
+                        <option value="Skincare">Skincare</option>
+                        <option value="Hair">Hair</option>
                     </select>
                 </div>
 
-                <!-- Perfume subcategory (shown only when category = Perfumes) -->
+                <!-- Subcategory (options populated from the selected category) -->
                 <div class="form-group" id="subcategory-field" style="display:none;">
-                    <label for="product-subcategory">Perfume For</label>
+                    <label for="product-subcategory">Subcategory</label>
                     <select id="product-subcategory">
                         <option value="">Unspecified</option>
-                        <option value="Women's">Women's</option>
-                        <option value="Men's">Men's</option>
-                        <option value="Unisex">Unisex</option>
                     </select>
                 </div>
 
@@ -1880,7 +1871,8 @@
             document.getElementById('image-preview').innerHTML = '';
             document.getElementById('images-preview').innerHTML = '';
             document.getElementById('existing-gallery').innerHTML = '';
-            toggleWigFields(); // hide wig + subcategory fields for a fresh product
+            populateSubcategories(); // reset subcategory options for the chosen (empty) category
+            toggleWigFields();       // hide wig fields for a fresh product
             loadDescEditor('');
             document.getElementById('product-modal').classList.add('active');
         }
@@ -1897,7 +1889,7 @@
                 loadDescEditor(product.description || '');
                 document.getElementById('product-price').value = product.price;
                 document.getElementById('product-category').value = product.category || '';
-                document.getElementById('product-subcategory').value = product.subcategory || '';
+                populateSubcategories(product.subcategory || '');
                 document.getElementById('product-stock').value = product.stock;
                 document.getElementById('product-original-price').value = product.original_price || '';
                 document.getElementById('product-discount').value = product.discount || 0;
@@ -1970,12 +1962,32 @@
             document.getElementById('product-modal').classList.remove('active');
         }
 
-        function toggleWigFields() {
+        // Niche taxonomy: main category -> subcategories
+        const ADMIN_TAXONOMY = {
+            'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
+            'Skincare': ["Women's Skincare", "Men's Skincare"],
+            'Hair':     ['Wigs', 'Hair Care']
+        };
+
+        // Fill the subcategory dropdown from the chosen category; keep `selected` if valid.
+        function populateSubcategories(selected) {
             const cat = document.getElementById('product-category').value;
-            document.getElementById('wig-fields').style.display = cat === 'Wigs' ? 'block' : 'none';
-            document.getElementById('subcategory-field').style.display = cat === 'Perfumes' ? 'block' : 'none';
+            const field = document.getElementById('subcategory-field');
+            const sel = document.getElementById('product-subcategory');
+            const subs = ADMIN_TAXONOMY[cat] || [];
+            if (!subs.length) { field.style.display = 'none'; sel.innerHTML = '<option value="">Unspecified</option>'; return; }
+            sel.innerHTML = '<option value="">Unspecified</option>' +
+                subs.map(s => `<option value="${s}"${s === selected ? ' selected' : ''}>${s}</option>`).join('');
+            field.style.display = 'block';
         }
-        document.getElementById('product-category').addEventListener('change', toggleWigFields);
+
+        function toggleWigFields() {
+            // Wig attributes apply to the Hair > Wigs subcategory now.
+            const isWig = document.getElementById('product-subcategory').value === 'Wigs';
+            document.getElementById('wig-fields').style.display = isWig ? 'block' : 'none';
+        }
+        document.getElementById('product-category').addEventListener('change', () => { populateSubcategories(); toggleWigFields(); });
+        document.getElementById('product-subcategory').addEventListener('change', toggleWigFields);
 
         // ── Rich-text description editor (WYSIWYG) ──────────────────────────────
         // The editor shows real bold/italic/bullets (no symbols). On every change
@@ -2092,15 +2104,12 @@
             formData.append('originalPrice', document.getElementById('product-original-price').value || '');
             formData.append('discount', document.getElementById('product-discount').value || '0');
             formData.append('category', document.getElementById('product-category').value);
-            // Perfume subcategory (only sent for Perfumes)
-            if (document.getElementById('product-category').value === 'Perfumes') {
-                formData.append('subcategory', document.getElementById('product-subcategory').value || '');
-            }
+            formData.append('subcategory', document.getElementById('product-subcategory').value || '');
             formData.append('stock', document.getElementById('product-stock').value);
             formData.append('costPrice', document.getElementById('product-cost-price').value || '0');
 
-            // Wig-specific attributes (only meaningful for the Wigs category)
-            if (document.getElementById('product-category').value === 'Wigs') {
+            // Wig-specific attributes (only meaningful for the Hair > Wigs subcategory)
+            if (document.getElementById('product-subcategory').value === 'Wigs') {
                 formData.append('wigTexture', document.getElementById('product-wig-texture').value || '');
                 formData.append('wigCapType', document.getElementById('product-wig-cap-type').value || '');
                 formData.append('wigOrigin', document.getElementById('product-wig-origin').value || '');

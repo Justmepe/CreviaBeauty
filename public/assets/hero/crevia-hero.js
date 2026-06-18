@@ -35,10 +35,7 @@
 
   // The nine curated categories, in scene order. Live products are matched to
   // these by name; anything else from the catalog is ignored by the hero.
-  var CATEGORY_ORDER = [
-    'Perfumes', "Women's Skincare", "Men's Skincare", 'Makeup',
-    'Hair Care', 'Body Care', 'Fragrances', 'Beauty Tools', 'Wigs'
-  ];
+  var CATEGORY_ORDER = ['Perfumes', 'Skincare', 'Hair'];
 
   function v(url) { return url + '?' + VER; }
 

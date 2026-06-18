@@ -18,21 +18,15 @@ const handleValidationErrors = (req, res, next) => {
     next();
 };
 
-// Valid categories
-const validCategories = [
-    'Perfumes',
-    'Women\'s Skincare',
-    'Men\'s Skincare',
-    'Makeup',
-    'Hair Care',
-    'Body Care',
-    'Fragrances',
-    'Beauty Tools',
-    'Wigs'
-];
-
-// Perfume subcategories (audience). Optional; only meaningful for 'Perfumes'.
-const validSubcategories = ["Women's", "Men's", "Unisex"];
+// Niche taxonomy: 3 main categories, each with subcategories.
+const TAXONOMY = {
+    'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
+    'Skincare': ["Women's Skincare", "Men's Skincare"],
+    'Hair':     ['Wigs', 'Hair Care']
+};
+const validCategories = Object.keys(TAXONOMY);
+// All subcategories across categories (subcategory is validated against the union).
+const validSubcategories = Object.values(TAXONOMY).reduce((a, b) => a.concat(b), []);
 
 // Product creation/update validation rules
 const productRules = [
@@ -151,5 +145,7 @@ module.exports = {
     productRules,
     productIdRules,
     productQueryRules,
-    validCategories
+    validCategories,
+    validSubcategories,
+    TAXONOMY
 };

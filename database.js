@@ -346,6 +346,19 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // Niche restructure: collapse to 3 main categories (Perfumes / Skincare / Hair)
+        // with subcategories. Idempotent — each UPDATE only touches legacy rows, so
+        // it is a no-op after the first run. (Removed categories Makeup / Body Care /
+        // Beauty Tools are pruned separately, not auto-deleted on boot.)
+        await client.query(`UPDATE products SET subcategory = 'Women''s Perfumes' WHERE category = 'Perfumes' AND subcategory = 'Women''s'`);
+        await client.query(`UPDATE products SET subcategory = 'Men''s Perfumes'   WHERE category = 'Perfumes' AND subcategory = 'Men''s'`);
+        await client.query(`UPDATE products SET subcategory = 'Unisex Perfumes'   WHERE category = 'Perfumes' AND subcategory = 'Unisex'`);
+        await client.query(`UPDATE products SET category = 'Skincare', subcategory = 'Women''s Skincare' WHERE category = 'Women''s Skincare'`);
+        await client.query(`UPDATE products SET category = 'Skincare', subcategory = 'Men''s Skincare'   WHERE category = 'Men''s Skincare'`);
+        await client.query(`UPDATE products SET category = 'Hair', subcategory = 'Hair Care' WHERE category = 'Hair Care'`);
+        await client.query(`UPDATE products SET category = 'Hair', subcategory = 'Wigs'      WHERE category = 'Wigs'`);
+        await client.query(`UPDATE products SET category = 'Perfumes', subcategory = 'Unisex Perfumes' WHERE category = 'Fragrances'`);
+
         // Add wig attribute columns to products table (migration for Wigs category)
         await client.query(`
             DO $$

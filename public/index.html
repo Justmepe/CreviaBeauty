@@ -43,6 +43,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css?v=3">
     <link rel="stylesheet" href="/assets/hero/crevia-hero.css?v=3">
+    <style>
+        /* 3 focused category tiles + subcategory chips */
+        .categories-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+        @media (max-width: 900px) { .categories-grid-3 { grid-template-columns: 1fr; } }
+        .categories-grid-3 .category-card { display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; overflow: visible; }
+        .categories-grid-3 .category-card-main { position: relative; display: block; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .categories-grid-3 .category-card-main::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.05) 55%); }
+        .categories-grid-3 .category-image { position: absolute; inset: 0; transition: transform .5s ease; }
+        .categories-grid-3 .category-card-main:hover .category-image { transform: scale(1.06); }
+        .categories-grid-3 .category-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 1rem 1.2rem; z-index: 1; }
+        .categories-grid-3 .category-name { color: #fff; font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+        .categories-grid-3 .category-sub { color: rgba(255,255,255,0.85); font-size: 0.85rem; margin-top: 2px; }
+        .categories-grid-3 .category-chip { position: absolute; top: 12px; right: 12px; z-index: 2; background: #fff; color: #333; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; display: none; }
+        .categories-grid-3 .category-chip.show { display: inline-block; }
+        .category-subs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+        .category-subs a { font-size: 0.85rem; color: #6b5d4f; background: #fff; border: 1px solid #e0d5c8; padding: 0.4rem 0.9rem; border-radius: 999px; text-decoration: none; transition: all .2s; }
+        .category-subs a:hover { border-color: #c9a24b; color: #8a6d2f; background: #fffdf8; }
+    </style>
 
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">
@@ -135,17 +153,16 @@
                 <a href="/products">Categories</a>
                 <div class="dropdown-menu">
                     <a href="/products?category=Perfumes">Perfumes</a>
-                    <a href="/products?category=Perfumes&amp;subcategory=Women's" style="padding-left:2rem;font-size:0.9em;">Women's Perfumes</a>
-                    <a href="/products?category=Perfumes&amp;subcategory=Men's" style="padding-left:2rem;font-size:0.9em;">Men's Perfumes</a>
-                    <a href="/products?category=Perfumes&amp;subcategory=Unisex" style="padding-left:2rem;font-size:0.9em;">Unisex Perfumes</a>
-                    <a href="/products?category=Women's Skincare">Women's Skincare</a>
-                    <a href="/products?category=Men's Skincare">Men's Skincare</a>
-                    <a href="/products?category=Makeup">Makeup</a>
-                    <a href="/products?category=Hair Care">Hair Care</a>
-                    <a href="/products?category=Body Care">Body Care</a>
-                    <a href="/products?category=Fragrances">Fragrances</a>
-                    <a href="/products?category=Beauty Tools">Beauty Tools</a>
-                    <a href="/products?category=Wigs">Wigs</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Women's%20Perfumes" style="padding-left:2rem;font-size:0.9em;">Women's Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Men's%20Perfumes" style="padding-left:2rem;font-size:0.9em;">Men's Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Unisex%20Perfumes" style="padding-left:2rem;font-size:0.9em;">Unisex Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Gift%20Sets" style="padding-left:2rem;font-size:0.9em;">Gift Sets</a>
+                    <a href="/products?category=Skincare">Skincare</a>
+                    <a href="/products?category=Skincare&amp;subcategory=Women's%20Skincare" style="padding-left:2rem;font-size:0.9em;">Women's Skincare</a>
+                    <a href="/products?category=Skincare&amp;subcategory=Men's%20Skincare" style="padding-left:2rem;font-size:0.9em;">Men's Skincare</a>
+                    <a href="/products?category=Hair">Hair</a>
+                    <a href="/products?category=Hair&amp;subcategory=Wigs" style="padding-left:2rem;font-size:0.9em;">Wigs</a>
+                    <a href="/products?category=Hair&amp;subcategory=Hair%20Care" style="padding-left:2rem;font-size:0.9em;">Hair Care</a>
                 </div>
             </li>
             <li><a href="/products">Shop All</a></li>
@@ -190,100 +207,56 @@
         </div>
     </section>
 
-    <!-- Categories Section -->
+    <!-- Categories Section: 3 focused mains, each with subcategory chips -->
     <section class="categories-section">
         <h2 class="section-title">Shop by Category</h2>
-        <!-- Bento grid: Perfumes is the 2x2 feature, 8 tiles fill around it (12 cells, no orphans) -->
-        <div class="categories-grid">
-            <a href="/products?category=Perfumes" class="category-card featured" data-category="Perfumes">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Perfumes</div>
-                    <div class="category-sub">Designer &amp; luxury scents · batch-code verified</div>
-                    <span class="category-cta">Shop Perfumes &rarr;</span>
+        <div class="categories-grid-3">
+            <div class="category-card" data-category="Perfumes">
+                <a class="category-card-main" href="/products?category=Perfumes">
+                    <div class="category-image"></div>
+                    <span class="category-chip"></span>
+                    <div class="category-info">
+                        <div class="category-name">Perfumes</div>
+                        <div class="category-sub">Designer &amp; luxury scents · batch-code verified</div>
+                    </div>
+                </a>
+                <div class="category-subs">
+                    <a href="/products?category=Perfumes&amp;subcategory=Women's%20Perfumes">Women's</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Men's%20Perfumes">Men's</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Unisex%20Perfumes">Unisex</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Gift%20Sets">Gift Sets</a>
                 </div>
-            </a>
+            </div>
 
-            <a href="/products?category=Women's Skincare" class="category-card" data-category="Women's Skincare">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Women's Skincare</div>
-                    <div class="category-sub">Serums, moisturizers, cleansers</div>
-                    <span class="category-cta">Shop &rarr;</span>
+            <div class="category-card" data-category="Skincare">
+                <a class="category-card-main" href="/products?category=Skincare">
+                    <div class="category-image"></div>
+                    <span class="category-chip"></span>
+                    <div class="category-info">
+                        <div class="category-name">Skincare</div>
+                        <div class="category-sub">Serums, moisturizers, cleansers</div>
+                    </div>
+                </a>
+                <div class="category-subs">
+                    <a href="/products?category=Skincare&amp;subcategory=Women's%20Skincare">Women's</a>
+                    <a href="/products?category=Skincare&amp;subcategory=Men's%20Skincare">Men's</a>
                 </div>
-            </a>
+            </div>
 
-            <a href="/products?category=Men's Skincare" class="category-card" data-category="Men's Skincare">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Men's Skincare</div>
-                    <div class="category-sub">Grooming &amp; care</div>
-                    <span class="category-cta">Shop &rarr;</span>
+            <div class="category-card" data-category="Hair">
+                <a class="category-card-main" href="/products?category=Hair">
+                    <div class="category-image"></div>
+                    <span class="category-chip"></span>
+                    <div class="category-info">
+                        <div class="category-name">Hair</div>
+                        <div class="category-sub">Wigs, HD lace, treatments &amp; oils</div>
+                    </div>
+                </a>
+                <div class="category-subs">
+                    <a href="/products?category=Hair&amp;subcategory=Wigs">Wigs</a>
+                    <a href="/products?category=Hair&amp;subcategory=Hair%20Care">Hair Care</a>
                 </div>
-            </a>
-
-            <a href="/products?category=Makeup" class="category-card" data-category="Makeup">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Makeup</div>
-                    <div class="category-sub">Lipsticks, foundations, palettes</div>
-                    <span class="category-cta">Shop &rarr;</span>
-                </div>
-            </a>
-
-            <a href="/products?category=Hair Care" class="category-card" data-category="Hair Care">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Hair Care</div>
-                    <div class="category-sub">Shampoos, treatments, oils</div>
-                    <span class="category-cta">Shop &rarr;</span>
-                </div>
-            </a>
-
-            <a href="/products?category=Body Care" class="category-card" data-category="Body Care">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Body Care</div>
-                    <div class="category-sub">Lotions, scrubs, body wash</div>
-                    <span class="category-cta">Shop &rarr;</span>
-                </div>
-            </a>
-
-            <a href="/products?category=Fragrances" class="category-card" data-category="Fragrances">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Fragrances</div>
-                    <div class="category-sub">Colognes &amp; body mists</div>
-                    <span class="category-cta">Shop &rarr;</span>
-                </div>
-            </a>
-
-            <a href="/products?category=Beauty Tools" class="category-card" data-category="Beauty Tools">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Beauty Tools</div>
-                    <div class="category-sub">Brushes, mirrors, accessories</div>
-                    <span class="category-cta">Shop &rarr;</span>
-                </div>
-            </a>
-
-            <a href="/products?category=Wigs" class="category-card" data-category="Wigs">
-                <div class="category-image"></div>
-                <span class="category-chip"></span>
-                <div class="category-info">
-                    <div class="category-name">Wigs</div>
-                    <div class="category-sub">Human hair, synthetic, HD lace</div>
-                    <span class="category-cta">Shop &rarr;</span>
-                </div>
-            </a>
+            </div>
         </div>
     </section>
 
@@ -443,7 +416,7 @@
 
     <script src="/js/main.js?v=4"></script>
     <script src="/js/index.js?v=3"></script>
-    <script>window.CREVIA_HERO_VER = 'v3';</script>
-    <script src="/assets/hero/crevia-hero.js?v=3" defer></script>
+    <script>window.CREVIA_HERO_VER = 'v4';</script>
+    <script src="/assets/hero/crevia-hero.js?v=4" defer></script>
 </body>
 </html>
