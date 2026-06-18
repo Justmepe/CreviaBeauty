@@ -26,6 +26,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css?v=2">
+    <style>
+        .subcategory-chips { display: none; justify-content: center; }
+        .subcat-chip {
+            background: #fff; border: 1px solid #e0d5c8; color: #6b5d4f;
+            padding: 0.45rem 1.1rem; border-radius: 999px; cursor: pointer;
+            font-size: 0.9rem; transition: all 0.2s;
+        }
+        .subcat-chip:hover { border-color: #c9a24b; color: #8a6d2f; }
+        .subcat-chip.active { background: #c9a24b; border-color: #c9a24b; color: #fff; }
+    </style>
 
     <!-- Structured Data - Product List -->
     <script type="application/ld+json">
@@ -83,6 +93,9 @@
                 <a href="/products">Categories</a>
                 <div class="dropdown-menu">
                     <a href="/products?category=Perfumes">Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Women's" style="padding-left:2rem;font-size:0.9em;">Women's Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Men's" style="padding-left:2rem;font-size:0.9em;">Men's Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Unisex" style="padding-left:2rem;font-size:0.9em;">Unisex Perfumes</a>
                     <a href="/products?category=Women's Skincare">Women's Skincare</a>
                     <a href="/products?category=Men's Skincare">Men's Skincare</a>
                     <a href="/products?category=Makeup">Makeup</a>
@@ -128,6 +141,14 @@
             <button class="filter-btn" data-category="Fragrances">Fragrances</button>
             <button class="filter-btn" data-category="Beauty Tools">Beauty Tools</button>
             <button class="filter-btn" data-category="Wigs">Wigs</button>
+        </div>
+
+        <!-- Perfume subcategory chips (shown only when Perfumes is selected) -->
+        <div class="subcategory-chips" id="subcategory-chips" style="display:none; gap:0.5rem; flex-wrap:wrap; margin:0 auto 1rem; max-width:1200px; padding:0 1rem;">
+            <button class="subcat-chip active" data-subcategory="">All Perfumes</button>
+            <button class="subcat-chip" data-subcategory="Women's">Women's</button>
+            <button class="subcat-chip" data-subcategory="Men's">Men's</button>
+            <button class="subcat-chip" data-subcategory="Unisex">Unisex</button>
         </div>
 
         <div class="products-layout">
@@ -235,7 +256,10 @@
             <div class="footer-section">
                 <h3>Categories</h3>
                 <ul>
-                    <li><a href="/products?category=Perfumes">Perfumes</a></li>
+                    <li><a href="/products?category=Perfumes">Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Women's" style="padding-left:2rem;font-size:0.9em;">Women's Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Men's" style="padding-left:2rem;font-size:0.9em;">Men's Perfumes</a>
+                    <a href="/products?category=Perfumes&amp;subcategory=Unisex" style="padding-left:2rem;font-size:0.9em;">Unisex Perfumes</a></li>
                     <li><a href="/products?category=Women's Skincare">Women's Skincare</a></li>
                     <li><a href="/products?category=Men's Skincare">Men's Skincare</a></li>
                     <li><a href="/products?category=Makeup">Makeup</a></li>
@@ -302,6 +326,7 @@
         // Active filter state
         const state = {
             category: null,
+            subcategory: null,
             search: null,
             scent_family: null,
             skin_type: null,
@@ -430,6 +455,32 @@
             });
         }
 
+        // Show/hide the perfume subcategory chips and reflect the active one.
+        function renderSubcategoryChips() {
+            const box = document.getElementById('subcategory-chips');
+            if (!box) return;
+            if (state.category === 'Perfumes') {
+                box.style.display = 'flex';
+                box.querySelectorAll('.subcat-chip').forEach(chip => {
+                    chip.classList.toggle('active', (chip.dataset.subcategory || '') === (state.subcategory || ''));
+                });
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        // Subcategory chip clicks (Women's / Men's / Unisex / All Perfumes)
+        document.getElementById('subcategory-chips').addEventListener('click', (e) => {
+            if (!e.target.classList.contains('subcat-chip')) return;
+            state.subcategory = e.target.dataset.subcategory || null;
+            renderSubcategoryChips();
+            const u = new URLSearchParams();
+            u.set('category', 'Perfumes');
+            if (state.subcategory) u.set('subcategory', state.subcategory);
+            window.history.pushState({}, '', '/products?' + u.toString());
+            reloadProducts();
+        });
+
         // Top filter pills (category quick-switch)
         document.getElementById('filters').addEventListener('click', (e) => {
             if (!e.target.classList.contains('filter-btn')) return;
@@ -437,10 +488,12 @@
             e.target.classList.add('active');
             const c = e.target.dataset.category;
             state.category = (c === 'all') ? null : c;
+            state.subcategory = null; // subcategory only applies within Perfumes
             // Reset attribute facets when switching categories
             ['scent_family','skin_type','hair_texture','wig_texture','wig_origin','wig_cap_type','brand'].forEach(k => state[k] = null);
             const url = c === 'all' ? '/products' : `/products?category=${encodeURIComponent(c)}`;
             window.history.pushState({}, '', url);
+            renderSubcategoryChips();
             loadFacets();
             reloadProducts();
         });
@@ -449,6 +502,7 @@
         (function init() {
             const urlParams = new URLSearchParams(window.location.search);
             const category = urlParams.get('category');
+            const subcategory = urlParams.get('subcategory');
             const search = urlParams.get('search');
             if (category) {
                 state.category = category;
@@ -456,6 +510,10 @@
                     b.classList.toggle('active', b.dataset.category === category);
                 });
             }
+            if (subcategory && category === 'Perfumes') {
+                state.subcategory = subcategory;
+            }
+            renderSubcategoryChips();
             if (search) {
                 state.search = search;
                 const si = document.getElementById('search-input');

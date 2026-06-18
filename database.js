@@ -336,6 +336,16 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // Add subcategory column to products (migration for perfume audience: Women's/Men's/Unisex)
+        await client.query(`
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='subcategory') THEN
+                    ALTER TABLE products ADD COLUMN subcategory VARCHAR(50);
+                END IF;
+            END $$;
+        `);
+
         // Add wig attribute columns to products table (migration for Wigs category)
         await client.query(`
             DO $$

@@ -43,7 +43,7 @@ module.exports = (db) => {
     // Get all products with pagination + faceted filters
     router.get('/', productQueryRules, asyncHandler(async (req, res) => {
         const {
-            category, search, page = 1, limit = 50,
+            category, subcategory, search, page = 1, limit = 50,
             scent_family, skin_type, hair_texture, brand, wig_origin, wig_cap_type, wig_texture,
             is_local_brand, is_sample, is_authentic, min_price, max_price
         } = req.query;
@@ -71,6 +71,7 @@ module.exports = (db) => {
             }
         };
         addEq('category', category);
+        addEq('subcategory', subcategory);
         addEq('scent_family', scent_family);
         addEq('skin_type', skin_type);
         addEq('hair_texture', hair_texture);
@@ -203,7 +204,7 @@ module.exports = (db) => {
     // Add product (admin only)
     router.post('/', requireAdmin, productUpload, invalidateCache('products'), productRules, asyncHandler(async (req, res) => {
         const {
-            name, description, price, originalPrice, discount, category, stock, costPrice,
+            name, description, price, originalPrice, discount, category, subcategory, stock, costPrice,
             wigTexture, wigCapType, wigOrigin, wigDensity,
             brand, isLocalBrand, scentFamily, skinType, hairTexture, ingredients, allergens,
             isAuthenticVerified, isSample, size
@@ -219,15 +220,15 @@ module.exports = (db) => {
                 name, description, price, original_price, discount, category, image_url, stock, cost_price,
                 wig_texture, wig_cap_type, wig_origin, wig_density,
                 brand, is_local_brand, scent_family, skin_type, hair_texture, ingredients, allergens,
-                is_authentic_verified, is_sample, size
+                is_authentic_verified, is_sample, size, subcategory
             )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
             RETURNING id
         `, [
             name, description, price, originalPrice || null, discount || 0, category, image_url, stock || 0, costPrice || 0,
             wigTexture || null, wigCapType || null, wigOrigin || null, wigDensity || null,
             brand || null, !!isLocalBrand, scentFamily || null, skinType || null, hairTexture || null, ingredients || null, allergens || null,
-            !!isAuthenticVerified, !!isSample, size || null
+            !!isAuthenticVerified, !!isSample, size || null, subcategory || null
         ]);
 
         const newId = result.rows[0].id;
@@ -250,7 +251,7 @@ module.exports = (db) => {
     // Update product (admin only)
     router.put('/:id', requireAdmin, productUpload, invalidateCache('products'), productIdRules, productRules, asyncHandler(async (req, res) => {
         const {
-            name, description, price, originalPrice, discount, category, stock, costPrice,
+            name, description, price, originalPrice, discount, category, subcategory, stock, costPrice,
             wigTexture, wigCapType, wigOrigin, wigDensity,
             brand, isLocalBrand, scentFamily, skinType, hairTexture, ingredients, allergens,
             isAuthenticVerified, isSample, size
@@ -269,14 +270,14 @@ module.exports = (db) => {
             wig_texture = $9, wig_cap_type = $10, wig_origin = $11, wig_density = $12,
             brand = $13, is_local_brand = $14, scent_family = $15, skin_type = $16,
             hair_texture = $17, ingredients = $18, allergens = $19,
-            is_authentic_verified = $20, is_sample = $21, size = $22
+            is_authentic_verified = $20, is_sample = $21, size = $22, subcategory = $23
         `;
         const baseParams = [
             name, description, price, originalPrice || null, discount || 0, category, stock || 0, costPrice || 0,
             wigTexture || null, wigCapType || null, wigOrigin || null, wigDensity || null,
             brand || null, !!isLocalBrand, scentFamily || null, skinType || null,
             hairTexture || null, ingredients || null, allergens || null,
-            !!isAuthenticVerified, !!isSample, size || null
+            !!isAuthenticVerified, !!isSample, size || null, subcategory || null
         ];
 
         const cover = coverFile(req);
@@ -284,10 +285,10 @@ module.exports = (db) => {
 
         let query, params;
         if (cover) {
-            query = `UPDATE products SET ${setBase}, image_url = $23 WHERE id = $24`;
+            query = `UPDATE products SET ${setBase}, image_url = $24 WHERE id = $25`;
             params = [...baseParams, `/uploads/${cover.filename}`, productId];
         } else {
-            query = `UPDATE products SET ${setBase} WHERE id = $23`;
+            query = `UPDATE products SET ${setBase} WHERE id = $24`;
             params = [...baseParams, productId];
         }
 

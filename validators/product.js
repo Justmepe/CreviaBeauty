@@ -31,6 +31,9 @@ const validCategories = [
     'Wigs'
 ];
 
+// Perfume subcategories (audience). Optional; only meaningful for 'Perfumes'.
+const validSubcategories = ["Women's", "Men's", "Unisex"];
+
 // Product creation/update validation rules
 const productRules = [
     body('name')
@@ -61,6 +64,10 @@ const productRules = [
     body('category')
         .notEmpty().withMessage('Category is required')
         .isIn(validCategories).withMessage(`Category must be one of: ${validCategories.join(', ')}`),
+
+    body('subcategory')
+        .optional({ checkFalsy: true })
+        .isIn(validSubcategories).withMessage(`Subcategory must be one of: ${validSubcategories.join(', ')}`),
 
     body('stock')
         .optional({ checkFalsy: true })
@@ -117,6 +124,10 @@ const productQueryRules = [
     query('category')
         .optional()
         .isIn([...validCategories, '']).withMessage('Invalid category'),
+
+    query('subcategory')
+        .optional({ checkFalsy: true })
+        .isIn(validSubcategories).withMessage('Invalid subcategory'),
 
     query('search')
         .optional()
