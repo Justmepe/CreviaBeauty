@@ -585,19 +585,28 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_points_withdrawals_status ON points_withdrawals(status);
         `);
 
-        // Check if products table is empty and seed data
-        const productCount = await client.query('SELECT COUNT(*) as count FROM products');
-        if (parseInt(productCount.rows[0].count) === 0) {
-            await seedProducts(client);
+        // Demo catalog content (sample products, wigs, decants, reviews, demo hero
+        // slides/articles) only seeds when SEED_DEMO_DATA=true. In production this
+        // is OFF, so deploys never (re)inject test products — deleting them in admin
+        // keeps them gone. Operational config below (admin user, payment/commission/
+        // points settings) always seeds its defaults.
+        const SEED_DEMO = process.env.SEED_DEMO_DATA === 'true';
+
+        if (SEED_DEMO) {
+            const productCount = await client.query('SELECT COUNT(*) as count FROM products');
+            if (parseInt(productCount.rows[0].count) === 0) {
+                await seedProducts(client);
+            }
+
+            // Seed Wigs separately so existing stores get the new category on next boot
+            const wigCount = await client.query("SELECT COUNT(*) as count FROM products WHERE category = 'Wigs'");
+            if (parseInt(wigCount.rows[0].count) === 0) {
+                await seedWigs(client);
+            }
         }
 
-        // Seed Wigs separately so existing stores get the new category on next boot
-        const wigCount = await client.query("SELECT COUNT(*) as count FROM products WHERE category = 'Wigs'");
-        if (parseInt(wigCount.rows[0].count) === 0) {
-            await seedWigs(client);
-        }
-
-        // Backfill facets onto pre-existing products + seed local/natural-hair/sample SKUs, variants, bundles
+        // Backfill facets onto pre-existing products (idempotent UPDATEs). Demo SKU
+        // inserts inside are themselves gated on SEED_DEMO_DATA.
         await seedFacetsAndExtras(client);
 
         // Check if admin user exists
@@ -606,10 +615,12 @@ async function initializeDatabase() {
             await seedAdminUser(client);
         }
 
-        // Check if reviews exist
-        const reviewCount = await client.query('SELECT COUNT(*) as count FROM reviews');
-        if (parseInt(reviewCount.rows[0].count) === 0) {
-            await seedReviews(client);
+        // Demo reviews — only with SEED_DEMO_DATA on
+        if (SEED_DEMO) {
+            const reviewCount = await client.query('SELECT COUNT(*) as count FROM reviews');
+            if (parseInt(reviewCount.rows[0].count) === 0) {
+                await seedReviews(client);
+            }
         }
 
         // Check if payment settings exist
@@ -630,16 +641,17 @@ async function initializeDatabase() {
             await seedPointsSettings(client);
         }
 
-        // Check if hero slides exist
-        const heroSlidesCount = await client.query('SELECT COUNT(*) as count FROM hero_slides');
-        if (parseInt(heroSlidesCount.rows[0].count) === 0) {
-            await seedHeroSlides(client);
-        }
+        // Demo hero slides + articles — only with SEED_DEMO_DATA on
+        if (SEED_DEMO) {
+            const heroSlidesCount = await client.query('SELECT COUNT(*) as count FROM hero_slides');
+            if (parseInt(heroSlidesCount.rows[0].count) === 0) {
+                await seedHeroSlides(client);
+            }
 
-        // Check if articles exist
-        const articlesCount = await client.query('SELECT COUNT(*) as count FROM articles');
-        if (parseInt(articlesCount.rows[0].count) === 0) {
-            await seedArticles(client);
+            const articlesCount = await client.query('SELECT COUNT(*) as count FROM articles');
+            if (parseInt(articlesCount.rows[0].count) === 0) {
+                await seedArticles(client);
+            }
         }
 
         console.log('Database initialized successfully');
@@ -787,6 +799,10 @@ async function seedFacetsAndExtras(client) {
             WHERE name LIKE $1
         `, [pattern, brand, scent, skin, hair, ingredients, allergens, isAuth, isLocal]);
     }
+
+    // Demo SKU inserts below only run with SEED_DEMO_DATA=true (off in production),
+    // so deleted samples/local/natural-hair SKUs never reappear on deploy.
+    if (process.env.SEED_DEMO_DATA !== 'true') return;
 
     // 2) Seed local Kenyan brand SKUs (skip if any already exist)
     const localCount = await client.query("SELECT COUNT(*) as count FROM products WHERE is_local_brand = TRUE");

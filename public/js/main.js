@@ -13,6 +13,46 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+// Render a safe markdown subset for product descriptions so they read as
+// professional formatted copy instead of one block of text. Supports:
+//   **bold**, *italic* / _italic_, "- "/"* " bullet lists, "1." numbered lists,
+//   blank line = new paragraph, single newline = line break.
+// Input is HTML-escaped FIRST and only a fixed set of safe tags is emitted,
+// so this is XSS-safe even with untrusted text.
+function renderRichText(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    const esc = escapeHtml(raw);
+    const inline = (s) => s
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+        .replace(/_([^_\n]+)_/g, '<em>$1</em>');
+    const lines = esc.split(/\r?\n/);
+    let html = '', listType = null, para = [];
+    const flushPara = () => { if (para.length) { html += '<p>' + para.join('<br>') + '</p>'; para = []; } };
+    const closeList = () => { if (listType) { html += '</' + listType + '>'; listType = null; } };
+    for (const line of lines) {
+        const t = line.trim();
+        const bullet = t.match(/^[-*]\s+(.*)/);
+        const numbered = t.match(/^\d+[.)]\s+(.*)/);
+        if (bullet) {
+            flushPara();
+            if (listType !== 'ul') { closeList(); html += '<ul>'; listType = 'ul'; }
+            html += '<li>' + inline(bullet[1]) + '</li>';
+        } else if (numbered) {
+            flushPara();
+            if (listType !== 'ol') { closeList(); html += '<ol>'; listType = 'ol'; }
+            html += '<li>' + inline(numbered[1]) + '</li>';
+        } else if (t === '') {
+            flushPara(); closeList();
+        } else {
+            closeList();
+            para.push(inline(t));
+        }
+    }
+    flushPara(); closeList();
+    return html;
+}
+
 // Extract a human-readable message from an API error response.
 // The backend returns { success: false, error: { code, message, details? } } for typed errors,
 // but some routes still return a plain { error: "string" } or { message: "string" } shape.
@@ -249,7 +289,7 @@ async function viewProduct(productId) {
         // Escape user-generated content
         const safeName = escapeHtml(product.name);
         const safeCategory = escapeHtml(product.category || 'Beauty');
-        const safeDescription = escapeHtml(product.description || 'No description available.');
+        const safeDescription = renderRichText(product.description || 'No description available.');
         const safeImageUrl = escapeHtml(product.image_url || '');
         const safeBrand = escapeHtml(product.brand || '');
 
@@ -356,7 +396,7 @@ async function viewProduct(productId) {
                         <h2 class="modal-title">${safeName}</h2>
                         ${badgesBlock}
                         ${chipsBlock}
-                        <p class="modal-description">${safeDescription}</p>
+                        <div class="modal-description">${safeDescription}</div>
                         <div class="modal-price">
                             <span class="current-price">${formatPrice(product.price)}</span>
                             ${product.original_price ? `<span class="old-price">${formatPrice(product.original_price)}</span>` : ''}
@@ -526,6 +566,13 @@ async function viewProduct(productId) {
                     line-height: 1.7;
                     margin-bottom: 1.5rem;
                 }
+                .modal-description p { margin: 0 0 0.85rem; }
+                .modal-description p:last-child { margin-bottom: 0; }
+                .modal-description ul,
+                .modal-description ol { margin: 0 0 0.85rem; padding-left: 1.4rem; }
+                .modal-description li { margin-bottom: 0.4rem; }
+                .modal-description strong { color: #3a3a3a; font-weight: 600; }
+                .modal-description em { font-style: italic; }
                 .modal-price {
                     margin-bottom: 1rem;
                 }
