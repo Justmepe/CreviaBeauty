@@ -1088,8 +1088,9 @@
                     <button class="btn-dashboard outline sm cs-theme-btn" data-theme="black" onclick="setSlideTheme('black')">&#9711; Black (VIP)</button>
                 </div>
                 <div style="margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                    <span style="font-size:0.85rem; color:#7f8c8d;">Background photo:</span>
-                    <label class="btn-dashboard outline sm" style="cursor:pointer; margin:0;">&#128247; Upload silk / fabric
+                    <span style="font-size:0.85rem; color:#7f8c8d;">Background (all slides):</span>
+                    <button class="btn-dashboard outline sm" onclick="openGalleryPicker(setDeckBackgroundUrl)">&#128444; Gallery</button>
+                    <label class="btn-dashboard outline sm" style="cursor:pointer; margin:0;">&#128247; Upload
                         <input type="file" id="cs-bg-file" accept="image/*" style="display:none;" onchange="setSlideBackground(event)">
                     </label>
                     <button class="btn-dashboard outline sm" id="cs-bg-clear" style="display:none;" onclick="clearSlideBackground()">&#10005; Use texture</button>
@@ -1099,6 +1100,26 @@
                 <button class="btn-dashboard primary" onclick="downloadAllSlides()">&#11015; Download PNGs</button>
                 <button class="btn-dashboard outline" onclick="downloadCarouselPdf()">&#128462; Save as PDF</button>
                 <div id="cs-modal-pack"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery picker: upload or select a background / product image -->
+    <div class="modal" id="gallery-picker-modal">
+        <div class="modal-content" style="max-width: 820px;">
+            <div class="modal-header">
+                <h3>Choose a background</h3>
+                <button class="modal-close" onclick="closeGalleryPicker()">&times;</button>
+            </div>
+            <div style="padding:1.5rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+                    <label class="btn-dashboard primary" style="cursor:pointer; margin:0;">&#11015; Upload image(s)
+                        <input type="file" accept="image/*" multiple style="display:none;" onchange="uploadToGallery(event)">
+                    </label>
+                    <span id="gallery-upload-status" style="font-size:0.85rem; color:#7f8c8d;"></span>
+                    <span style="font-size:0.82rem; color:#7f8c8d; margin-left:auto;">Use clean silk / fabric / product photos (no text or swatches).</span>
+                </div>
+                <div id="gallery-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:0.75rem; max-height:55vh; overflow-y:auto;"></div>
             </div>
         </div>
     </div>
@@ -2731,7 +2752,21 @@
         // crossOrigin so the canvas isn't tainted and PNG/PDF export still works.
         let deckProduct = null;
         // Optional uploaded background photo (real silk/fabric); replaces the procedural texture.
+        // deckBackground applies to the whole deck; per-slide slide.bg overrides it.
         let deckBackground = null;
+        let currentCarouselArticleId = null;
+        const bgImageCache = {};
+        function getBgImage(url) {
+            if (!url) return null;
+            if (bgImageCache[url]) return bgImageCache[url];
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => renderCarouselPreview();
+            img.onerror = () => {};
+            img.src = url;
+            bgImageCache[url] = img;
+            return img;
+        }
 
         // Warm the brand fonts so canvas text renders in the real faces, not the fallback
         if (document.fonts && document.fonts.load) {
@@ -2859,11 +2894,11 @@
         // Procedural "silk" background: base gradient + diagonal sheen folds + top light +
         // vignette + fine grain. Far richer than a flat fill; the upload library (phase 2)
         // will let a real fabric/product photo replace this per slide.
-        function drawThemeBackground(ctx, W, t, seed) {
+        function drawThemeBackground(ctx, W, t, seed, bgImg) {
             // Real uploaded photo (silk/fabric) takes over when present, with a theme scrim
             // + vignette so the headline stays legible over it.
-            if (deckBackground && deckBackground.complete && deckBackground.naturalWidth) {
-                const img = deckBackground;
+            if (bgImg && bgImg.complete && bgImg.naturalWidth) {
+                const img = bgImg;
                 const s = Math.max(W / img.naturalWidth, W / img.naturalHeight);
                 const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
                 ctx.drawImage(img, (W - dw) / 2, (W - dh) / 2, dw, dh);
@@ -3046,8 +3081,9 @@
             const isCta = total > 1 && index === total - 1;
             const bullets = Array.isArray(slide.bullets) ? slide.bullets.filter(b => b && (b.text || b.label)) : [];
 
-            // Premium procedural background + thin gold frame + stacked wordmark header
-            drawThemeBackground(ctx, W, t, index + 1);
+            // Per-slide background (slide.bg) overrides the deck background, else procedural
+            const bgImg = (slide.bg ? getBgImage(slide.bg) : null) || deckBackground;
+            drawThemeBackground(ctx, W, t, index + 1, bgImg);
             ctx.strokeStyle = t.frame; ctx.lineWidth = 1.5;
             roundRectPath(ctx, 34, 34, W - 68, W - 68, 8); ctx.stroke();
             drawHeader(ctx, W, t);
@@ -3121,6 +3157,7 @@
         function openCarousel(articleId) {
             const article = studioArticles.find(a => a.id === articleId);
             if (!article) return;
+            currentCarouselArticleId = articleId;
             carouselSlides = article.carousel || [];
             carouselSlug = article.slug || 'carousel';
             if (!carouselSlides.length) { showAlert('This article has no carousel slides', 'error'); return; }
@@ -3154,14 +3191,102 @@
             const preview = document.getElementById('cs-slides-preview');
             preview.innerHTML = '';
             carouselSlides.forEach((slide, i) => {
+                const cell = document.createElement('div');
+                cell.style.position = 'relative';
                 const canvas = renderSlideCanvas(slide, i, carouselSlides.length);
                 canvas.style.width = '100%';
                 canvas.style.borderRadius = '10px';
                 canvas.style.cursor = 'pointer';
+                canvas.style.display = 'block';
                 canvas.title = 'Click to download this slide';
                 canvas.addEventListener('click', () => downloadSlide(canvas, i));
-                preview.appendChild(canvas);
+                cell.appendChild(canvas);
+
+                const setBtn = document.createElement('button');
+                setBtn.textContent = slide.bg ? '\u{1F5BC} Change bg' : '\u{1F5BC} Set bg';
+                setBtn.style.cssText = 'position:absolute; bottom:8px; left:8px; font-size:0.7rem; padding:4px 9px; background:rgba(0,0,0,0.62); color:#fff; border:1px solid rgba(212,175,106,0.6); border-radius:5px; cursor:pointer;';
+                setBtn.onclick = (e) => { e.stopPropagation(); openGalleryPicker(url => setSlideBg(i, url)); };
+                cell.appendChild(setBtn);
+
+                if (slide.bg) {
+                    const clr = document.createElement('button');
+                    clr.textContent = '✕';
+                    clr.title = 'Remove background';
+                    clr.style.cssText = 'position:absolute; bottom:8px; right:8px; font-size:0.7rem; padding:4px 8px; background:rgba(0,0,0,0.62); color:#fff; border:1px solid rgba(255,255,255,0.4); border-radius:5px; cursor:pointer;';
+                    clr.onclick = (e) => { e.stopPropagation(); setSlideBg(i, null); };
+                    cell.appendChild(clr);
+                }
+                preview.appendChild(cell);
             });
+        }
+
+        // Assign / clear a per-slide background, then persist to the article.
+        function setSlideBg(i, url) {
+            if (url) carouselSlides[i].bg = url; else delete carouselSlides[i].bg;
+            renderCarouselPreview();
+            persistCarouselImages();
+        }
+        function persistCarouselImages() {
+            if (!currentCarouselArticleId) return;
+            const images = carouselSlides.map((s, i) => ({ index: i, bg: s.bg || '' }));
+            fetch('/api/admin/articles/' + currentCarouselArticleId + '/carousel-images', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ images })
+            }).catch(() => {});
+        }
+
+        // ---- Gallery picker (upload or select an image, returns a URL via callback) ----
+        let galleryPickCallback = null;
+        function openGalleryPicker(cb) {
+            galleryPickCallback = cb;
+            document.getElementById('gallery-picker-modal').classList.add('active');
+            loadGalleryGrid();
+        }
+        function closeGalleryPicker() {
+            document.getElementById('gallery-picker-modal').classList.remove('active');
+            galleryPickCallback = null;
+        }
+        async function loadGalleryGrid() {
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = '<p style="color:#888; grid-column:1/-1;">Loading…</p>';
+            try {
+                const imgs = await (await fetch('/api/admin/articles/gallery')).json();
+                if (!imgs.length) { grid.innerHTML = '<p style="color:#888; grid-column:1/-1;">No images yet. Upload one above.</p>'; return; }
+                grid.innerHTML = '';
+                imgs.forEach(im => {
+                    const thumb = document.createElement('img');
+                    thumb.src = im.url; thumb.title = im.name; thumb.loading = 'lazy';
+                    thumb.style.cssText = 'width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:border-color .15s;';
+                    thumb.onmouseenter = () => thumb.style.borderColor = '#d4af6a';
+                    thumb.onmouseleave = () => thumb.style.borderColor = 'transparent';
+                    thumb.onclick = () => { const cb = galleryPickCallback; closeGalleryPicker(); if (cb) cb(im.url); };
+                    grid.appendChild(thumb);
+                });
+            } catch (e) { grid.innerHTML = '<p style="color:#e74c3c; grid-column:1/-1;">Failed to load gallery.</p>'; }
+        }
+        async function uploadToGallery(e) {
+            const files = e.target.files; if (!files || !files.length) return;
+            const status = document.getElementById('gallery-upload-status');
+            const fd = new FormData();
+            for (const f of files) fd.append('images', f);
+            if (status) status.textContent = 'Uploading…';
+            try {
+                await fetch('/api/admin/articles/gallery', { method: 'POST', body: fd });
+                if (status) status.textContent = '';
+                e.target.value = '';
+                loadGalleryGrid();
+            } catch (err) { if (status) status.textContent = 'Upload failed'; }
+        }
+
+        // Deck-level background chosen from the gallery (applies to all slides without their own bg)
+        function setDeckBackgroundUrl(url) {
+            const img = new Image(); img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                deckBackground = img;
+                document.getElementById('cs-bg-clear').style.display = '';
+                document.getElementById('cs-bg-name').textContent = 'gallery image';
+                renderCarouselPreview();
+            };
+            img.src = url;
         }
 
         // Upload a real background photo (silk/fabric) for the deck; replaces the procedural texture.

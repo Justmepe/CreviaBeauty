@@ -132,6 +132,8 @@ function normalizeArticle(payload) {
             highlight: String((s && s.highlight) || '').trim()
         };
         if (bullets.length) slide.bullets = bullets;
+        const bg = String((s && s.bg) || '').trim();
+        if (bg) slide.bg = bg;
         return slide;
     }).filter(s => s.heading || s.body || (s.bullets && s.bullets.length));
 
@@ -336,6 +338,64 @@ module.exports = (db) => {
             FROM articles ORDER BY created_at DESC
         `);
         res.json(result.rows);
+    }));
+
+    // ---- Image Gallery: backgrounds + product shots for carousel slides ----
+    const GALLERY_DIR = path.resolve(__dirname, '..', 'uploads', 'Gallery');
+    const IMG_RE = /\.(png|jpe?g|webp|gif)$/i;
+    const imageUpload = multer({
+        storage: multer.diskStorage({
+            destination: (req, file, cb) => { fs.mkdirSync(GALLERY_DIR, { recursive: true }); cb(null, GALLERY_DIR); },
+            filename: (req, file, cb) => {
+                const ext = path.extname(file.originalname).toLowerCase();
+                const base = path.basename(file.originalname, ext).replace(/[^a-z0-9-_]+/gi, '-').slice(0, 40) || 'image';
+                cb(null, `${base}-${Date.now()}${ext}`);
+            }
+        }),
+        limits: { fileSize: 12 * 1024 * 1024 },
+        fileFilter: (req, file, cb) => {
+            if (/^image\/(png|jpe?g|webp|gif)$/.test(file.mimetype)) return cb(null, true);
+            cb(new Error('Only image files are allowed'));
+        }
+    });
+
+    // GET /api/admin/articles/gallery — list uploaded images, newest first
+    adminRouter.get('/gallery', asyncHandler(async (req, res) => {
+        let files = [];
+        try {
+            files = fs.readdirSync(GALLERY_DIR)
+                .filter(f => IMG_RE.test(f))
+                .map(f => ({ name: f, url: '/uploads/Gallery/' + encodeURIComponent(f), modified: fs.statSync(path.join(GALLERY_DIR, f)).mtime }))
+                .sort((a, b) => b.modified - a.modified);
+        } catch (e) { files = []; }
+        res.json(files);
+    }));
+
+    // POST /api/admin/articles/gallery — upload one or more images to the gallery
+    adminRouter.post('/gallery', imageUpload.array('images', 12), asyncHandler(async (req, res) => {
+        const images = (req.files || []).map(f => ({ name: f.filename, url: '/uploads/Gallery/' + encodeURIComponent(f.filename) }));
+        res.json({ success: true, images });
+    }));
+
+    // POST /api/admin/articles/:id/carousel-images — persist per-slide background URLs
+    adminRouter.post('/:id/carousel-images', asyncHandler(async (req, res) => {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) throw AppError.badRequest('Invalid article ID');
+        const images = Array.isArray(req.body.images) ? req.body.images : [];
+        const r = await db.query('SELECT content FROM articles WHERE id = $1', [id]);
+        if (!r.rows[0]) throw AppError.notFound('Article not found');
+        const content = r.rows[0].content || {};
+        const carousel = Array.isArray(content.carousel) ? content.carousel : [];
+        images.forEach(({ index, bg }) => {
+            const i = parseInt(index, 10);
+            if (carousel[i]) {
+                if (bg) carousel[i].bg = String(bg).slice(0, 500);
+                else delete carousel[i].bg;
+            }
+        });
+        content.carousel = carousel;
+        await db.query('UPDATE articles SET content = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [JSON.stringify(content), id]);
+        res.json({ success: true });
     }));
 
     // The Python research engine (engine/research.py) drops finished prompts here.
