@@ -116,13 +116,24 @@ function normalizeArticle(payload) {
         throw AppError.badRequest('The JSON has no "intro" and no "sections" — there is nothing to publish.');
     }
 
-    // Carousel slides: {heading, body} (accept {title, text} variants)
+    // Carousel slides: {heading, body, highlight?, bullets?[{icon,text}]}
+    const ICONS = new Set(['user', 'star', 'diamond', 'x', 'check', 'heart', 'shield', 'gift', 'clock']);
     const rawCarousel = Array.isArray(payload.carousel) ? payload.carousel
         : (payload.carousel && Array.isArray(payload.carousel.slides)) ? payload.carousel.slides : [];
-    const carousel = rawCarousel.slice(0, 10).map(s => ({
-        heading: String((s && (s.heading || s.title)) || '').trim(),
-        body: String((s && (s.body || s.text || s.content)) || '').trim()
-    })).filter(s => s.heading || s.body);
+    const carousel = rawCarousel.slice(0, 10).map(s => {
+        const rawBullets = Array.isArray(s && s.bullets) ? s.bullets : [];
+        const bullets = rawBullets.slice(0, 4).map(b => ({
+            icon: ICONS.has(String(b && b.icon || '').toLowerCase()) ? String(b.icon).toLowerCase() : 'star',
+            text: String((b && (b.text || b.label)) || '').trim()
+        })).filter(b => b.text);
+        const slide = {
+            heading: String((s && (s.heading || s.title)) || '').trim(),
+            body: String((s && (s.body || s.text || s.content)) || '').trim(),
+            highlight: String((s && s.highlight) || '').trim()
+        };
+        if (bullets.length) slide.bullets = bullets;
+        return slide;
+    }).filter(s => s.heading || s.body || (s.bullets && s.bullets.length));
 
     // Reel shot-list: {shot, say} (accept {visual, scene, text, voiceover} variants)
     const rawReel = Array.isArray(payload.reel) ? payload.reel

@@ -1087,6 +1087,14 @@
                     <button class="btn-dashboard outline sm cs-theme-btn" data-theme="ivory" onclick="setSlideTheme('ivory')">&#9898; Ivory (Gift)</button>
                     <button class="btn-dashboard outline sm cs-theme-btn" data-theme="black" onclick="setSlideTheme('black')">&#9711; Black (VIP)</button>
                 </div>
+                <div style="margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                    <span style="font-size:0.85rem; color:#7f8c8d;">Background photo:</span>
+                    <label class="btn-dashboard outline sm" style="cursor:pointer; margin:0;">&#128247; Upload silk / fabric
+                        <input type="file" id="cs-bg-file" accept="image/*" style="display:none;" onchange="setSlideBackground(event)">
+                    </label>
+                    <button class="btn-dashboard outline sm" id="cs-bg-clear" style="display:none;" onclick="clearSlideBackground()">&#10005; Use texture</button>
+                    <span id="cs-bg-name" style="font-size:0.8rem; color:#27ae60;"></span>
+                </div>
                 <div id="cs-slides-preview" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.25rem;"></div>
                 <button class="btn-dashboard primary" onclick="downloadAllSlides()">&#11015; Download PNGs</button>
                 <button class="btn-dashboard outline" onclick="downloadCarouselPdf()">&#128462; Save as PDF</button>
@@ -2722,6 +2730,8 @@
         // The deck's product shot (article.hero_image_url), composited on the CTA slide.
         // crossOrigin so the canvas isn't tainted and PNG/PDF export still works.
         let deckProduct = null;
+        // Optional uploaded background photo (real silk/fabric); replaces the procedural texture.
+        let deckBackground = null;
 
         // Warm the brand fonts so canvas text renders in the real faces, not the fallback
         if (document.fonts && document.fonts.load) {
@@ -2758,9 +2768,11 @@
         const SLIDE_GOLD = '#d4af6a';
 
         const SLIDE_THEMES = {
-            navy:  { label: 'Navy',  bg: ['#15173a', '#1e2047', '#2b2450'], heading: '#f5f5f5', body: '#c3c7d6', gold: '#d4af6a', sub: 'rgba(245,245,245,0.42)', frame: 'rgba(212,175,106,0.28)', glow: [220,186,124], vignette: 'rgba(7,8,24,0.45)', light: 'light' },
-            ivory: { label: 'Ivory', bg: ['#f7efdb', '#f0e5cb', '#e7d8b6'], heading: '#241d12', body: '#6e5f44', gold: '#a9843a', sub: 'rgba(36,29,18,0.45)',  frame: 'rgba(169,132,58,0.35)',  glow: [200,160,90], vignette: 'rgba(150,118,66,0.20)', light: 'dark' },
-            black: { label: 'Black', bg: ['#0a0a0d', '#121215', '#1b1519'], heading: '#f6f3ef', body: '#bbb2a8', gold: '#dcab6e', sub: 'rgba(246,243,239,0.40)', frame: 'rgba(220,171,110,0.28)', glow: [220,171,110], vignette: 'rgba(0,0,0,0.5)', light: 'light' },
+            // Exact brand palette: Midnight Navy #15173A, Champagne Gold #D4AF6A, Ivory #F3EDE2,
+            // Charcoal #1A1A1A, Rose Gold #B76E79. Navy gradient is blue-navy (never purple).
+            navy:  { label: 'Navy',  bg: ['#101227', '#15173a', '#222c57'], heading: '#f5f3ee', body: '#c3c7d6', gold: '#d4af6a', sub: 'rgba(245,243,238,0.42)', frame: 'rgba(212,175,106,0.30)', glow: [212,175,106], vignette: 'rgba(8,9,22,0.50)', light: 'light' },
+            ivory: { label: 'Ivory', bg: ['#f7f3ec', '#f3ede2', '#e7ddcd'], heading: '#1c1e33', body: '#6a5f4c', gold: '#a9843a', sub: 'rgba(28,30,51,0.42)',   frame: 'rgba(169,132,58,0.38)',  glow: [200,160,90], vignette: 'rgba(150,118,66,0.18)', light: 'dark' },
+            black: { label: 'Black', bg: ['#0e0e0f', '#1a1a1a', '#242122'], heading: '#f6f3ef', body: '#bbb2a8', gold: '#d4af6a', sub: 'rgba(246,243,239,0.40)', frame: 'rgba(212,175,106,0.30)', glow: [212,175,106], vignette: 'rgba(0,0,0,0.55)', light: 'light' },
         };
         let currentSlideTheme = 'navy';
 
@@ -2848,6 +2860,26 @@
         // vignette + fine grain. Far richer than a flat fill; the upload library (phase 2)
         // will let a real fabric/product photo replace this per slide.
         function drawThemeBackground(ctx, W, t, seed) {
+            // Real uploaded photo (silk/fabric) takes over when present, with a theme scrim
+            // + vignette so the headline stays legible over it.
+            if (deckBackground && deckBackground.complete && deckBackground.naturalWidth) {
+                const img = deckBackground;
+                const s = Math.max(W / img.naturalWidth, W / img.naturalHeight);
+                const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+                ctx.drawImage(img, (W - dw) / 2, (W - dh) / 2, dw, dh);
+                const sc = ctx.createLinearGradient(0, 0, 0, W);
+                if (t.light === 'dark') { // ivory: lift toward the light ground
+                    sc.addColorStop(0, 'rgba(243,237,226,0.62)'); sc.addColorStop(0.5, 'rgba(243,237,226,0.40)'); sc.addColorStop(1, 'rgba(243,237,226,0.70)');
+                } else { // navy / charcoal: darken for white text
+                    const d = (currentSlideTheme === 'black') ? '12,12,13' : '16,18,39';
+                    sc.addColorStop(0, `rgba(${d},0.74)`); sc.addColorStop(0.45, `rgba(${d},0.48)`); sc.addColorStop(1, `rgba(${d},0.82)`);
+                }
+                ctx.fillStyle = sc; ctx.fillRect(0, 0, W, W);
+                const vg2 = ctx.createRadialGradient(W / 2, W * 0.42, W * 0.3, W / 2, W / 2, W * 0.8);
+                vg2.addColorStop(0, 'rgba(0,0,0,0)'); vg2.addColorStop(1, t.vignette);
+                ctx.fillStyle = vg2; ctx.fillRect(0, 0, W, W);
+                return;
+            }
             const g = ctx.createLinearGradient(0, 0, W * 0.35, W);
             g.addColorStop(0, t.bg[0]); g.addColorStop(0.6, t.bg[1]); g.addColorStop(1, t.bg[2]);
             ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
@@ -2909,6 +2941,102 @@
             return true;
         }
 
+        // Stacked CREVIA / BEAUTY wordmark with the sparkle above (reference header)
+        function drawHeader(ctx, W, t) {
+            drawSparkle(ctx, W / 2, 72, 24, t.gold);
+            ctx.fillStyle = t.gold; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+            ctx.font = `700 30px ${WORDMARK_FONT}`;
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '10px';
+            ctx.fillText('CREVIA', W / 2 + 5, 118);
+            ctx.font = `600 15px ${WORDMARK_FONT}`;
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '8px';
+            ctx.fillText('BEAUTY', W / 2 + 4, 142);
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+            ctx.textBaseline = 'top';
+        }
+
+        // Slide number (bottom-left) + small-caps tagline (bottom-centre)
+        function drawSlideFooter(ctx, W, t, index) {
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            ctx.fillStyle = t.gold; ctx.font = `600 30px ${WORDMARK_FONT}`;
+            ctx.fillText(String(index + 1).padStart(2, '0'), 72, 980);
+            ctx.textAlign = 'center'; ctx.fillStyle = t.sub; ctx.font = `500 19px ${BODY_FONT}`;
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
+            ctx.fillText('DISCOVER YOUR SIGNATURE SCENT', W / 2, 986);
+            if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+        }
+
+        // Gold outline icon inside a gold circle — the reference's foil-icon look
+        function drawIconBadge(ctx, name, cx, cy, r, color) {
+            ctx.save();
+            ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+            const s = r * 0.5; ctx.lineWidth = 2.4;
+            const path = (fn) => { ctx.beginPath(); fn(); ctx.stroke(); };
+            switch (name) {
+                case 'user':
+                    path(() => ctx.arc(cx, cy - s * 0.35, s * 0.42, 0, Math.PI * 2));
+                    path(() => ctx.arc(cx, cy + s * 1.05, s * 0.95, Math.PI * 1.18, Math.PI * 1.82));
+                    break;
+                case 'star':
+                    path(() => { for (let i = 0; i < 5; i++) { const a = -Math.PI/2 + i*2*Math.PI/5; (i?ctx.lineTo:ctx.moveTo).call(ctx, cx+Math.cos(a)*s, cy+Math.sin(a)*s); const b = a+Math.PI/5; ctx.lineTo(cx+Math.cos(b)*s*0.42, cy+Math.sin(b)*s*0.42); } ctx.closePath(); });
+                    break;
+                case 'diamond':
+                    path(() => { ctx.moveTo(cx, cy-s); ctx.lineTo(cx+s*0.85, cy); ctx.lineTo(cx, cy+s); ctx.lineTo(cx-s*0.85, cy); ctx.closePath(); });
+                    break;
+                case 'x':
+                    path(() => { ctx.moveTo(cx-s*0.62, cy-s*0.62); ctx.lineTo(cx+s*0.62, cy+s*0.62); });
+                    path(() => { ctx.moveTo(cx+s*0.62, cy-s*0.62); ctx.lineTo(cx-s*0.62, cy+s*0.62); });
+                    break;
+                case 'check':
+                    path(() => { ctx.moveTo(cx-s*0.7, cy); ctx.lineTo(cx-s*0.12, cy+s*0.6); ctx.lineTo(cx+s*0.78, cy-s*0.6); });
+                    break;
+                case 'heart':
+                    path(() => { ctx.moveTo(cx, cy+s*0.72); ctx.bezierCurveTo(cx-s*1.25, cy-s*0.15, cx-s*0.42, cy-s*0.95, cx, cy-s*0.28); ctx.bezierCurveTo(cx+s*0.42, cy-s*0.95, cx+s*1.25, cy-s*0.15, cx, cy+s*0.72); });
+                    break;
+                case 'shield':
+                    path(() => { ctx.moveTo(cx, cy-s); ctx.lineTo(cx+s*0.8, cy-s*0.55); ctx.lineTo(cx+s*0.8, cy+s*0.15); ctx.quadraticCurveTo(cx+s*0.8, cy+s*0.85, cx, cy+s); ctx.quadraticCurveTo(cx-s*0.8, cy+s*0.85, cx-s*0.8, cy+s*0.15); ctx.lineTo(cx-s*0.8, cy-s*0.55); ctx.closePath(); });
+                    break;
+                case 'gift':
+                    path(() => ctx.rect(cx-s*0.8, cy-s*0.18, s*1.6, s*0.98));
+                    path(() => { ctx.moveTo(cx, cy-s*0.18); ctx.lineTo(cx, cy+s*0.8); });
+                    path(() => ctx.arc(cx-s*0.28, cy-s*0.42, s*0.28, 0, Math.PI*2));
+                    path(() => ctx.arc(cx+s*0.28, cy-s*0.42, s*0.28, 0, Math.PI*2));
+                    break;
+                case 'clock':
+                    path(() => ctx.arc(cx, cy, s*0.85, 0, Math.PI*2));
+                    path(() => { ctx.moveTo(cx, cy); ctx.lineTo(cx, cy-s*0.48); });
+                    path(() => { ctx.moveTo(cx, cy); ctx.lineTo(cx+s*0.4, cy+s*0.18); });
+                    break;
+                default:
+                    drawSparkle(ctx, cx, cy, r * 0.95, color);
+            }
+            ctx.restore();
+        }
+
+        // Centred headline with selected words rendered in gold (reference's gold highlight)
+        function drawHeadingHighlighted(ctx, lines, cx, y, size, lineH, baseColor, gold, highlight) {
+            const hs = new Set(String(highlight || '').toLowerCase().split(/\s+/).filter(Boolean));
+            ctx.font = `700 ${size}px ${HEADLINE_FONT}`;
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+            const space = ctx.measureText(' ').width;
+            for (const line of lines) {
+                const words = line.split(' ');
+                const widths = words.map(w => ctx.measureText(w).width);
+                const total = widths.reduce((a, b) => a + b, 0) + space * (words.length - 1);
+                let x = cx - total / 2;
+                words.forEach((w, i) => {
+                    const clean = w.replace(/[^A-Za-z]/g, '').toLowerCase();
+                    ctx.fillStyle = (hs.size && hs.has(clean)) ? gold : baseColor;
+                    ctx.fillText(w, x, y);
+                    x += widths[i] + space;
+                });
+                y += lineH;
+            }
+            ctx.textAlign = 'center';
+            return y;
+        }
+
         function renderSlideCanvas(slide, index, total) {
             const W = 1080;
             const canvas = document.createElement('canvas');
@@ -2916,62 +3044,74 @@
             const ctx = canvas.getContext('2d');
             const t = SLIDE_THEMES[currentSlideTheme] || SLIDE_THEMES.navy;
             const isCta = total > 1 && index === total - 1;
+            const bullets = Array.isArray(slide.bullets) ? slide.bullets.filter(b => b && (b.text || b.label)) : [];
 
-            // Premium procedural background (silk folds + light + grain)
+            // Premium procedural background + thin gold frame + stacked wordmark header
             drawThemeBackground(ctx, W, t, index + 1);
-
-            // Thin gold frame inset
             ctx.strokeStyle = t.frame; ctx.lineWidth = 1.5;
             roundRectPath(ctx, 34, 34, W - 68, W - 68, 8); ctx.stroke();
+            drawHeader(ctx, W, t);
+            ctx.textAlign = 'center'; ctx.textBaseline = 'top';
 
-            // Centred header: sparkle + wordmark
-            drawSparkle(ctx, W / 2, 80, 26, t.gold);
-            drawWordmark(ctx, W / 2, 138, 27, t.gold, 'center');
-
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-
-            if (isCta) {
-                // Product shot if the deck has one (auto from catalog), else the logo badge
-                const hasProduct = drawProductShot(ctx, deckProduct, W / 2, 318, 250, t.gold);
-                if (!hasProduct) drawBadge(ctx, W / 2, 310, 62);
-                const heading = String(slide.heading || '').toUpperCase();
-                const fit = fitHeading(ctx, heading, W - 220, [74, 62, 50]);
-                let y = 470;
-                ctx.fillStyle = t.heading; ctx.font = `700 ${fit.size}px ${HEADLINE_FONT}`;
-                for (const line of fit.lines) { ctx.fillText(line, W / 2, y); y += fit.size * 1.16; }
-                y += 18; shortRule(ctx, W / 2, y, t.gold); y += 30;
-                ctx.fillStyle = t.body; ctx.font = `500 36px ${BODY_FONT}`;
-                for (const line of wrapLines(ctx, slide.body, W - 300)) { ctx.fillText(line, W / 2, y); y += 52; }
+            if (bullets.length && !isCta) {
+                // ---- Icon-list layout, left-aligned (reference slides 3/4) ----
+                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+                ctx.fillStyle = t.heading; ctx.font = `700 46px ${HEADLINE_FONT}`;
+                let y = 255;
+                for (const ln of wrapLines(ctx, String(slide.heading || ''), W - 300)) { ctx.fillText(ln, 110, y); y += 56; }
+                y += 8; ctx.strokeStyle = t.gold; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(110, y); ctx.lineTo(195, y); ctx.stroke();
+                const rows = bullets.slice(0, 4);
+                const startY = y + 50;
+                const rowH = Math.min(155, (915 - startY) / rows.length);
+                rows.forEach((b, i) => {
+                    const ry = startY + rowH * i + rowH / 2;
+                    drawIconBadge(ctx, b.icon || 'star', 152, ry, 34, t.gold);
+                    ctx.fillStyle = t.heading; ctx.font = `500 35px ${BODY_FONT}`;
+                    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+                    const llines = wrapLines(ctx, String(b.text || b.label || ''), W - 360);
+                    let ly = ry - (llines.length - 1) * 21;
+                    llines.forEach(l => { ctx.fillText(l, 218, ly); ly += 42; });
+                });
+                ctx.textBaseline = 'top';
+                drawSlideFooter(ctx, W, t, index);
+            } else if (isCta) {
+                // ---- CTA: product/box + serif + script "Signature Scent" (reference slide 7) ----
+                const hasProduct = drawProductShot(ctx, deckProduct, W / 2, 320, 236, t.gold);
+                if (!hasProduct) drawBadge(ctx, W / 2, 300, 60);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = t.heading; ctx.font = `600 54px ${HEADLINE_FONT}`;
+                ctx.fillText('Discover Your', W / 2, 474);
+                ctx.fillStyle = t.gold; ctx.font = `400 80px ${SCRIPT_FONT}`;
+                ctx.fillText('Signature Scent', W / 2, 532);
+                let y = 658;
+                ctx.fillStyle = t.body; ctx.font = `500 33px ${BODY_FONT}`;
+                for (const line of wrapLines(ctx, slide.body, W - 340)) { ctx.fillText(line, W / 2, y); y += 46; }
                 ctx.fillStyle = t.gold; ctx.font = `600 30px ${BODY_FONT}`;
-                ctx.fillText('✦  @creviabeauty', W / 2, 978);
+                ctx.fillText('✦  @creviabeauty', W / 2, 982);
             } else {
-                // Headline + body, vertically centred in the body area
+                // ---- Hero / quote: centred headline (gold-highlight) + body + optional product ----
+                const heroProduct = (index === 0 && deckProduct && deckProduct.complete && deckProduct.naturalWidth) ? deckProduct : null;
                 const heading = String(slide.heading || '').toUpperCase();
-                const fit = fitHeading(ctx, heading, W - 200, [70, 60, 50]);
-                ctx.font = `500 37px ${BODY_FONT}`;
-                const bodyLines = slide.body ? wrapLines(ctx, slide.body, W - 220) : [];
-                const hH = fit.lines.length * fit.size * 1.18;
-                const bH = bodyLines.length * 52;
-                const block = hH + 46 + (bodyLines.length ? 28 + bH : 0);
-                let y = Math.max(300, 210 + (660 - block) / 2);
-
-                ctx.fillStyle = t.heading; ctx.font = `700 ${fit.size}px ${HEADLINE_FONT}`;
-                for (const line of fit.lines) { ctx.fillText(line, W / 2, y); y += fit.size * 1.18; }
-                y += 18; shortRule(ctx, W / 2, y, t.gold); y += 28;
-                if (bodyLines.length) {
-                    ctx.fillStyle = t.body; ctx.font = `500 37px ${BODY_FONT}`;
-                    for (const line of bodyLines) { ctx.fillText(line, W / 2, y); y += 52; }
+                const fit = fitHeading(ctx, heading, W - 200, [68, 58, 48]);
+                ctx.font = `500 36px ${BODY_FONT}`;
+                const bodyLines = slide.body ? wrapLines(ctx, slide.body, W - 240) : [];
+                let y;
+                if (heroProduct) {
+                    y = 250;
+                } else {
+                    const hH = fit.lines.length * fit.size * 1.16;
+                    const block = hH + 44 + (bodyLines.length ? 26 + bodyLines.length * 50 : 0);
+                    y = Math.max(300, 230 + (560 - block) / 2);
                 }
-                // Slide number bottom-left
-                ctx.textAlign = 'left';
-                ctx.fillStyle = t.gold; ctx.font = `600 30px ${WORDMARK_FONT}`;
-                ctx.fillText(String(index + 1).padStart(2, '0'), 72, 978);
-                // Tagline bottom-centre
-                ctx.textAlign = 'center'; ctx.fillStyle = t.sub; ctx.font = `500 19px ${BODY_FONT}`;
-                if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
-                ctx.fillText('DISCOVER YOUR SIGNATURE SCENT', W / 2, 984);
-                if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+                y = drawHeadingHighlighted(ctx, fit.lines, W / 2, y, fit.size, fit.size * 1.16, t.heading, t.gold, slide.highlight);
+                y += 14; shortRule(ctx, W / 2, y, t.gold); y += 26;
+                if (bodyLines.length) {
+                    ctx.fillStyle = t.body; ctx.font = `500 36px ${BODY_FONT}`;
+                    for (const line of bodyLines) { ctx.fillText(line, W / 2, y); y += 50; }
+                }
+                if (heroProduct) drawProductShot(ctx, heroProduct, W / 2, 802, 208, t.gold);
+                drawSlideFooter(ctx, W, t, index);
             }
 
             ctx.textAlign = 'left'; ctx.textBaseline = 'top';
@@ -2986,6 +3126,12 @@
             if (!carouselSlides.length) { showAlert('This article has no carousel slides', 'error'); return; }
 
             document.getElementById('carousel-modal-title').textContent = `Carousel — ${article.title}`;
+
+            // Fresh background each deck (the upload control sets it per session)
+            deckBackground = null;
+            const bgClear = document.getElementById('cs-bg-clear'); if (bgClear) bgClear.style.display = 'none';
+            const bgName = document.getElementById('cs-bg-name'); if (bgName) bgName.textContent = '';
+            const bgFile = document.getElementById('cs-bg-file'); if (bgFile) bgFile.value = '';
 
             // Auto-load the deck's product photo (catalog image) for the CTA slide.
             // crossOrigin keeps the canvas exportable; re-render once it arrives.
@@ -3016,6 +3162,27 @@
                 canvas.addEventListener('click', () => downloadSlide(canvas, i));
                 preview.appendChild(canvas);
             });
+        }
+
+        // Upload a real background photo (silk/fabric) for the deck; replaces the procedural texture.
+        function setSlideBackground(e) {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const img = new Image();
+            img.onload = () => {
+                deckBackground = img;
+                document.getElementById('cs-bg-clear').style.display = '';
+                document.getElementById('cs-bg-name').textContent = f.name;
+                renderCarouselPreview();
+            };
+            img.src = URL.createObjectURL(f);
+        }
+        function clearSlideBackground() {
+            deckBackground = null;
+            document.getElementById('cs-bg-clear').style.display = 'none';
+            document.getElementById('cs-bg-name').textContent = '';
+            const inp = document.getElementById('cs-bg-file'); if (inp) inp.value = '';
+            renderCarouselPreview();
         }
 
         // Switch brand collection (Navy primary, Ivory gift, Black VIP) and re-render.
