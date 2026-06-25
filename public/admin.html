@@ -2992,11 +2992,39 @@
             lead_followup: 'Lead follow-up (send after the link — capture email / WhatsApp)'
         };
 
+        function renderReelHtml(article) {
+            const reel = Array.isArray(article.reel) ? article.reel : [];
+            if (!reel.length) return '';
+            return `
+                <div style="border-top:1px solid #f0f0f0; margin-top:1.25rem; padding-top:1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <small style="color:#7f8c8d; text-transform:uppercase; letter-spacing:0.05em;">&#127916; Reel shot-list (${reel.length} shots, film on a phone)</small>
+                        <button class="btn-dashboard outline sm" onclick="copyReel(${article.id}, this)">&#128203; Copy script</button>
+                    </div>
+                    <ol style="margin:0.6rem 0 0; padding-left:1.3rem;">
+                        ${reel.map(s => `<li style="margin-bottom:0.5rem;"><strong>${escapeHtml(s.shot)}</strong>${s.say ? `<br><span style="color:#555;">"${escapeHtml(s.say)}"</span>` : ''}</li>`).join('')}
+                    </ol>
+                </div>`;
+        }
+
+        async function copyReel(articleId, btn) {
+            const article = studioArticles.find(a => a.id === articleId);
+            const reel = article && article.reel;
+            if (!Array.isArray(reel) || !reel.length) return;
+            const text = reel.map((s, i) => `${i + 1}. ${s.shot}${s.say ? ' | say: "' + s.say + '"' : ''}`).join('\n');
+            try {
+                await navigator.clipboard.writeText(text);
+                const old = btn.innerHTML; btn.innerHTML = '&#10003; Copied';
+                setTimeout(() => { btn.innerHTML = old; }, 1500);
+            } catch (e) { showAlert('Clipboard blocked by the browser', 'error'); }
+        }
+
         function renderPackHtml(article) {
             const social = article.social || {};
             const fields = Object.keys(PACK_LABELS).filter(f => social[f]);
-            if (!fields.length) return '';
-            return `
+            const reelHtml = renderReelHtml(article);
+            if (!fields.length && !reelHtml) return '';
+            const socialHtml = !fields.length ? '' : `
                 <div style="border-top:1px solid #f0f0f0; margin-top:1.25rem; padding-top:1rem;">
                     <small style="color:#7f8c8d; text-transform:uppercase; letter-spacing:0.05em;">Post content ${social.dm_keyword ? `· comment-to-DM keyword: <strong style="color:#7c3aed;">${escapeHtml(social.dm_keyword)}</strong>` : ''}</small>
                     ${fields.map(field => `
@@ -3008,6 +3036,7 @@
                             <div style="background:#f8f9fa; border:1px solid #eee; border-radius:8px; padding:0.75rem; margin-top:0.35rem; white-space:pre-wrap; font-size:0.88rem; max-height:140px; overflow:auto;">${escapeHtml(social[field])}</div>
                         </div>`).join('')}
                 </div>`;
+            return reelHtml + socialHtml;
         }
 
         async function copyPack(articleId, field, btn) {

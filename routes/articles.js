@@ -124,6 +124,14 @@ function normalizeArticle(payload) {
         body: String((s && (s.body || s.text || s.content)) || '').trim()
     })).filter(s => s.heading || s.body);
 
+    // Reel shot-list: {shot, say} (accept {visual, scene, text, voiceover} variants)
+    const rawReel = Array.isArray(payload.reel) ? payload.reel
+        : (payload.reel && Array.isArray(payload.reel.shots)) ? payload.reel.shots : [];
+    const reel = rawReel.slice(0, 12).map(s => ({
+        shot: String((s && (s.shot || s.visual || s.scene)) || '').trim(),
+        say: String((s && (s.say || s.text || s.voiceover || s.line)) || '').trim()
+    })).filter(s => s.shot || s.say);
+
     const tags = Array.isArray(payload.tags) ? payload.tags.map(t => String(t).trim()).filter(Boolean).join(',')
         : String(payload.tags || '').trim();
 
@@ -158,6 +166,7 @@ function normalizeArticle(payload) {
             cta_text: String(payload.cta_text || '').trim(),
             cta_link: ctaLink,
             carousel,
+            reel,
             social
         }
     });
@@ -310,6 +319,7 @@ module.exports = (db) => {
         const result = await db.query(`
             SELECT id, slug, title, category, status, hero_image_url, intro,
                    (content->'carousel') AS carousel,
+                   (content->'reel') AS reel,
                    (content->'social') AS social,
                    published_at, created_at
             FROM articles ORDER BY created_at DESC

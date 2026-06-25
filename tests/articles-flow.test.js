@@ -40,6 +40,10 @@ function claudeResponse(slugSuffix) {
             { heading: 'Foundation cracking by noon?', body: 'It is not the foundation.' },
             { heading: 'The real reason', body: 'Skin prep, not product.' },
             { heading: 'Want the full guide?', body: 'Link in bio. @creviabeauty' }
+        ],
+        reel: [
+            { shot: 'Hold the bottle to camera', say: 'Stop letting your base crack by noon.' },
+            { shot: 'Show the moisturiser step', say: 'Prep first, always.' }
         ]
     };
     return `Here's your article!\n\n\`\`\`json\n${JSON.stringify(article, null, 2)}\n\`\`\`\n\nLet me know if you want changes.`;
@@ -131,6 +135,8 @@ describe('Content Studio admin flow', () => {
         expect(res.body.article.status).toBe('draft');
         expect(res.body.preview_url).toBe(`/admin/preview/${res.body.article.id}`);
         expect(res.body.article.content.carousel).toHaveLength(3);
+        expect(res.body.article.content.reel).toHaveLength(2);
+        expect(res.body.article.content.reel[0].shot).toContain('Hold the bottle');
 
         // House style: em dashes are stripped from everything at processing time
         expect(JSON.stringify(res.body.article)).not.toContain('—');

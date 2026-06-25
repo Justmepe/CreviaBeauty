@@ -15,22 +15,37 @@ writes prompt → Prompt Inbox
 ## Commands
 
 ```powershell
-# Autonomous: discover a trending topic and research it (fills the admin Prompt Inbox)
+# Today's series (weekday rotation), fills the admin Prompt Inbox
 python engine/research.py --discover
 
-# Guided: research today's entry from the 30-day content calendar (calendar.json)
-python engine/research.py --auto
+# A specific series (any day)
+python engine/research.py --series spot-the-fake
+python engine/research.py --series decoded
 
-# Specific calendar day, or your own topic
-python engine/research.py --day 4
+# Your own ad-hoc topic
 python engine/research.py "Why your lip color fades by lunch" --product "Lipstick"
 
-# Continuous mode: re-run every 24 hours (leave running in a terminal)
+# Continuous mode: one post per run, every 24 hours (leave running / PM2)
 python engine/research.py --discover --watch 24
 ```
 
-Prompts land in `engine/output/*-prompt.txt` and appear automatically in
-**Admin → Marketing → Content Studio → Prompt Inbox** with a Copy button.
+## The weekly series (one Fragrantica community thread per weekday)
+
+| Day | `--series` key | Series |
+|-----|----------------|--------|
+| Mon | `spot-the-fake` | Spot the Fake (authenticity) |
+| Tue | `decoded` | Decoded (notes, dry-down, who it's for) |
+| Wed | `scent-for-the-moment` | Scent for the Moment (occasion) |
+| Thu | `the-layer` | The Layer (layering, multi-item basket) |
+| Fri | `punches-above-its-price` | Beast mode value |
+| Sat | `your-signature` | Identity / signature |
+| Sun | `the-wardrobe` | Building a fragrance wardrobe |
+
+Each run picks the next product in the series' category (deterministic rotation,
+no repeats), researches it, and writes a prompt that produces a blog guide,
+carousel, **Reel shot-list**, and the comment-to-DM post pack. Prompts land in
+`engine/output/*-prompt.txt` and appear in **Admin → Marketing → Content Studio →
+Prompt Inbox** with a Copy button.
 
 ## Schedule it (so the inbox fills itself)
 

@@ -289,6 +289,133 @@ def fetch_product(search_term):
     return None
 
 
+def fetch_products(category=None, limit=100):
+    """Products from the live site, optionally filtered to a category."""
+    try:
+        params = {"limit": limit}
+        if category:
+            params["category"] = category
+        r = requests.get(f"{SITE_URL}/api/products", params=params, timeout=10)
+        r.raise_for_status()
+        body = r.json()
+        rows = body.get("data", body) if isinstance(body, dict) else body
+        out = []
+        for p in rows or []:
+            image = p.get("image_url") or ""
+            if image.startswith("/"):
+                image = SITE_URL + image
+            out.append({
+                "name": p.get("name"), "category": p.get("category"),
+                "brand": p.get("brand"), "price": p.get("price"),
+                "scent_family": p.get("scent_family"),
+                "description": p.get("description"), "image_url": image,
+                "link": f"/products?search={quote(p.get('name', ''))}",
+            })
+        return out
+    except Exception as e:
+        print(f"  [warn] could not fetch products ({category}): {e}")
+        return []
+
+
+# ---------------------------------------------------------------- content series
+# The weekly rotation. Each weekday anchors to one Fragrantica community thread,
+# turned into a named recurring series. This replaces US-magazine headline scraping
+# with on-brand, catalog-anchored content the audience actually talks about.
+SERIES = [
+    {
+        "key": "spot-the-fake", "name": "Spot the Fake", "weekday": 0,
+        "thread": "Authenticity & batch codes", "category": "Perfumes",
+        "angle": ("Teach the reader how to tell a GENUINE bottle from a River Road counterfeit. "
+                  "Use the exact tells Kenyan buyers check: batch code, packaging and font, cellophane, "
+                  "spray quality, sillage and longevity, and price-as-a-signal (fakes cost a fraction). "
+                  "Pain: the fear of being scammed. Fix: the checklist. Result: buying with confidence. "
+                  "Close on Crevia's authenticity guarantee (sourced direct, batch-code verifiable)."),
+        "research": "how to spot fake {q} perfume batch code authentic",
+    },
+    {
+        "key": "decoded", "name": "Decoded", "weekday": 1,
+        "thread": "Reviews & deconstruction", "category": "Perfumes",
+        "angle": ("Deconstruct this exact fragrance like a great Fragrantica review in Crevia's voice: "
+                  "opening notes, heart, dry-down, longevity, projection and sillage, the seasons and occasions it suits, "
+                  "and WHO it is for. Pain: buying blind. Fix: knowing exactly what you get. Result: a confident pick."),
+        "research": "{q} fragrance notes review longevity projection",
+    },
+    {
+        "key": "scent-for-the-moment", "name": "Scent for the Moment", "weekday": 2,
+        "thread": "Help me find / scenario", "category": "Perfumes",
+        "angle": ("Match this fragrance to ONE specific Kenyan moment: a Nairobi wedding, the boardroom, a first date, "
+                  "Sunday service, a night out in Westlands, or a hot-season day. Scent-as-memory, occasion and mood. "
+                  "Pain: not knowing what to wear when. Fix: the right scent for the scene. Result: owning the room."),
+        "research": "best perfume for {q} occasion mood",
+    },
+    {
+        "key": "the-layer", "name": "The Layer", "weekday": 3,
+        "thread": "Layering & combinations", "category": "Perfumes",
+        "angle": ("Show how to LAYER this fragrance with a complementary product (a scented candle for the home, a body "
+                  "product, or a second lighter scent) so it lasts longer and feels custom. Pain: scent fading by noon and "
+                  "smelling like everyone else. Fix: layering. Result: a signature that lasts. Drives a two-item basket."),
+        "research": "perfume layering combinations how to make scent last",
+    },
+    {
+        "key": "punches-above-its-price", "name": "Punches Above Its Price", "weekday": 4,
+        "thread": "Cheapies & beast mode", "category": "Perfumes",
+        "angle": ("Spotlight a scent that delivers designer-level projection and longevity at an accessible Kenyan price. "
+                  "Beast mode without the beast price. Pain: wanting to smell expensive on a budget. Fix: this pick. "
+                  "Result: compliments without the guilt. Lead with value, projection and longevity."),
+        "research": "long lasting beast mode fragrance value for money {q}",
+    },
+    {
+        "key": "your-signature", "name": "Your Signature", "weekday": 5,
+        "thread": "Identity, gender & occasions", "category": "Perfumes",
+        "angle": ("Identity piece: what a signature scent says about you, and how to choose a signature versus a rotation. "
+                  "Frame this fragrance as a signature for a certain kind of person. Pain: smelling forgettable. "
+                  "Fix: owning a signature. Result: being remembered by your scent."),
+        "research": "how to find your signature scent fragrance identity",
+    },
+    {
+        "key": "the-wardrobe", "name": "The Wardrobe", "weekday": 6,
+        "thread": "Collecting & the fragrance wardrobe", "category": "Perfumes",
+        "angle": ("Teach building a fragrance WARDROBE: the few scents every collection needs (a fresh daily, an office-safe, "
+                  "a date-night, a special-occasion, a signature). Feature this fragrance as one pillar and name the gaps. "
+                  "Pain: owning one bottle for everything. Fix: a small, smart wardrobe. Result: the right scent every day. "
+                  "Drives repeat, multi-bottle buying."),
+        "research": "fragrance wardrobe must have scents for every occasion",
+    },
+]
+
+
+def pick_series(override_key=None):
+    if override_key:
+        for s in SERIES:
+            if s["key"] == override_key:
+                return s
+        sys.exit(f"Unknown series '{override_key}'. Options: {', '.join(s['key'] for s in SERIES)}")
+    weekday = date.today().weekday()  # Mon=0 .. Sun=6
+    for s in SERIES:
+        if s["weekday"] == weekday:
+            return s
+    return SERIES[0]
+
+
+ROTATION_FILE = OUTPUT_DIR / "rotation.json"
+
+
+def pick_product_for_series(series):
+    """Rotate deterministically through the series' category so products don't repeat."""
+    products = fetch_products(series["category"]) or fetch_products()
+    if not products:
+        return None
+    try:
+        rot = json.loads(ROTATION_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        rot = {}
+    idx = rot.get(series["key"], 0) % len(products)
+    rot[series["key"]] = idx + 1
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    ROTATION_FILE.write_text(json.dumps(rot, indent=2), encoding="utf-8")
+    return products[idx]
+
+
 # ---------------------------------------------------------------- prompt
 
 def format_findings(web, news, reddit, headlines):
@@ -312,6 +439,85 @@ def format_findings(web, news, reddit, headlines):
             flag = " [ON-TOPIC]" if h["matches_topic"] else ""
             lines.append(f"- {h['outlet']}: {h['title']}{flag}")
     return "\n".join(lines) if lines else "(No research sources reachable — write from your own knowledge.)"
+
+
+def build_series_prompt(series, product, research_block):
+    if product:
+        price = f"KES {int(float(product['price'])):,}" if product.get("price") else "-"
+        pname = product["name"]
+        product_block = f"""THE PRODUCT THIS POST IS BUILT AROUND:
+- Name: {pname}
+- Brand: {product.get('brand') or '-'}
+- Category: {product.get('category') or '-'}
+- Scent family: {product.get('scent_family') or '-'}
+- Price: {price}
+- Description: {product.get('description') or '-'}
+- Product link (use as cta_link): {product['link']}
+- Product image (use as hero_image_url): {product.get('image_url') or '(omit hero_image_url)'}"""
+    else:
+        pname = "a Crevia Beauty product"
+        product_block = "No specific product available. Keep it general and soft-CTA to /products."
+
+    return f"""You are the senior content strategist and copywriter for Crevia Beauty, a premium AUTHENTIC fragrance and beauty store in Nairobi, Kenya (creviabeauty.com). Voice: warm, confident, direct, a little aspirational. Kenyan English, prices in KES. Crevia competes on IDENTITY and TRUST, never on being the cheapest. Style nods to Alex Hormozi's $100M Offers: name a real pain, explain why it happens, give a real fix, paint the result, then connect to the product without being salesy.
+
+TODAY'S SERIES: "{series['name']}"   (community thread: {series['thread']})
+THE ANGLE FOR THIS SERIES:
+{series['angle']}
+
+{product_block}
+
+=== RESEARCH (gathered {date.today().isoformat()}; ground the post in this and add your own expertise) ===
+{research_block}
+=== END RESEARCH ===
+
+Produce ONE Instagram-ready content set for this series and product, as ONE JSON object, no commentary before or after, no markdown outside the JSON, exactly this shape:
+
+{{
+  "type": "crevia-article",
+  "series": "{series['name']}",
+  "title": "Scroll-stopping headline in the series' angle",
+  "slug": "short-kebab-case-keyword-slug",
+  "category": "{series['name']}",
+  "meta_title": "Under 60 characters",
+  "meta_description": "Under 155 characters, value plus a soft CTA",
+  "tags": ["3-5", "seo", "tags"],
+  "hero_image_url": "the product image URL above, or omit this field",
+  "intro": "One paragraph naming the pain in the reader's own words",
+  "sections": [
+    {{ "heading": "The Problem", "paragraphs": ["why this happens, 2-3 short paragraphs"] }},
+    {{ "heading": "The Fix", "paragraphs": ["specific steps the reader can do today"] }},
+    {{ "heading": "The Result", "paragraphs": ["life after the fix"] }}
+  ],
+  "cta_text": "1-2 warm sentences tying back to {pname}",
+  "cta_link": "the product link above",
+  "carousel": [
+    {{ "heading": "Hook (the pain as a scroll-stopper)", "body": "1-2 short lines" }},
+    {{ "heading": "Why it happens", "body": "1-2 short lines" }},
+    {{ "heading": "Point or step 1", "body": "1-2 short lines" }},
+    {{ "heading": "Point or step 2", "body": "1-2 short lines" }},
+    {{ "heading": "Point or step 3", "body": "1-2 short lines" }},
+    {{ "heading": "The result you want", "body": "1-2 short lines" }},
+    {{ "heading": "Want the full guide?", "body": "Comment the keyword below and we'll DM it. @creviabeauty" }}
+  ],
+  "reel": [
+    {{ "shot": "What to film or show on screen", "say": "One short line to say or put as on-screen text" }},
+    {{ "shot": "...", "say": "..." }}
+  ],
+  "social": {{
+    "dm_keyword": "ONE short uppercase word to comment for the link, themed to the series",
+    "caption": "Hook, 2-3 value lines, then 'Comment <keyword> and we'll DM you the full guide.' End with 3-4 Kenyan beauty hashtags.",
+    "first_comment": "The full guide, free -> https://creviabeauty.com/blog/<slug>",
+    "dm_reply": "Warm DM with the article link and one engagement question.",
+    "lead_followup": "Second DM after they open the link: ask for their email or WhatsApp to get guides first, and the one beauty problem they want solved next."
+  }}
+}}
+
+RULES:
+- "reel" is a 5 to 7 shot vertical Reel script. Each shot: a concrete visual plus one short line to say or overlay. Put the hook in shot 1. Keep every shot filmable on a phone.
+- paragraphs are plain text only: no HTML, no markdown.
+- NEVER use em dashes anywhere. Use commas, periods, or colons instead.
+- Carousel text short enough to read on a phone (heading <= 8 words, body <= 30 words).
+- Kenyan English, KES prices. Return ONLY the JSON object."""
 
 
 def build_prompt(topic, pillar, product, notes, research_block):
@@ -436,41 +642,78 @@ def run_once(topic, pillar, product_term, notes, copy_to_clipboard):
     return out_file
 
 
+def run_series(series, copy_to_clipboard):
+    print(f"\n=== Series: {series['name']}  ({series['thread']}) ===")
+    print("  - picking a product from the catalogue...")
+    product = pick_product_for_series(series)
+    print(f"    {product['name'] if product else '(no product found, going general)'}")
+
+    q = (product.get("brand") or product.get("name")) if product else series["name"]
+    query = series["research"].replace("{q}", q)
+    print(f"  - web search: {query}")
+    web = search_web(query)
+    print(f"    {len(web)} findings")
+    print("  - reddit...")
+    reddit = search_reddit(query)
+    print(f"    {len(reddit)} threads")
+
+    research_block = format_findings(web, [], reddit, [])
+    prompt = build_series_prompt(series, product, research_block)
+
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    base = f"{series['key']}-{slugify(product['name']) if product else 'general'}"
+    out_file = OUTPUT_DIR / f"{base}-prompt.txt"
+    out_file.write_text(prompt, encoding="utf-8")
+
+    print(f"\nPrompt saved: {out_file}")
+    if copy_to_clipboard:
+        try:
+            subprocess.run("clip", input=prompt.encode("utf-16-le"), check=True)
+            print("Prompt copied to clipboard.")
+        except Exception:
+            print("(clipboard copy failed, open the file instead)")
+    print("\nNext: copy this prompt into claude.ai, then Inject the reply in")
+    print("Admin -> Marketing -> Content Studio. Review the draft, carousel, Reel and post-pack, then publish.")
+    return out_file
+
+
 def main():
     parser = argparse.ArgumentParser(description="Crevia Beauty research engine")
     parser.add_argument("topic", nargs="?", help="Topic / pain point to research")
     parser.add_argument("--pillar", default="Problem-Solving & Education", help="Content pillar")
     parser.add_argument("--product", default="", help="Product search term for the tie-in (matched against the site catalog)")
     parser.add_argument("--notes", default="", help="Extra context for Claude")
-    parser.add_argument("--day", type=int, help="Use day N of the 30-day calendar")
-    parser.add_argument("--auto", action="store_true", help="Use today's calendar entry (day of month, wraps at 30)")
-    parser.add_argument("--discover", action="store_true", help="No topic needed: scan beauty press/news/Reddit and pick a trending topic automatically")
+    parser.add_argument("--series", metavar="KEY", help="Run a specific series (spot-the-fake, decoded, scent-for-the-moment, the-layer, punches-above-its-price, your-signature, the-wardrobe)")
+    parser.add_argument("--discover", action="store_true", help="Run today's series (weekday rotation). Default when no topic is given.")
     parser.add_argument("--watch", type=float, metavar="HOURS", help="Continuous mode: re-run every N hours")
     parser.add_argument("--copy", action="store_true", help="Copy the prompt to the clipboard")
     args = parser.parse_args()
 
-    def resolve_task():
-        if args.discover:
-            topic, pillar, product_term = discover_topic()
-            return topic, pillar, product_term, args.notes
-        if args.day or args.auto:
-            day = args.day or ((date.today().day - 1) % 30) + 1
-            entry = load_calendar_entry(day)
-            print(f"[calendar] Day {day}: {entry['title']} ({entry['pillar']})")
-            return entry["title"], entry["pillar"], entry.get("product", ""), args.notes
-        if not args.topic:
-            parser.error("Give a topic, or use --day N / --auto for the calendar")
-        return args.topic, args.pillar, args.product, args.notes
+    # One unit of work: a chosen series, an ad-hoc topic, or today's series by default.
+    def do_run():
+        if args.topic and not args.series:
+            print(f"\n=== Ad-hoc topic: {args.topic} ===")
+            web = search_web(args.topic)
+            news = search_news(args.topic)
+            reddit = search_reddit(args.topic)
+            headlines = fetch_rss_headlines(args.topic)
+            product = fetch_product(args.product)
+            research_block = format_findings(web, news, reddit, headlines)
+            prompt = build_prompt(args.topic, args.pillar, product, args.notes, research_block)
+            OUTPUT_DIR.mkdir(exist_ok=True)
+            out = OUTPUT_DIR / f"{slugify(args.topic)}-prompt.txt"
+            out.write_text(prompt, encoding="utf-8")
+            print(f"\nPrompt saved: {out}")
+        else:
+            run_series(pick_series(args.series), args.copy)
 
     if args.watch:
-        print(f"Continuous mode: researching every {args.watch}h. Ctrl+C to stop.")
+        print(f"Continuous mode: one post every {args.watch}h (today's series). Ctrl+C to stop.")
         while True:
-            # Failures (sources down, all candidates used) must not exit the
-            # process — under PM2 that becomes a restart loop. Retry sooner instead.
+            # Failures must not exit the process: under PM2 that becomes a restart loop.
             delay_hours = args.watch
             try:
-                topic, pillar, product_term, notes = resolve_task()
-                run_once(topic, pillar, product_term, notes, args.copy)
+                do_run()
             except Exception as e:
                 print(f"[error] run failed: {e}")
                 delay_hours = min(args.watch, 4)
@@ -478,11 +721,7 @@ def main():
             print(f"\nSleeping {delay_hours}h (since {wake})...")
             time.sleep(delay_hours * 3600)
     else:
-        try:
-            topic, pillar, product_term, notes = resolve_task()
-        except RuntimeError as e:
-            sys.exit(str(e))
-        run_once(topic, pillar, product_term, notes, args.copy)
+        do_run()
 
 
 if __name__ == "__main__":
