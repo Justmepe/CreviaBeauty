@@ -1081,6 +1081,12 @@
             </div>
             <div style="padding: 1.5rem;">
                 <p style="color:#7f8c8d; margin-top:0;">1080&times;1080 slides, ready for Instagram, Facebook and TikTok.</p>
+                <div style="margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                    <span style="font-size:0.85rem; color:#7f8c8d;">Collection:</span>
+                    <button class="btn-dashboard outline sm cs-theme-btn active" data-theme="navy" onclick="setSlideTheme('navy')">&#9899; Navy</button>
+                    <button class="btn-dashboard outline sm cs-theme-btn" data-theme="ivory" onclick="setSlideTheme('ivory')">&#9898; Ivory (Gift)</button>
+                    <button class="btn-dashboard outline sm cs-theme-btn" data-theme="black" onclick="setSlideTheme('black')">&#9711; Black (VIP)</button>
+                </div>
                 <div id="cs-slides-preview" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.25rem;"></div>
                 <button class="btn-dashboard primary" onclick="downloadAllSlides()">&#11015; Download PNGs</button>
                 <button class="btn-dashboard outline" onclick="downloadCarouselPdf()">&#128462; Save as PDF</button>
@@ -2713,10 +2719,10 @@
         const brandMark = new Image();
         brandMark.src = '/assets/favicon.png?v=2';
 
-        // Warm the brand fonts so canvas text renders in Cinzel/Montserrat, not the fallback
+        // Warm the brand fonts so canvas text renders in Cinzel/Playfair/Montserrat, not the fallback
         if (document.fonts && document.fonts.load) {
             document.fonts.load('700 33px Cinzel');
-            document.fonts.load('800 72px Montserrat');
+            document.fonts.load('700 70px "Playfair Display"');
             document.fonts.load('500 38px Montserrat');
         }
 
@@ -2737,32 +2743,35 @@
             return lines;
         }
 
-        // Carousel type system: Cinzel for the wordmark (Roman luxury capitals),
-        // Montserrat for the message (mobile scannability). Champagne gold, not yellow.
+        // Carousel type system: Cinzel wordmark, Playfair headlines, Montserrat body.
+        // Three brand collections (navy primary, ivory gift, black VIP), champagne gold accent.
         const WORDMARK_FONT = 'Cinzel, "Playfair Display", Georgia, serif';
-        const HEADING_FONT = 'Montserrat, Arial, sans-serif';
+        const HEADLINE_FONT = '"Playfair Display", Georgia, serif';
         const BODY_FONT = 'Montserrat, Inter, Arial, sans-serif';
         const SLIDE_GOLD = '#d4af6a';
-        const SLIDE_WHITE = '#f5f5f5';
-        const SLIDE_GRAY = '#bfc3d1';
 
-        // Soft warm glow, luxury-ad style — wide radius, low opacity, never neon
-        function drawGlow(ctx, x, y, radius, alpha) {
+        const SLIDE_THEMES = {
+            navy:  { label: 'Navy',  bg: ['#15173a', '#1e2047', '#2b2450'], heading: '#f5f5f5', body: '#c3c7d6', gold: '#d4af6a', sub: 'rgba(245,245,245,0.42)', frame: 'rgba(212,175,106,0.28)', glow: [220,186,124] },
+            ivory: { label: 'Ivory', bg: ['#f7efdb', '#f0e5cb', '#e7d8b6'], heading: '#241d12', body: '#6e5f44', gold: '#a9843a', sub: 'rgba(36,29,18,0.45)',  frame: 'rgba(169,132,58,0.35)',  glow: [200,160,90] },
+            black: { label: 'Black', bg: ['#0a0a0d', '#121215', '#1b1519'], heading: '#f6f3ef', body: '#bbb2a8', gold: '#dcab6e', sub: 'rgba(246,243,239,0.40)', frame: 'rgba(220,171,110,0.28)', glow: [220,171,110] },
+        };
+        let currentSlideTheme = 'navy';
+
+        function drawGlow(ctx, x, y, radius, alpha, rgb) {
+            const [r, g, b] = rgb || [220, 186, 124];
             const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
-            glow.addColorStop(0, `rgba(220, 186, 124, ${alpha})`);
-            glow.addColorStop(0.6, `rgba(212, 175, 106, ${alpha * 0.4})`);
-            glow.addColorStop(1, 'rgba(212, 175, 106, 0)');
+            glow.addColorStop(0, `rgba(${r},${g},${b},${alpha})`);
+            glow.addColorStop(0.6, `rgba(${r},${g},${b},${alpha * 0.4})`);
+            glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
             ctx.fillStyle = glow;
             ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
         }
 
-        // The brand sparkle, with a faint halo
-        function drawSparkle(ctx, x, y, size, alpha = 1) {
+        function drawSparkle(ctx, x, y, size, color) {
             ctx.save();
-            ctx.globalAlpha = alpha;
-            ctx.shadowColor = 'rgba(212, 175, 106, 0.85)';
+            ctx.shadowColor = color || 'rgba(212,175,106,0.85)';
             ctx.shadowBlur = size * 0.6;
-            ctx.fillStyle = '#e0c48a';
+            ctx.fillStyle = color || '#e0c48a';
             ctx.font = `${size}px serif`;
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
@@ -2773,7 +2782,6 @@
         }
 
         function drawBadge(ctx, cx, cy, r) {
-            drawGlow(ctx, cx, cy, r * 3.2, 0.10);
             ctx.save();
             ctx.beginPath();
             ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -2786,124 +2794,116 @@
             ctx.restore();
         }
 
-        // Headlines are the ONE dominant message — fit the biggest size that wraps cleanly
+        function roundRectPath(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        // Headline in Playfair: fit the biggest size that wraps cleanly
         function fitHeading(ctx, text, maxWidth, sizes) {
             for (const size of sizes) {
-                ctx.font = `800 ${size}px ${HEADING_FONT}`;
-                const lines = wrapLines(ctx, text, maxWidth);
-                if (lines.length <= (size >= 70 ? 3 : 4)) return { size, lines };
+                ctx.font = `700 ${size}px ${HEADLINE_FONT}`;
+                if (wrapLines(ctx, text, maxWidth).length <= 4) return { size, lines: wrapLines(ctx, text, maxWidth) };
             }
             const size = sizes[sizes.length - 1];
-            ctx.font = `800 ${size}px ${HEADING_FONT}`;
+            ctx.font = `700 ${size}px ${HEADLINE_FONT}`;
             return { size, lines: wrapLines(ctx, text, maxWidth) };
         }
 
-        // CREVIA BEAUTY in Cinzel with wide tracking (native letterSpacing when available)
-        function drawWordmark(ctx, x, y, size, align = 'left') {
-            ctx.fillStyle = SLIDE_GOLD;
+        // CREVIA BEAUTY in Cinzel with wide tracking
+        function drawWordmark(ctx, x, y, size, color, align = 'center') {
+            ctx.fillStyle = color;
             ctx.font = `700 ${size}px ${WORDMARK_FONT}`;
             ctx.textAlign = align;
+            ctx.textBaseline = 'alphabetic';
             if ('letterSpacing' in ctx) {
-                ctx.letterSpacing = `${Math.round(size * 0.32)}px`;
+                ctx.letterSpacing = `${Math.round(size * 0.34)}px`;
                 ctx.fillText('CREVIA BEAUTY', x, y);
                 ctx.letterSpacing = '0px';
             } else {
                 ctx.fillText('C R E V I A   B E A U T Y', x, y);
             }
             ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+        }
+
+        function shortRule(ctx, cx, y, color) {
+            ctx.strokeStyle = color; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(cx - 45, y); ctx.lineTo(cx + 45, y); ctx.stroke();
         }
 
         function renderSlideCanvas(slide, index, total) {
             const W = 1080;
             const canvas = document.createElement('canvas');
-            canvas.width = W;
-            canvas.height = W;
+            canvas.width = W; canvas.height = W;
             const ctx = canvas.getContext('2d');
+            const t = SLIDE_THEMES[currentSlideTheme] || SLIDE_THEMES.navy;
             const isCta = total > 1 && index === total - 1;
 
-            // Background: deep navy with a whisper of gold warmth
-            const gradient = ctx.createLinearGradient(0, 0, W * 0.3, W);
-            gradient.addColorStop(0, '#15173a');
-            gradient.addColorStop(0.65, '#1e2047');
-            gradient.addColorStop(1, '#2b2450');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, W, W);
-            drawGlow(ctx, W * 0.88, W * 0.82, 460, 0.05);
+            // Background gradient + faint corner glow
+            const g = ctx.createLinearGradient(0, 0, W * 0.3, W);
+            g.addColorStop(0, t.bg[0]); g.addColorStop(0.65, t.bg[1]); g.addColorStop(1, t.bg[2]);
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+            drawGlow(ctx, W * 0.85, W * 0.85, 460, t.glow ? 0.06 : 0.06, t.glow);
 
+            // Thin gold frame inset
+            ctx.strokeStyle = t.frame; ctx.lineWidth = 1.5;
+            roundRectPath(ctx, 34, 34, W - 68, W - 68, 8); ctx.stroke();
+
+            // Centred header: sparkle + wordmark
+            drawSparkle(ctx, W / 2, 80, 26, t.gold);
+            drawWordmark(ctx, W / 2, 138, 27, t.gold, 'center');
+
+            ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
 
             if (isCta) {
-                // CTA slide: centred, perfume-ad layout — logo, wordmark, sparkle, dominant message
-                drawBadge(ctx, W / 2, 170, 54);
-                drawWordmark(ctx, W / 2, 252, 30, 'center');
-
-                drawSparkle(ctx, W / 2, 360, 44);
-
+                drawBadge(ctx, W / 2, 310, 62);
                 const heading = String(slide.heading || '').toUpperCase();
-                const fit = fitHeading(ctx, heading, W - 220, [84, 70, 56]);
-                let y = 420;
-                ctx.textAlign = 'center';
-                ctx.fillStyle = SLIDE_WHITE;
-                ctx.font = `800 ${fit.size}px ${HEADING_FONT}`;
-                for (const line of fit.lines) { ctx.fillText(line, W / 2, y); y += fit.size * 1.18; }
-
-                ctx.font = `500 38px ${BODY_FONT}`;
-                ctx.fillStyle = SLIDE_GRAY;
-                y += 30;
-                for (const line of wrapLines(ctx, slide.body, W - 260)) { ctx.fillText(line, W / 2, y); y += 56; }
-                ctx.textAlign = 'left';
+                const fit = fitHeading(ctx, heading, W - 220, [78, 64, 52]);
+                let y = 445;
+                ctx.fillStyle = t.heading; ctx.font = `700 ${fit.size}px ${HEADLINE_FONT}`;
+                for (const line of fit.lines) { ctx.fillText(line, W / 2, y); y += fit.size * 1.16; }
+                y += 18; shortRule(ctx, W / 2, y, t.gold); y += 30;
+                ctx.fillStyle = t.body; ctx.font = `500 36px ${BODY_FONT}`;
+                for (const line of wrapLines(ctx, slide.body, W - 300)) { ctx.fillText(line, W / 2, y); y += 52; }
+                ctx.fillStyle = t.gold; ctx.font = `600 30px ${BODY_FONT}`;
+                ctx.fillText('✦  @creviabeauty', W / 2, 978);
             } else {
-                // Header: glowing badge + Cinzel wordmark + counter
-                drawBadge(ctx, 124, 96, 44);
-                drawWordmark(ctx, 194, 80, 32);
-                ctx.fillStyle = 'rgba(245,245,245,0.4)';
-                ctx.font = `600 28px ${BODY_FONT}`;
-                ctx.textAlign = 'right';
-                ctx.fillText(`${index + 1}/${total}`, W - 80, 84);
-                ctx.textAlign = 'left';
-
-                // Dominant headline in Montserrat ExtraBold caps, sparkle accent above it
+                // Headline + body, vertically centred in the body area
                 const heading = String(slide.heading || '').toUpperCase();
-                const fit = fitHeading(ctx, heading, W - 160, [72, 62, 52]);
-                ctx.font = `500 38px ${BODY_FONT}`;
-                const bodyLines = wrapLines(ctx, slide.body, W - 160);
+                const fit = fitHeading(ctx, heading, W - 200, [70, 60, 50]);
+                ctx.font = `500 37px ${BODY_FONT}`;
+                const bodyLines = slide.body ? wrapLines(ctx, slide.body, W - 220) : [];
+                const hH = fit.lines.length * fit.size * 1.18;
+                const bH = bodyLines.length * 52;
+                const block = hH + 46 + (bodyLines.length ? 28 + bH : 0);
+                let y = Math.max(300, 210 + (660 - block) / 2);
 
-                const headingHeight = fit.lines.length * fit.size * 1.22;
-                const bodyHeight = bodyLines.length * 56;
-                const blockHeight = 70 + headingHeight + (bodyLines.length ? 46 + bodyHeight : 0);
-                let y = Math.max(240, 240 + (660 - blockHeight) / 2);
-
-                drawSparkle(ctx, 98, y + 18, 38);
-                y += 70;
-
-                ctx.fillStyle = SLIDE_WHITE;
-                ctx.font = `800 ${fit.size}px ${HEADING_FONT}`;
-                for (const line of fit.lines) { ctx.fillText(line, 80, y); y += fit.size * 1.22; }
-
+                ctx.fillStyle = t.heading; ctx.font = `700 ${fit.size}px ${HEADLINE_FONT}`;
+                for (const line of fit.lines) { ctx.fillText(line, W / 2, y); y += fit.size * 1.18; }
+                y += 18; shortRule(ctx, W / 2, y, t.gold); y += 28;
                 if (bodyLines.length) {
-                    y += 46;
-                    ctx.fillStyle = SLIDE_GRAY;
-                    ctx.font = `500 38px ${BODY_FONT}`;
-                    for (const line of bodyLines) { ctx.fillText(line, 80, y); y += 56; }
+                    ctx.fillStyle = t.body; ctx.font = `500 37px ${BODY_FONT}`;
+                    for (const line of bodyLines) { ctx.fillText(line, W / 2, y); y += 52; }
                 }
+                // Slide number bottom-left
+                ctx.textAlign = 'left';
+                ctx.fillStyle = t.gold; ctx.font = `600 30px ${WORDMARK_FONT}`;
+                ctx.fillText(String(index + 1).padStart(2, '0'), 72, 978);
+                // Tagline bottom-centre
+                ctx.textAlign = 'center'; ctx.fillStyle = t.sub; ctx.font = `500 19px ${BODY_FONT}`;
+                if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
+                ctx.fillText('DISCOVER YOUR SIGNATURE SCENT', W / 2, 984);
+                if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
             }
 
-            // Footer: centred and stacked — luxury brands don't split info into corners
-            ctx.strokeStyle = 'rgba(212,175,106,0.55)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(W / 2 - 55, 930);
-            ctx.lineTo(W / 2 + 55, 930);
-            ctx.stroke();
-            ctx.textAlign = 'center';
-            ctx.fillStyle = SLIDE_GOLD;
-            ctx.font = `600 30px ${BODY_FONT}`;
-            ctx.fillText('✦  @creviabeauty', W / 2, 956);
-            ctx.fillStyle = 'rgba(191,195,209,0.55)';
-            ctx.font = `400 25px ${BODY_FONT}`;
-            ctx.fillText('creviabeauty.com', W / 2, 1000);
-            ctx.textAlign = 'left';
-
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top';
             return canvas;
         }
 
@@ -2915,6 +2915,12 @@
             if (!carouselSlides.length) { showAlert('This article has no carousel slides', 'error'); return; }
 
             document.getElementById('carousel-modal-title').textContent = `Carousel — ${article.title}`;
+            renderCarouselPreview();
+            document.getElementById('cs-modal-pack').innerHTML = renderPackHtml(article);
+            document.getElementById('carousel-modal').classList.add('active');
+        }
+
+        function renderCarouselPreview() {
             const preview = document.getElementById('cs-slides-preview');
             preview.innerHTML = '';
             carouselSlides.forEach((slide, i) => {
@@ -2926,8 +2932,13 @@
                 canvas.addEventListener('click', () => downloadSlide(canvas, i));
                 preview.appendChild(canvas);
             });
-            document.getElementById('cs-modal-pack').innerHTML = renderPackHtml(article);
-            document.getElementById('carousel-modal').classList.add('active');
+        }
+
+        // Switch brand collection (Navy primary, Ivory gift, Black VIP) and re-render.
+        function setSlideTheme(theme) {
+            currentSlideTheme = theme;
+            document.querySelectorAll('.cs-theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+            renderCarouselPreview();
         }
 
         function closeCarouselModal() {
