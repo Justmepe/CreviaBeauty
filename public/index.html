@@ -207,6 +207,57 @@
         </div>
     </section>
 
+    <!-- Authentic designer brand marquee: reinforces "real, not fake" -->
+    <section class="brand-loop" aria-label="Authentic designer brands we carry">
+        <div class="brand-loop-eyebrow">100% Authentic Designer Brands</div>
+        <div class="brand-loop-viewport">
+            <div class="brand-loop-track" id="brand-loop-track">
+                <span class="brand-loop-item">Dior</span>
+                <span class="brand-loop-item">Chanel</span>
+                <span class="brand-loop-item">Tom Ford</span>
+                <span class="brand-loop-item">Yves Saint Laurent</span>
+                <span class="brand-loop-item">Gucci</span>
+                <span class="brand-loop-item">Prada</span>
+                <span class="brand-loop-item">Versace</span>
+                <span class="brand-loop-item">Jo Malone</span>
+                <span class="brand-loop-item">Lancôme</span>
+                <span class="brand-loop-item">Burberry</span>
+                <span class="brand-loop-item">Ralph Lauren</span>
+                <span class="brand-loop-item">Jimmy Choo</span>
+                <span class="brand-loop-item">Marc Jacobs</span>
+                <span class="brand-loop-item">Mugler</span>
+                <span class="brand-loop-item">Armani</span>
+                <!-- duplicate set for seamless -50% loop -->
+                <span class="brand-loop-item" aria-hidden="true">Dior</span>
+                <span class="brand-loop-item" aria-hidden="true">Chanel</span>
+                <span class="brand-loop-item" aria-hidden="true">Tom Ford</span>
+                <span class="brand-loop-item" aria-hidden="true">Yves Saint Laurent</span>
+                <span class="brand-loop-item" aria-hidden="true">Gucci</span>
+                <span class="brand-loop-item" aria-hidden="true">Prada</span>
+                <span class="brand-loop-item" aria-hidden="true">Versace</span>
+                <span class="brand-loop-item" aria-hidden="true">Jo Malone</span>
+                <span class="brand-loop-item" aria-hidden="true">Lancôme</span>
+                <span class="brand-loop-item" aria-hidden="true">Burberry</span>
+                <span class="brand-loop-item" aria-hidden="true">Ralph Lauren</span>
+                <span class="brand-loop-item" aria-hidden="true">Jimmy Choo</span>
+                <span class="brand-loop-item" aria-hidden="true">Marc Jacobs</span>
+                <span class="brand-loop-item" aria-hidden="true">Mugler</span>
+                <span class="brand-loop-item" aria-hidden="true">Armani</span>
+            </div>
+        </div>
+    </section>
+    <style>
+        .brand-loop { padding: 2.5rem 0 1rem; overflow: hidden; }
+        .brand-loop-eyebrow { text-align: center; font-size: 0.74rem; letter-spacing: 0.22em; text-transform: uppercase; color: #a8853f; font-weight: 700; margin-bottom: 1.4rem; }
+        .brand-loop-viewport { position: relative; width: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+        .brand-loop-track { display: flex; gap: 4rem; width: max-content; animation: brandScroll 40s linear infinite; }
+        .brand-loop:hover .brand-loop-track { animation-play-state: paused; }
+        .brand-loop-item { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #3b2c50; white-space: nowrap; opacity: 0.78; transition: opacity .2s, color .2s; }
+        .brand-loop-item:hover { opacity: 1; color: #1a1a2e; }
+        @keyframes brandScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @media (max-width: 640px) { .brand-loop-item { font-size: 1.2rem; } .brand-loop-track { gap: 2.5rem; } }
+    </style>
+
     <!-- Categories Section: 3 focused mains, each with subcategory chips -->
     <section class="categories-section">
         <h2 class="section-title">Shop by Category</h2>
