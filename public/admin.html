@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Pinyon+Script&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css?v=6">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
@@ -2719,11 +2719,17 @@
         const brandMark = new Image();
         brandMark.src = '/assets/favicon.png?v=2';
 
-        // Warm the brand fonts so canvas text renders in Cinzel/Playfair/Montserrat, not the fallback
+        // The deck's product shot (article.hero_image_url), composited on the CTA slide.
+        // crossOrigin so the canvas isn't tainted and PNG/PDF export still works.
+        let deckProduct = null;
+
+        // Warm the brand fonts so canvas text renders in the real faces, not the fallback
         if (document.fonts && document.fonts.load) {
             document.fonts.load('700 33px Cinzel');
             document.fonts.load('700 70px "Playfair Display"');
             document.fonts.load('500 38px Montserrat');
+            document.fonts.load('400 60px "Pinyon Script"');
+            document.fonts.load('600 40px "Cormorant Garamond"');
         }
 
         function wrapLines(ctx, text, maxWidth) {
@@ -2748,12 +2754,13 @@
         const WORDMARK_FONT = 'Cinzel, "Playfair Display", Georgia, serif';
         const HEADLINE_FONT = '"Playfair Display", Georgia, serif';
         const BODY_FONT = 'Montserrat, Inter, Arial, sans-serif';
+        const SCRIPT_FONT = '"Pinyon Script", "Playfair Display", cursive';
         const SLIDE_GOLD = '#d4af6a';
 
         const SLIDE_THEMES = {
-            navy:  { label: 'Navy',  bg: ['#15173a', '#1e2047', '#2b2450'], heading: '#f5f5f5', body: '#c3c7d6', gold: '#d4af6a', sub: 'rgba(245,245,245,0.42)', frame: 'rgba(212,175,106,0.28)', glow: [220,186,124] },
-            ivory: { label: 'Ivory', bg: ['#f7efdb', '#f0e5cb', '#e7d8b6'], heading: '#241d12', body: '#6e5f44', gold: '#a9843a', sub: 'rgba(36,29,18,0.45)',  frame: 'rgba(169,132,58,0.35)',  glow: [200,160,90] },
-            black: { label: 'Black', bg: ['#0a0a0d', '#121215', '#1b1519'], heading: '#f6f3ef', body: '#bbb2a8', gold: '#dcab6e', sub: 'rgba(246,243,239,0.40)', frame: 'rgba(220,171,110,0.28)', glow: [220,171,110] },
+            navy:  { label: 'Navy',  bg: ['#15173a', '#1e2047', '#2b2450'], heading: '#f5f5f5', body: '#c3c7d6', gold: '#d4af6a', sub: 'rgba(245,245,245,0.42)', frame: 'rgba(212,175,106,0.28)', glow: [220,186,124], vignette: 'rgba(7,8,24,0.45)', light: 'light' },
+            ivory: { label: 'Ivory', bg: ['#f7efdb', '#f0e5cb', '#e7d8b6'], heading: '#241d12', body: '#6e5f44', gold: '#a9843a', sub: 'rgba(36,29,18,0.45)',  frame: 'rgba(169,132,58,0.35)',  glow: [200,160,90], vignette: 'rgba(150,118,66,0.20)', light: 'dark' },
+            black: { label: 'Black', bg: ['#0a0a0d', '#121215', '#1b1519'], heading: '#f6f3ef', body: '#bbb2a8', gold: '#dcab6e', sub: 'rgba(246,243,239,0.40)', frame: 'rgba(220,171,110,0.28)', glow: [220,171,110], vignette: 'rgba(0,0,0,0.5)', light: 'light' },
         };
         let currentSlideTheme = 'navy';
 
@@ -2837,6 +2844,71 @@
             ctx.beginPath(); ctx.moveTo(cx - 45, y); ctx.lineTo(cx + 45, y); ctx.stroke();
         }
 
+        // Procedural "silk" background: base gradient + diagonal sheen folds + top light +
+        // vignette + fine grain. Far richer than a flat fill; the upload library (phase 2)
+        // will let a real fabric/product photo replace this per slide.
+        function drawThemeBackground(ctx, W, t, seed) {
+            const g = ctx.createLinearGradient(0, 0, W * 0.35, W);
+            g.addColorStop(0, t.bg[0]); g.addColorStop(0.6, t.bg[1]); g.addColorStop(1, t.bg[2]);
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+
+            // Diagonal silk folds — alternating soft light bands
+            ctx.save();
+            ctx.globalCompositeOperation = (t.light === 'dark') ? 'multiply' : 'screen';
+            for (let i = 0; i < 6; i++) {
+                const off = (i / 6) * W * 1.5 - W * 0.25 + ((seed * 47) % 70);
+                const a = 0.045 + (i % 2) * 0.05;
+                const bg = ctx.createLinearGradient(off, 0, off + W * 0.45, W);
+                bg.addColorStop(0, 'rgba(255,255,255,0)');
+                bg.addColorStop(0.5, (t.light === 'dark') ? `rgba(120,90,40,${a})` : `rgba(255,244,214,${a})`);
+                bg.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = bg;
+                ctx.beginPath();
+                ctx.moveTo(off, 0); ctx.lineTo(off + W * 0.3, 0);
+                ctx.lineTo(off - W * 0.12, W); ctx.lineTo(off - W * 0.42, W);
+                ctx.closePath(); ctx.fill();
+            }
+            ctx.restore();
+
+            // Warm light from the top, vignette to settle the edges
+            drawGlow(ctx, W * 0.5, W * 0.08, W * 0.75, 0.10, t.glow);
+            const vg = ctx.createRadialGradient(W / 2, W * 0.42, W * 0.28, W / 2, W / 2, W * 0.78);
+            vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, t.vignette);
+            ctx.fillStyle = vg; ctx.fillRect(0, 0, W, W);
+
+            // Fine grain for a printed, non-digital feel
+            ctx.save();
+            ctx.globalAlpha = 0.035;
+            for (let i = 0; i < 1300; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
+                ctx.fillRect(Math.random() * W, Math.random() * W, 1, 1);
+            }
+            ctx.restore();
+        }
+
+        // Composite the deck's product photo as a soft-shadowed rounded card (CTA slide).
+        function drawProductShot(ctx, img, cx, cy, size, gold) {
+            if (!img || !img.complete || !img.naturalWidth) return false;
+            const r = 16;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
+            roundRectPath(ctx, cx - size / 2, cy - size / 2, size, size, r);
+            ctx.fillStyle = '#fff'; ctx.fill();
+            ctx.restore();
+            ctx.save();
+            roundRectPath(ctx, cx - size / 2, cy - size / 2, size, size, r);
+            ctx.clip();
+            // cover-fit the photo into the square card
+            const s = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+            const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+            ctx.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+            ctx.restore();
+            // thin gold edge
+            ctx.strokeStyle = gold; ctx.lineWidth = 2;
+            roundRectPath(ctx, cx - size / 2, cy - size / 2, size, size, r); ctx.stroke();
+            return true;
+        }
+
         function renderSlideCanvas(slide, index, total) {
             const W = 1080;
             const canvas = document.createElement('canvas');
@@ -2845,11 +2917,8 @@
             const t = SLIDE_THEMES[currentSlideTheme] || SLIDE_THEMES.navy;
             const isCta = total > 1 && index === total - 1;
 
-            // Background gradient + faint corner glow
-            const g = ctx.createLinearGradient(0, 0, W * 0.3, W);
-            g.addColorStop(0, t.bg[0]); g.addColorStop(0.65, t.bg[1]); g.addColorStop(1, t.bg[2]);
-            ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
-            drawGlow(ctx, W * 0.85, W * 0.85, 460, t.glow ? 0.06 : 0.06, t.glow);
+            // Premium procedural background (silk folds + light + grain)
+            drawThemeBackground(ctx, W, t, index + 1);
 
             // Thin gold frame inset
             ctx.strokeStyle = t.frame; ctx.lineWidth = 1.5;
@@ -2863,10 +2932,12 @@
             ctx.textBaseline = 'top';
 
             if (isCta) {
-                drawBadge(ctx, W / 2, 310, 62);
+                // Product shot if the deck has one (auto from catalog), else the logo badge
+                const hasProduct = drawProductShot(ctx, deckProduct, W / 2, 318, 250, t.gold);
+                if (!hasProduct) drawBadge(ctx, W / 2, 310, 62);
                 const heading = String(slide.heading || '').toUpperCase();
-                const fit = fitHeading(ctx, heading, W - 220, [78, 64, 52]);
-                let y = 445;
+                const fit = fitHeading(ctx, heading, W - 220, [74, 62, 50]);
+                let y = 470;
                 ctx.fillStyle = t.heading; ctx.font = `700 ${fit.size}px ${HEADLINE_FONT}`;
                 for (const line of fit.lines) { ctx.fillText(line, W / 2, y); y += fit.size * 1.16; }
                 y += 18; shortRule(ctx, W / 2, y, t.gold); y += 30;
@@ -2915,6 +2986,19 @@
             if (!carouselSlides.length) { showAlert('This article has no carousel slides', 'error'); return; }
 
             document.getElementById('carousel-modal-title').textContent = `Carousel — ${article.title}`;
+
+            // Auto-load the deck's product photo (catalog image) for the CTA slide.
+            // crossOrigin keeps the canvas exportable; re-render once it arrives.
+            deckProduct = null;
+            const productSrc = article.hero_image_url;
+            if (productSrc) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => { deckProduct = img; renderCarouselPreview(); };
+                img.onerror = () => { deckProduct = null; };
+                img.src = productSrc;
+            }
+
             renderCarouselPreview();
             document.getElementById('cs-modal-pack').innerHTML = renderPackHtml(article);
             document.getElementById('carousel-modal').classList.add('active');
