@@ -52,3 +52,4 @@ playwright/.cache/
 
 # Research engine output (generated prompts + topic memory)
 engine/output/
+tmp-*
