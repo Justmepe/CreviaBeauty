@@ -18,11 +18,13 @@ const handleValidationErrors = (req, res, next) => {
     next();
 };
 
-// Niche taxonomy: 3 main categories, each with subcategories.
+// Taxonomy: 5 main categories (one per beauty-box component), each with subcategories.
 const TAXONOMY = {
     'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
     'Skincare': ["Women's Skincare", "Men's Skincare"],
-    'Hair':     ['Wigs', 'Hair Care']
+    'Hair':     ['Wigs', 'Hair Care'],
+    'Makeup':   ['Lips', 'Face', 'Eyes'],
+    'Candles':  ['Scented Candles', 'Luxury Candles']
 };
 const validCategories = Object.keys(TAXONOMY);
 // All subcategories across categories (subcategory is validated against the union).

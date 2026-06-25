@@ -151,7 +151,7 @@ module.exports = (db) => {
 
     // Get hero images - optimized query
     router.get('/hero-images', cacheMiddleware('hero', TTL.HERO_IMAGES), asyncHandler(async (req, res) => {
-        const categories = ['Perfumes', 'Skincare', 'Hair'];
+        const categories = ['Perfumes', 'Skincare', 'Hair', 'Makeup', 'Candles'];
 
         const heroImages = await db.query(`
             SELECT DISTINCT ON (category) id, name, category, image_url

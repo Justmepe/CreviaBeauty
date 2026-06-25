@@ -183,7 +183,7 @@ app.get('/sitemap.xml', async (req, res) => {
     try {
         const result = await db.query('SELECT id, name, category, created_at FROM products ORDER BY created_at DESC');
         const products = result.rows;
-        const categories = ['Perfumes', 'Women\'s Skincare', 'Men\'s Skincare', 'Makeup', 'Hair Care', 'Body Care', 'Fragrances', 'Beauty Tools', 'Wigs'];
+        const categories = ['Perfumes', 'Skincare', 'Hair', 'Makeup', 'Candles'];
         const baseUrl = 'https://creviabeauty.com';
         const today = new Date().toISOString().split('T')[0];
 

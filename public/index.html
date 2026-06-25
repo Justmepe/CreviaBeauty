@@ -45,8 +45,8 @@
     <link rel="stylesheet" href="/assets/hero/crevia-hero.css?v=3">
     <style>
         /* 3 focused category tiles + subcategory chips */
-        .categories-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
-        @media (max-width: 900px) { .categories-grid-3 { grid-template-columns: 1fr; } }
+        .categories-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        @media (max-width: 640px) { .categories-grid-3 { grid-template-columns: 1fr; } }
         .categories-grid-3 .category-card { display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; overflow: visible; }
         .categories-grid-3 .category-card-main { position: relative; display: block; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
         .categories-grid-3 .category-card-main::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.05) 55%); }
@@ -255,6 +255,37 @@
                 <div class="category-subs">
                     <a href="/products?category=Hair&amp;subcategory=Wigs">Wigs</a>
                     <a href="/products?category=Hair&amp;subcategory=Hair%20Care">Hair Care</a>
+                </div>
+            </div>
+
+            <div class="category-card" data-category="Makeup">
+                <a class="category-card-main" href="/products?category=Makeup">
+                    <div class="category-image"></div>
+                    <span class="category-chip"></span>
+                    <div class="category-info">
+                        <div class="category-name">Makeup</div>
+                        <div class="category-sub">Lips, foundation, eyes · shade-matched</div>
+                    </div>
+                </a>
+                <div class="category-subs">
+                    <a href="/products?category=Makeup&amp;subcategory=Lips">Lips</a>
+                    <a href="/products?category=Makeup&amp;subcategory=Face">Face</a>
+                    <a href="/products?category=Makeup&amp;subcategory=Eyes">Eyes</a>
+                </div>
+            </div>
+
+            <div class="category-card" data-category="Candles">
+                <a class="category-card-main" href="/products?category=Candles">
+                    <div class="category-image"></div>
+                    <span class="category-chip"></span>
+                    <div class="category-info">
+                        <div class="category-name">Candles</div>
+                        <div class="category-sub">Scented &amp; luxury home fragrance</div>
+                    </div>
+                </a>
+                <div class="category-subs">
+                    <a href="/products?category=Candles&amp;subcategory=Scented%20Candles">Scented</a>
+                    <a href="/products?category=Candles&amp;subcategory=Luxury%20Candles">Luxury</a>
                 </div>
             </div>
         </div>
