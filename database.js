@@ -1021,22 +1021,36 @@ async function seedAdminUser(client) {
 }
 
 async function seedReviews(client) {
+    // [name, email, rating, text, quality, delivery, productSearchTerm]
+    // The search term links each review to a real catalogue product so the homepage
+    // review cards can show the product reviewed (image + name).
     const reviews = [
-        ["James Mwangi", "james.mwangi@gmail.com", 5, "Amazing perfume collection! I ordered Dior Sauvage and it's 100% authentic.", 5, 5],
-        ["Grace Wanjiku", "grace.w@yahoo.com", 5, "Best beauty store in Nairobi! The skincare products are genuine and affordable.", 5, 4],
-        ["Peter Ochieng", "peter.ochieng@outlook.com", 4, "Good products and reasonable prices. The La Mer cream is fantastic!", 5, 3],
-        ["Mary Njeri", "marynjeri254@gmail.com", 5, "I get all my makeup from CreviaBeauty. Great quality and fast delivery!", 5, 5],
-        ["David Kimani", "d.kimani@gmail.com", 4, "Ordered skincare products for my wife - she loves them! Quality is excellent.", 4, 5],
-        ["Sarah Akinyi", "sarahakinyi@hotmail.com", 5, "Asante sana CreviaBeauty! Found my signature perfume here.", 5, 5],
-        ["Michael Otieno", "michael.o@gmail.com", 5, "The hair care products work wonders! My hair has never looked better.", 5, 4],
-        ["Ann Wambui", "annwambui@gmail.com", 4, "Great body care products. The Brazilian Bum Bum Cream smells divine!", 4, 4]
+        ["James Mwangi", "james.mwangi@gmail.com", 5, "Amazing perfume collection! I ordered this and it's 100% authentic.", 5, 5, 'Sauvage'],
+        ["Grace Wanjiku", "grace.w@yahoo.com", 5, "Best beauty store in Nairobi! Genuine and affordable.", 5, 4, 'Skincare'],
+        ["Peter Ochieng", "peter.ochieng@outlook.com", 4, "Good product and reasonable prices. Fantastic quality!", 5, 3, 'Cleanser'],
+        ["Mary Njeri", "marynjeri254@gmail.com", 5, "My go-to lipstick. Great pigment and fast delivery!", 5, 5, 'Lipstick'],
+        ["David Kimani", "d.kimani@gmail.com", 4, "Ordered for my wife, she loves it! Quality is excellent.", 4, 5, 'Foundation'],
+        ["Sarah Akinyi", "sarahakinyi@hotmail.com", 5, "Asante sana CreviaBeauty! Found my signature scent here.", 5, 5, 'Perfume'],
+        ["Michael Otieno", "michael.o@gmail.com", 5, "Works wonders. My hair has never looked better.", 5, 4, 'Hair'],
+        ["Ann Wambui", "annwambui@gmail.com", 4, "This candle smells divine. Fills the whole room.", 4, 4, 'Candle']
     ];
 
-    for (const r of reviews) {
+    // Find a product by name first, then by category, else any product.
+    const findProduct = async (term) => {
+        let r = await client.query('SELECT id FROM products WHERE name ILIKE $1 ORDER BY id LIMIT 1', [`%${term}%`]);
+        if (r.rows[0]) return r.rows[0].id;
+        r = await client.query('SELECT id FROM products WHERE category = $1 ORDER BY id LIMIT 1', [term]);
+        if (r.rows[0]) return r.rows[0].id;
+        r = await client.query('SELECT id FROM products ORDER BY RANDOM() LIMIT 1');
+        return r.rows[0] ? r.rows[0].id : null;
+    };
+
+    for (const [name, email, rating, text, quality, delivery, term] of reviews) {
+        const productId = await findProduct(term);
         await client.query(`
-            INSERT INTO reviews (customer_name, customer_email, rating, review_text, product_quality, delivery_rating, is_approved)
-            VALUES ($1, $2, $3, $4, $5, $6, TRUE)
-        `, r);
+            INSERT INTO reviews (product_id, customer_name, customer_email, rating, review_text, product_quality, delivery_rating, is_approved)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+        `, [productId, name, email, rating, text, quality, delivery]);
     }
     console.log('Sample reviews added to database');
 }

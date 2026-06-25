@@ -138,27 +138,42 @@ function nextSlide() {
     changeSlide(1);
 }
 
-// Load featured products
-async function loadFeaturedProducts() {
+// Load homepage product rows: New Arrivals (newest) + Best Sellers (most-reviewed).
+async function loadHomeProducts() {
+    const bsEl = document.getElementById('best-sellers');
+    const naEl = document.getElementById('new-arrivals');
     try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products?limit=100');
         const result = await response.json();
-        const products = result.data || result;
-        const container = document.getElementById('featured-products');
+        const products = result.data || result || [];
 
-        if (container) {
-            const featured = products.slice(0, 8);
-            container.innerHTML = featured.map(product => createProductCard(product)).join('');
-            if (typeof hydrateWishlistHearts === 'function') hydrateWishlistHearts();
+        // New Arrivals: the API returns newest-first (created_at DESC).
+        if (naEl) naEl.innerHTML = products.slice(0, 8).map(createProductCard).join('');
+
+        // Best Sellers: rank by how many approved reviews each product has (real
+        // social proof). Falls back to biggest discounts if there are no reviews yet.
+        let bestSellers;
+        try {
+            const reviews = await (await fetch('/api/reviews')).json();
+            const counts = {};
+            (reviews || []).forEach(r => { if (r.product_name) counts[r.product_name] = (counts[r.product_name] || 0) + 1; });
+            const ranked = [...products].sort((a, b) => (counts[b.name] || 0) - (counts[a.name] || 0));
+            bestSellers = (counts && Object.keys(counts).length)
+                ? ranked.filter(p => counts[p.name]).slice(0, 8)
+                : [];
+        } catch (e) { bestSellers = []; }
+        if (!bestSellers.length) {
+            bestSellers = [...products].sort((a, b) => (b.discount || 0) - (a.discount || 0)).slice(0, 8);
         }
+        if (bsEl) bsEl.innerHTML = bestSellers.map(createProductCard).join('');
 
+        if (typeof hydrateWishlistHearts === 'function') hydrateWishlistHearts();
         fillCategoryCounts();
     } catch (error) {
         console.error('Failed to load products:', error);
-        const container = document.getElementById('featured-products');
-        if (container) {
-            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem;">Failed to load products. Please refresh the page.</p>';
-        }
+        const msg = '<p style="grid-column: 1/-1; text-align: center; padding: 3rem;">Failed to load products. Please refresh the page.</p>';
+        if (bsEl) bsEl.innerHTML = msg;
+        if (naEl) naEl.innerHTML = '';
     }
 }
 
@@ -216,19 +231,20 @@ async function loadReviews() {
 
         const reviewCard = (review) => `
             <div class="review-card">
-                <div class="review-header">
+                ${review.product_name ? `
+                <a class="review-product-link" href="/products?search=${encodeURIComponent(review.product_name)}">
+                    ${review.product_image ? `<img class="review-product-img" src="${review.product_image}" alt="${escapeHtml(review.product_name)}" loading="lazy">` : ''}
+                    <span class="review-product-name">${escapeHtml(review.product_name)}</span>
+                </a>` : ''}
+                <div class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                <p class="review-text">"${escapeHtml(review.review_text || 'Great experience!')}"</p>
+                <div class="review-byline">
                     <div class="review-avatar">${escapeHtml(review.customer_name.charAt(0).toUpperCase())}</div>
-                    <div class="review-info">
+                    <div>
                         <h4>${escapeHtml(review.customer_name)}</h4>
-                        <div class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                        <span class="review-date">${new Date(review.created_at).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                     </div>
                 </div>
-                <p class="review-text">"${escapeHtml(review.review_text || 'Great experience!')}"</p>
-                <div class="review-meta">
-                    ${review.product_quality ? `<span class="review-product">📦 Quality: ${'★'.repeat(review.product_quality)}</span>` : ''}
-                    ${review.delivery_rating ? `<span class="review-delivery">🚚 Delivery: ${'★'.repeat(review.delivery_rating)}</span>` : ''}
-                </div>
-                <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
             </div>
         `;
 
@@ -274,8 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hero is now handled by /assets/hero/crevia-hero.js (animated + live data).
     // loadHeroImages();
 
-    // Load featured products
-    loadFeaturedProducts();
+    // Load homepage product rows (Best Sellers + New Arrivals)
+    loadHomeProducts();
 
     // Load reviews
     loadReviews();

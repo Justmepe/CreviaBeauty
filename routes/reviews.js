@@ -61,7 +61,7 @@ module.exports = (db) => {
     // Get approved reviews (public)
     router.get('/', cacheMiddleware('reviews', TTL.REVIEWS), asyncHandler(async (req, res) => {
         const result = await db.query(`
-            SELECT r.*, p.name as product_name
+            SELECT r.*, p.name as product_name, p.image_url as product_image
             FROM reviews r
             LEFT JOIN products p ON r.product_id = p.id
             WHERE r.is_approved = TRUE
