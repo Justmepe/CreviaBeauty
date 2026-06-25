@@ -103,6 +103,13 @@
                     <a href="/products?category=Hair">Hair</a>
                     <a href="/products?category=Hair&amp;subcategory=Wigs" style="padding-left:2rem;font-size:0.9em;">Wigs</a>
                     <a href="/products?category=Hair&amp;subcategory=Hair%20Care" style="padding-left:2rem;font-size:0.9em;">Hair Care</a>
+                    <a href="/products?category=Makeup">Makeup</a>
+                    <a href="/products?category=Makeup&amp;subcategory=Lips" style="padding-left:2rem;font-size:0.9em;">Lips</a>
+                    <a href="/products?category=Makeup&amp;subcategory=Face" style="padding-left:2rem;font-size:0.9em;">Face</a>
+                    <a href="/products?category=Makeup&amp;subcategory=Eyes" style="padding-left:2rem;font-size:0.9em;">Eyes</a>
+                    <a href="/products?category=Candles">Candles</a>
+                    <a href="/products?category=Candles&amp;subcategory=Scented%20Candles" style="padding-left:2rem;font-size:0.9em;">Scented</a>
+                    <a href="/products?category=Candles&amp;subcategory=Luxury%20Candles" style="padding-left:2rem;font-size:0.9em;">Luxury</a>
                 </div>
             </li>
             <li><a href="/products">Shop All</a></li>
@@ -134,6 +141,8 @@
             <button class="filter-btn" data-category="Perfumes">Perfumes</button>
             <button class="filter-btn" data-category="Skincare">Skincare</button>
             <button class="filter-btn" data-category="Hair">Hair</button>
+            <button class="filter-btn" data-category="Makeup">Makeup</button>
+            <button class="filter-btn" data-category="Candles">Candles</button>
         </div>
 
         <!-- Subcategory chips (shown when a category with subcategories is selected) -->
@@ -244,15 +253,11 @@
             <div class="footer-section">
                 <h3>Categories</h3>
                 <ul>
-                    <li><a href="/products?category=Perfumes">Perfumes</a>
-                    <a href="/products?category=Perfumes&amp;subcategory=Women's" style="padding-left:2rem;font-size:0.9em;">Women's Perfumes</a>
-                    <a href="/products?category=Perfumes&amp;subcategory=Men's" style="padding-left:2rem;font-size:0.9em;">Men's Perfumes</a>
-                    <a href="/products?category=Perfumes&amp;subcategory=Unisex" style="padding-left:2rem;font-size:0.9em;">Unisex Perfumes</a></li>
-                    <li><a href="/products?category=Women's Skincare">Women's Skincare</a></li>
-                    <li><a href="/products?category=Men's Skincare">Men's Skincare</a></li>
+                    <li><a href="/products?category=Perfumes">Perfumes</a></li>
+                    <li><a href="/products?category=Skincare">Skincare</a></li>
+                    <li><a href="/products?category=Hair">Hair</a></li>
                     <li><a href="/products?category=Makeup">Makeup</a></li>
-                    <li><a href="/products?category=Fragrances">Fragrances</a></li>
-                    <li><a href="/products?category=Wigs">Wigs</a></li>
+                    <li><a href="/products?category=Candles">Candles</a></li>
                 </ul>
             </div>
             <div class="footer-section">
@@ -373,6 +378,8 @@
                 if (cat === 'Perfumes') return ['brand','scent'];
                 if (cat === 'Skincare') return ['brand','skin'];
                 if (cat === 'Hair')     return ['brand','hair','wigtexture','wigorigin','wigcap'];
+                if (cat === 'Candles')  return ['brand','scent'];
+                if (cat === 'Makeup')   return ['brand'];
                 return ['brand'];
             };
             const visible = new Set(groupForCategory(state.category));
