@@ -491,12 +491,12 @@ Produce ONE Instagram-ready content set for this series and product, as ONE JSON
   "cta_text": "1-2 warm sentences tying back to {pname}",
   "cta_link": "the product link above",
   "carousel": [
-    {{ "heading": "Hook (the pain as a scroll-stopper)", "body": "1-2 short lines" }},
-    {{ "heading": "Why it happens", "body": "1-2 short lines" }},
-    {{ "heading": "Point or step 1", "body": "1-2 short lines" }},
-    {{ "heading": "Point or step 2", "body": "1-2 short lines" }},
-    {{ "heading": "Point or step 3", "body": "1-2 short lines" }},
-    {{ "heading": "The result you want", "body": "1-2 short lines" }},
+    {{ "heading": "Hook (the pain as a scroll-stopper)", "highlight": "1-2 words copied from THIS heading to print in gold", "body": "1-2 short lines" }},
+    {{ "heading": "Why it happens", "highlight": "1-2 key words from this heading", "body": "1-2 short lines" }},
+    {{ "heading": "What the right choice gives you", "bullets": [ {{ "icon": "user", "text": "Benefit (1-3 words)" }}, {{ "icon": "star", "text": "Benefit" }}, {{ "icon": "diamond", "text": "Benefit" }} ] }},
+    {{ "heading": "Point or step 1", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "Point or step 2", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "The result you want", "highlight": "1-2 key words", "body": "1-2 short lines" }},
     {{ "heading": "Want the full guide?", "body": "Comment the keyword below and we'll DM it. @creviabeauty" }}
   ],
   "reel": [
@@ -517,6 +517,8 @@ RULES:
 - paragraphs are plain text only: no HTML, no markdown.
 - NEVER use em dashes anywhere. Use commas, periods, or colons instead.
 - Carousel text short enough to read on a phone (heading <= 8 words, body <= 30 words).
+- Carousel "highlight": copy the 1-2 most meaningful words THAT APPEAR in that slide's heading (exact words) so they print in gold. Omit on the final CTA slide.
+- Carousel "bullets": use ONE slide as a 3-item list for benefits/qualities/mistakes. Each item is {{ "icon", "text" }} with text 1-3 words. Allowed icons ONLY: user, star, diamond, heart, shield, gift, check, clock, x. Use "x" for mistakes, "check" for do's, user/star/diamond/heart for benefits. A bullets slide has no "body".
 - Kenyan English, KES prices. Return ONLY the JSON object."""
 
 
@@ -568,12 +570,12 @@ Write one complete blog article AND a social media carousel, and return them as 
   "cta_text": "1-2 sentences. Use language like 'This is exactly why we stock...' or 'If you want this result, start with...'",
   "cta_link": "the product link given above",
   "carousel": [
-    {{ "heading": "Hook — the pain point as a scroll-stopper", "body": "1-2 short lines" }},
-    {{ "heading": "The real reason this happens", "body": "1-2 short lines" }},
-    {{ "heading": "Fix step 1", "body": "1-2 short lines" }},
-    {{ "heading": "Fix step 2", "body": "1-2 short lines" }},
-    {{ "heading": "Fix step 3", "body": "1-2 short lines" }},
-    {{ "heading": "The result you actually want", "body": "1-2 short lines" }},
+    {{ "heading": "Hook — the pain point as a scroll-stopper", "highlight": "1-2 words copied from THIS heading to print in gold", "body": "1-2 short lines" }},
+    {{ "heading": "The real reason this happens", "highlight": "1-2 key words from this heading", "body": "1-2 short lines" }},
+    {{ "heading": "What the right choice gives you", "bullets": [ {{ "icon": "user", "text": "Benefit (1-3 words)" }}, {{ "icon": "star", "text": "Benefit" }}, {{ "icon": "diamond", "text": "Benefit" }} ] }},
+    {{ "heading": "Fix step 1", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "Fix step 2", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "The result you actually want", "highlight": "1-2 key words", "body": "1-2 short lines" }},
     {{ "heading": "Want the full guide?", "body": "Comment the keyword below and we'll DM you the full guide. @creviabeauty" }}
   ],
   "social": {{
@@ -589,6 +591,8 @@ RULES:
 - paragraphs are plain text only: no HTML, no markdown.
 - NEVER use em dashes anywhere. Use commas, periods, or colons instead.
 - Keep carousel slide text short enough to read on a phone (heading <= 8 words, body <= 30 words).
+- Carousel "highlight": copy the 1-2 most meaningful words THAT APPEAR in that slide's heading (exact words) so they print in gold. Omit on the final CTA slide.
+- Carousel "bullets": use ONE slide as a 3-item list for benefits/qualities/mistakes. Each item is {{ "icon", "text" }} with text 1-3 words. Allowed icons ONLY: user, star, diamond, heart, shield, gift, check, clock, x. Use "x" for mistakes, "check" for do's, user/star/diamond/heart for benefits. A bullets slide has no "body".
 - British/Kenyan English. Prices in KES where relevant.
 - Return ONLY the JSON object."""
 
