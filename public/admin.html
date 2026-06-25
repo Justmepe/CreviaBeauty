@@ -902,6 +902,53 @@
                     <label for="product-stock">Stock Quantity</label>
                     <input type="number" id="product-stock" required placeholder="Enter stock quantity" min="0">
                 </div>
+                <!-- Brand & filter attributes (power the shop refinement filters) -->
+                <div class="form-group">
+                    <label for="product-brand">Brand</label>
+                    <input type="text" id="product-brand" list="brand-list" placeholder="e.g. Dior, Chanel, Fenty, Suzie Beauty" autocomplete="off">
+                    <datalist id="brand-list"></datalist>
+                    <small style="color:#888;">Powers the Brand filter on the shop page.</small>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:normal;">
+                        <input type="checkbox" id="product-is-local" style="width:auto;"> Made in Kenya (local brand)
+                    </label>
+                </div>
+                <div class="form-group" id="attr-scent" style="display:none;">
+                    <label for="product-scent-family">Scent Family</label>
+                    <select id="product-scent-family">
+                        <option value="">Unspecified</option>
+                        <option>Fresh / Aromatic</option>
+                        <option>Fresh / Woody</option>
+                        <option>Floral</option>
+                        <option>Floral Aldehyde</option>
+                        <option>Oriental / Woody</option>
+                    </select>
+                </div>
+                <div class="form-group" id="attr-skin" style="display:none;">
+                    <label for="product-skin-type">Skin Type</label>
+                    <select id="product-skin-type">
+                        <option value="">Unspecified</option>
+                        <option>All skin types</option>
+                        <option>Dry / Sensitive</option>
+                        <option>Oily / Acne-prone</option>
+                        <option>Normal / Combination</option>
+                        <option>Dry / Mature</option>
+                    </select>
+                </div>
+                <div class="form-group" id="attr-hair" style="display:none;">
+                    <label for="product-hair-texture">Hair Texture</label>
+                    <input type="text" id="product-hair-texture" placeholder="e.g. 4A/4B/4C, 3B/3C, All hair textures">
+                </div>
+                <div class="form-group">
+                    <label for="product-ingredients">Ingredients (optional)</label>
+                    <textarea id="product-ingredients" rows="2" placeholder="Comma-separated key ingredients"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="product-allergens">Allergens / Notes (optional)</label>
+                    <input type="text" id="product-allergens" placeholder="e.g. Contains limonene, fragrance-free">
+                </div>
+
                 <div class="form-group" style="background: #fff3cd; padding: 1rem; border-radius: 8px;">
                     <label for="product-cost-price">Cost Price (KSh) <small style="color: #856404;">(NOT shown to customers)</small></label>
                     <input type="number" id="product-cost-price" placeholder="Your cost price" min="0">
@@ -1875,6 +1922,7 @@
             document.getElementById('existing-gallery').innerHTML = '';
             populateSubcategories(); // reset subcategory options for the chosen (empty) category
             toggleWigFields();       // hide wig fields for a fresh product
+            updateAttrFields();      // hide category-specific attribute fields
             loadDescEditor('');
             document.getElementById('product-modal').classList.add('active');
         }
@@ -1896,6 +1944,14 @@
                 document.getElementById('product-original-price').value = product.original_price || '';
                 document.getElementById('product-discount').value = product.discount || 0;
                 document.getElementById('product-cost-price').value = product.cost_price || '';
+                document.getElementById('product-brand').value = product.brand || '';
+                document.getElementById('product-is-local').checked = !!product.is_local_brand;
+                document.getElementById('product-scent-family').value = product.scent_family || '';
+                document.getElementById('product-skin-type').value = product.skin_type || '';
+                document.getElementById('product-hair-texture').value = product.hair_texture || '';
+                document.getElementById('product-ingredients').value = product.ingredients || '';
+                document.getElementById('product-allergens').value = product.allergens || '';
+                updateAttrFields();
                 document.getElementById('product-wig-texture').value = product.wig_texture || '';
                 document.getElementById('product-wig-cap-type').value = product.wig_cap_type || '';
                 document.getElementById('product-wig-origin').value = product.wig_origin || '';
@@ -1968,8 +2024,18 @@
         const ADMIN_TAXONOMY = {
             'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
             'Skincare': ["Women's Skincare", "Men's Skincare"],
-            'Hair':     ['Wigs', 'Hair Care']
+            'Hair':     ['Wigs', 'Hair Care'],
+            'Makeup':   ['Lips', 'Face', 'Eyes'],
+            'Candles':  ['Scented Candles', 'Luxury Candles']
         };
+
+        // Show the relevant filter-attribute fields for the chosen category.
+        function updateAttrFields() {
+            const cat = document.getElementById('product-category').value;
+            document.getElementById('attr-scent').style.display = (cat === 'Perfumes' || cat === 'Candles') ? 'block' : 'none';
+            document.getElementById('attr-skin').style.display = (cat === 'Skincare') ? 'block' : 'none';
+            document.getElementById('attr-hair').style.display = (cat === 'Hair') ? 'block' : 'none';
+        }
 
         // Fill the subcategory dropdown from the chosen category; keep `selected` if valid.
         function populateSubcategories(selected) {
@@ -1988,8 +2054,14 @@
             const isWig = document.getElementById('product-subcategory').value === 'Wigs';
             document.getElementById('wig-fields').style.display = isWig ? 'block' : 'none';
         }
-        document.getElementById('product-category').addEventListener('change', () => { populateSubcategories(); toggleWigFields(); });
+        document.getElementById('product-category').addEventListener('change', () => { populateSubcategories(); toggleWigFields(); updateAttrFields(); });
         document.getElementById('product-subcategory').addEventListener('change', toggleWigFields);
+
+        // Suggest existing brands in the brand input's datalist
+        fetch('/api/products/facets').then(r => r.json()).then(f => {
+            const dl = document.getElementById('brand-list');
+            if (dl && Array.isArray(f.brand)) dl.innerHTML = f.brand.map(b => `<option value="${escapeHtml(b)}"></option>`).join('');
+        }).catch(() => {});
 
         // ── Rich-text description editor (WYSIWYG) ──────────────────────────────
         // The editor shows real bold/italic/bullets (no symbols). On every change
@@ -2109,6 +2181,16 @@
             formData.append('subcategory', document.getElementById('product-subcategory').value || '');
             formData.append('stock', document.getElementById('product-stock').value);
             formData.append('costPrice', document.getElementById('product-cost-price').value || '0');
+
+            // Brand + filter attributes (power the shop refinement filters)
+            formData.append('brand', document.getElementById('product-brand').value || '');
+            formData.append('isLocalBrand', document.getElementById('product-is-local').checked ? 'true' : '');
+            formData.append('scentFamily', document.getElementById('product-scent-family').value || '');
+            formData.append('skinType', document.getElementById('product-skin-type').value || '');
+            formData.append('hairTexture', document.getElementById('product-hair-texture').value || '');
+            formData.append('ingredients', document.getElementById('product-ingredients').value || '');
+            formData.append('allergens', document.getElementById('product-allergens').value || '');
+            formData.append('isAuthenticVerified', 'true'); // CreviaBeauty sells authentic only
 
             // Wig-specific attributes (only meaningful for the Hair > Wigs subcategory)
             if (document.getElementById('product-subcategory').value === 'Wigs') {
