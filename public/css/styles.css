@@ -334,10 +334,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn:hover {
-    background: var(--orange);
-    color: white;
+    background: #c39a4f;
+    color: var(--dark);
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(212, 165, 116, 0.4);
+    box-shadow: 0 6px 20px rgba(212, 175, 106, 0.45);
 }
 
 .btn-secondary {
@@ -965,8 +965,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .add-to-cart:hover {
-    background: var(--orange);
-    color: white;
+    background: #c39a4f;
+    color: var(--dark);
     transform: scale(1.05);
 }
 
