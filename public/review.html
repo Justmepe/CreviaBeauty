@@ -68,6 +68,13 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="review-product">Which product are you reviewing? *</label>
+                        <select id="review-product" required>
+                            <option value="">Select the product you bought...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label>Overall Rating *</label>
                         <div class="star-rating" id="overall-rating">
                             <span class="star" data-rating="1">★</span>
@@ -189,6 +196,32 @@
         setupStarRating('quality-rating', 'quality-value');
         setupStarRating('delivery-rating', 'delivery-value');
 
+        // Populate the product selector so each review is tagged to a product.
+        // Supports a ?product=ID deep link (e.g. "Review this product" buttons).
+        (async function loadReviewProducts() {
+            try {
+                const res = await fetch('/api/products?limit=100');
+                const data = await res.json();
+                const products = (data.data || data || []);
+                const sel = document.getElementById('review-product');
+                const groups = {};
+                products.forEach(p => { (groups[p.category || 'Other'] = groups[p.category || 'Other'] || []).push(p); });
+                Object.keys(groups).sort().forEach(cat => {
+                    const og = document.createElement('optgroup');
+                    og.label = cat;
+                    groups[cat].sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
+                        const o = document.createElement('option');
+                        o.value = p.id;
+                        o.textContent = p.name;
+                        og.appendChild(o);
+                    });
+                    sel.appendChild(og);
+                });
+                const pre = new URLSearchParams(location.search).get('product');
+                if (pre) sel.value = pre;
+            } catch (e) { /* selector stays with just the placeholder */ }
+        })();
+
         // Form submission
         document.getElementById('review-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -199,13 +232,20 @@
                 return;
             }
 
+            const productId = document.getElementById('review-product').value;
+            if (!productId) {
+                alert('Please select the product you are reviewing');
+                return;
+            }
+
             const reviewData = {
                 customerName: document.getElementById('customer-name').value,
                 customerEmail: document.getElementById('customer-email').value,
                 rating: rating,
                 productQuality: parseInt(document.getElementById('quality-value').value) || null,
                 deliveryRating: parseInt(document.getElementById('delivery-value').value) || null,
-                reviewText: document.getElementById('review-text').value
+                reviewText: document.getElementById('review-text').value,
+                productId: productId
             };
 
             try {
