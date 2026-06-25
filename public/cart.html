@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=3">
+    <link rel="stylesheet" href="/css/styles.css?v=5">
 </head>
 <body>
     <!-- Top Bar -->
@@ -28,7 +28,7 @@
         <div class="nav-container">
             <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
                 <img src="/assets/favicon.png?v=2" alt="CreviaBeauty Logo">
-                <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Beauty</span></div>
+                <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4af6a;">Beauty</span></div>
             </a>
 
             <!-- Search Bar -->
@@ -144,7 +144,7 @@
         <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
     </a>
 
-    <script src="/js/main.js?v=4"></script>
+    <script src="/js/main.js?v=5"></script>
     <script>
         async function loadCart() {
             const container = document.getElementById('cart-content');
@@ -296,7 +296,7 @@
                         <div class="form-group" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
                             <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                                 <span style="font-weight: 600;">Use Reward Points</span>
-                                <span style="color: #d4a574; font-weight: 600;">${userPointsBalance.toLocaleString()} pts available</span>
+                                <span style="color: #d4af6a; font-weight: 600;">${userPointsBalance.toLocaleString()} pts available</span>
                             </label>
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <input type="range" id="points-slider" min="0" max="${maxPointsToRedeem}" value="0" step="100" style="flex: 1;">
@@ -355,13 +355,13 @@
             modal.querySelectorAll('input[name="payment-method"]').forEach(radio => {
                 radio.addEventListener('change', () => {
                     modal.querySelectorAll('input[name="payment-method"]').forEach(r => {
-                        r.closest('label').style.borderColor = r.checked ? '#d4a574' : '#e0e0e0';
+                        r.closest('label').style.borderColor = r.checked ? '#d4af6a' : '#e0e0e0';
                         r.closest('label').style.background = r.checked ? '#faf8f5' : 'white';
                     });
                 });
                 // Set initial state
                 if (radio.checked) {
-                    radio.closest('label').style.borderColor = '#d4a574';
+                    radio.closest('label').style.borderColor = '#d4af6a';
                     radio.closest('label').style.background = '#faf8f5';
                 }
             });

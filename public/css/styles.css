@@ -10,7 +10,7 @@
     --primary: #1a1a2e;
     --secondary: #e94560;
     --accent: #f39c12;
-    --gold: #d4a574;
+    --gold: #d4af6a;
     --orange: #ff6b35;
     --dark: #0f0f1a;
     --light: #f8f9fa;
@@ -495,7 +495,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-slide-product::after {
     content: '\2726';
     position: absolute;
-    color: #c9a55a;
+    color: #d4af6a;
     text-shadow: 0 0 18px rgba(201, 165, 90, 0.9);
     animation: heroTwinkle 2.6s ease-in-out infinite;
 }
@@ -2237,7 +2237,7 @@ footer {
 .review-product-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; margin-bottom: 0.9rem; }
 .review-product-img { width: 120px; height: 150px; object-fit: contain; margin-bottom: 0.6rem; }
 .review-product-name { font-size: 0.9rem; font-weight: 600; color: var(--primary); line-height: 1.3; }
-.review-card .review-stars { color: var(--gold, #c9a55a); font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 0.6rem; }
+.review-card .review-stars { color: var(--gold, #d4af6a); font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 0.6rem; }
 .review-card .review-text { color: #444; line-height: 1.6; font-size: 0.95rem; margin: 0 0 1.2rem; flex: 1; }
 .review-byline { display: flex; align-items: center; justify-content: center; gap: 0.7rem; text-align: left; }
 .review-byline .review-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }

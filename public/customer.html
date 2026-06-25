@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=3">
+    <link rel="stylesheet" href="/css/styles.css?v=5">
     <link rel="stylesheet" href="/css/dashboard.css">
     <style>
         /* Customer Dashboard Styles */
@@ -221,7 +221,7 @@
                                 <p style="opacity: 0.8; font-size: 0.9rem;">Share this code to earn <strong id="ref-bonus-display">500</strong> points when friends make their first purchase!</p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1rem;">
-                                <span id="dashboard-referral-code" style="font-size: 1.5rem; font-weight: 700; color: #d4a574; letter-spacing: 2px;">-</span>
+                                <span id="dashboard-referral-code" style="font-size: 1.5rem; font-weight: 700; color: #d4af6a; letter-spacing: 2px;">-</span>
                                 <button class="copy-btn" onclick="copyReferralCode()">Copy</button>
                             </div>
                         </div>
@@ -274,7 +274,7 @@
                             <div class="card-body">
                                 <div style="text-align: center; padding: 1rem 0;">
                                     <div style="font-size: 4rem; margin-bottom: 1rem;">&#127942;</div>
-                                    <h2 style="font-family: 'Playfair Display', serif; color: #d4a574; margin-bottom: 0.5rem; font-size: 2.5rem;" id="points-balance">0</h2>
+                                    <h2 style="font-family: 'Playfair Display', serif; color: #d4af6a; margin-bottom: 0.5rem; font-size: 2.5rem;" id="points-balance">0</h2>
                                     <p style="color: #7f8c8d; margin-bottom: 1.5rem;" id="kes-value">= KSh 0</p>
                                 </div>
                                 <div style="background: #f8f9fa; border-radius: 10px; padding: 1.25rem;">
@@ -524,7 +524,7 @@
     <!-- Alert Container -->
     <div id="alert-container" style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;"></div>
 
-    <script src="/js/main.js?v=4"></script>
+    <script src="/js/main.js?v=5"></script>
     <script>
         // Global variables
         let currentUser = null;
@@ -770,7 +770,7 @@
                                         <div style="font-size: 0.85rem; color: #7f8c8d;">Qty: ${item.quantity}</div>
                                     </div>
                                 </div>
-                                <div style="font-weight: 600; color: var(--gold, #d4a574);">KSh ${(item.price * item.quantity).toLocaleString()}</div>
+                                <div style="font-weight: 600; color: var(--gold, #d4af6a);">KSh ${(item.price * item.quantity).toLocaleString()}</div>
                             </div>
                         `).join('')}
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: 0.5rem;">
@@ -778,7 +778,7 @@
                                 <strong>Ship to:</strong> ${escapeHtml(order.shipping_address || 'N/A')}
                             </div>
                             <div style="font-size: 1.1rem;">
-                                Total: <span style="font-weight: 700; color: var(--gold, #d4a574);">KSh ${Number(order.total_amount).toLocaleString()}</span>
+                                Total: <span style="font-weight: 700; color: var(--gold, #d4af6a);">KSh ${Number(order.total_amount).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=3">
+    <link rel="stylesheet" href="/css/styles.css?v=5">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
@@ -1095,7 +1095,7 @@
         </div>
     </div>
 
-    <script src="/js/main.js?v=4"></script>
+    <script src="/js/main.js?v=5"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
@@ -1492,7 +1492,7 @@
                         <td><span class="tier-badge ${m.tier}">${m.tier}</span></td>
                         <td>KSh ${Number(m.total_sales || 0).toLocaleString()}</td>
                         <td>
-                            <span style="color: #d4a574; font-weight: 600;">${m.commission_rate}%</span>
+                            <span style="color: #d4af6a; font-weight: 600;">${m.commission_rate}%</span>
                             <button class="action-btn edit" onclick="showCommissionModal(${m.user_id}, ${m.commission_rate})" style="margin-left: 0.5rem; width: 24px; height: 24px; font-size: 0.75rem;" title="Edit Rate">&#9998;</button>
                         </td>
                         <td><span class="status-badge ${m.status === 'approved' ? 'approved' : m.status === 'pending' ? 'pending' : 'suspended'}">${m.status}</span></td>
@@ -1592,7 +1592,7 @@
                 tbody.innerHTML = payouts.map(p => `
                     <tr>
                         <td>${escapeHtml(p.name)}</td>
-                        <td><strong style="color: #d4a574;">KSh ${Number(p.amount).toLocaleString()}</strong></td>
+                        <td><strong style="color: #d4af6a;">KSh ${Number(p.amount).toLocaleString()}</strong></td>
                         <td>${p.payment_method === 'mpesa' ? 'M-Pesa' : 'Bank'}</td>
                         <td style="max-width: 120px;"><small>${escapeHtml(p.payment_details || '-')}</small></td>
                         <td><span class="status-badge ${p.status === 'approved' ? 'approved' : p.status === 'pending' ? 'pending' : 'rejected'}">${p.status}</span></td>
@@ -1816,7 +1816,7 @@
                     <tr>
                         <td>${escapeHtml(w.name)}<br><small style="color: #7f8c8d;">${escapeHtml(w.email)}</small></td>
                         <td>${Number(w.points).toLocaleString()}</td>
-                        <td><strong style="color: #d4a574;">KSh ${Number(w.kes_amount).toLocaleString()}</strong></td>
+                        <td><strong style="color: #d4af6a;">KSh ${Number(w.kes_amount).toLocaleString()}</strong></td>
                         <td><span class="status-badge ${w.status === 'approved' ? 'approved' : w.status === 'pending' ? 'pending' : 'rejected'}">${w.status}</span></td>
                         <td>
                             ${w.status === 'pending' ? `
@@ -2251,7 +2251,7 @@
                 }
 
                 tbody.innerHTML = slides.map(s => {
-                    const titleHtml = `${escapeHtml(s.title_prefix || '')} ${s.title_highlight ? `<strong style="color:#c9a55a;">${escapeHtml(s.title_highlight)}</strong>` : ''}${s.title_suffix ? ' ' + escapeHtml(s.title_suffix) : ''}`;
+                    const titleHtml = `${escapeHtml(s.title_prefix || '')} ${s.title_highlight ? `<strong style="color:#d4af6a;">${escapeHtml(s.title_highlight)}</strong>` : ''}${s.title_suffix ? ' ' + escapeHtml(s.title_suffix) : ''}`;
                     return `
                         <tr>
                             <td><strong>${s.display_order}</strong></td>
@@ -2458,7 +2458,7 @@
                     // Archive the prompt as done
                     await fetch(`/api/admin/articles/inbox/${encodeURIComponent(prompt.name)}/done`, { method: 'POST' });
                     resultBox.innerHTML = `
-                        <div style="background:rgba(201,165,90,0.1); border:1px solid #c9a55a; border-radius:8px; padding:1rem;">
+                        <div style="background:rgba(201,165,90,0.1); border:1px solid #d4af6a; border-radius:8px; padding:1rem;">
                             &#9881; <strong>Processed as draft:</strong> ${escapeHtml(a.title)}
                             <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
                                 <button class="btn-dashboard outline sm" onclick="window.open('${data.preview_url}', '_blank')">&#128065; Preview Blog Page</button>
@@ -2593,7 +2593,7 @@
                     const slides = (a.content && a.content.carousel) || [];
                     studioArticles.unshift({ id: a.id, slug: a.slug, title: a.title, status: a.status, carousel: slides, social: (a.content && a.content.social) || null });
                     resultBox.innerHTML = `
-                        <div style="background:rgba(201,165,90,0.1); border:1px solid #c9a55a; border-radius:8px; padding:1rem;">
+                        <div style="background:rgba(201,165,90,0.1); border:1px solid #d4af6a; border-radius:8px; padding:1rem;">
                             &#9881; <strong>Processed as draft:</strong> ${escapeHtml(a.title)}
                             <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
                                 <button class="btn-dashboard outline sm" onclick="window.open('${data.preview_url}', '_blank')">&#128065; Preview Blog Page</button>

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=3">
+    <link rel="stylesheet" href="/css/styles.css?v=5">
     <link rel="stylesheet" href="/css/dashboard.css">
     <style>
         .products-catalog {
@@ -289,7 +289,7 @@
                                 <p style="opacity: 0.8; font-size: 0.9rem;">Share this code to earn commission on every sale!</p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1rem;">
-                                <span id="quick-code" style="font-size: 1.5rem; font-weight: 700; color: #d4a574; letter-spacing: 2px;">-</span>
+                                <span id="quick-code" style="font-size: 1.5rem; font-weight: 700; color: #d4af6a; letter-spacing: 2px;">-</span>
                                 <button class="copy-btn" onclick="copyCode()">Copy</button>
                             </div>
                         </div>
@@ -482,7 +482,7 @@
                                     </div>
                                     <div style="display: flex; justify-content: space-between;">
                                         <span style="color: #7f8c8d;">Total Commission Earned</span>
-                                        <span style="font-weight: 600; color: #d4a574;" id="rewards-total-commission">KSh 0</span>
+                                        <span style="font-weight: 600; color: #d4af6a;" id="rewards-total-commission">KSh 0</span>
                                     </div>
                                 </div>
                             </div>
@@ -575,7 +575,7 @@
         </main>
     </div>
 
-    <script src="/js/main.js?v=4"></script>
+    <script src="/js/main.js?v=5"></script>
     <script>
         let dashboardData = null;
         let currentProductPage = 1;
@@ -747,7 +747,7 @@
                         <td><strong>#${sale.order_id}</strong></td>
                         <td>${new Date(sale.created_at).toLocaleDateString('en-KE')}</td>
                         <td>KSh ${Number(sale.order_total).toLocaleString()}</td>
-                        <td style="color: #d4a574; font-weight: 600;">KSh ${Number(sale.commission_amount).toLocaleString()}</td>
+                        <td style="color: #d4af6a; font-weight: 600;">KSh ${Number(sale.commission_amount).toLocaleString()}</td>
                         <td><span class="status-badge ${sale.status}">${sale.status}</span></td>
                     </tr>
                 `).join('');
@@ -773,7 +773,7 @@
                         <td>${new Date(sale.created_at).toLocaleDateString('en-KE')}</td>
                         <td>KSh ${Number(sale.order_total).toLocaleString()}</td>
                         <td>${sale.commission_rate}%</td>
-                        <td style="color: #d4a574; font-weight: 600;">KSh ${Number(sale.commission_amount).toLocaleString()}</td>
+                        <td style="color: #d4af6a; font-weight: 600;">KSh ${Number(sale.commission_amount).toLocaleString()}</td>
                         <td><span class="status-badge ${sale.status}">${sale.status}</span></td>
                     </tr>
                 `).join('');

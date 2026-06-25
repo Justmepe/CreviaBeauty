@@ -549,7 +549,7 @@ async function viewProduct(productId) {
                     padding: 2.5rem;
                 }
                 .modal-category {
-                    color: #d4a574;
+                    color: #d4af6a;
                     font-size: 0.9rem;
                     font-weight: 600;
                     text-transform: uppercase;
@@ -826,8 +826,8 @@ style.textContent = `
     }
     .floating-alert-success {
         background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
-        color: #d4a574;
-        border-left: 4px solid #d4a574;
+        color: #d4af6a;
+        border-left: 4px solid #d4af6a;
     }
     .floating-alert-error {
         background: linear-gradient(135deg, #2d1a1a 0%, #442d2d 100%);

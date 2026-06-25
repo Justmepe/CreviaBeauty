@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=3">
+    <link rel="stylesheet" href="/css/styles.css?v=5">
 </head>
 <body>
     <!-- Top Bar -->
@@ -28,7 +28,7 @@
     <div class="nav-container">
         <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
             <img src="/assets/favicon.png?v=2" alt="CreviaBeauty Logo">
-            <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4a574;">Beauty</span></div>
+            <div style="font-weight: 600; font-size: 1.2em;">Crevia<span style="color: #d4af6a;">Beauty</span></div>
         </a>
 
         <div class="search-container">
@@ -190,7 +190,7 @@
         <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
     </a>
 
-    <script src="/js/main.js?v=4"></script>
+    <script src="/js/main.js?v=5"></script>
     <script>
         // Account type toggle
         const accountTypeOptions = document.querySelectorAll('.account-type-option');
@@ -204,7 +204,7 @@
                     opt.style.borderColor = '#e0e0e0';
                     opt.style.background = 'white';
                 });
-                option.style.borderColor = '#d4a574';
+                option.style.borderColor = '#d4af6a';
                 option.style.background = '#fdf8f3';
 
                 const isMarketer = option.querySelector('input').value === 'marketer';
@@ -218,7 +218,7 @@
         });
 
         // Initialize selected state
-        document.querySelector('.account-type-option').style.borderColor = '#d4a574';
+        document.querySelector('.account-type-option').style.borderColor = '#d4af6a';
         document.querySelector('.account-type-option').style.background = '#fdf8f3';
 
         // Check for referral code in URL
