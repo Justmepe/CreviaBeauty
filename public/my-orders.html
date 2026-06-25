@@ -394,6 +394,9 @@
                                             <div>
                                                 <div class="item-name">${escapeHtml(item.name)}</div>
                                                 <div class="item-qty">Qty: ${item.quantity}</div>
+                                                ${['delivered', 'complete'].includes(order.status.toLowerCase()) && item.product_id ? `
+                                                    <a href="/review?product=${item.product_id}" class="btn btn-small btn-outline" style="margin-top:0.4rem; padding:0.3rem 0.8rem; font-size:0.8rem;">★ Review this product</a>
+                                                ` : ''}
                                             </div>
                                         </div>
                                         <div class="item-price">KSh ${(item.price * item.quantity).toLocaleString()}</div>

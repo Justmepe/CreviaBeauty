@@ -378,7 +378,7 @@ module.exports = (db) => {
         // Get items for each order
         for (const order of orders) {
             const itemsResult = await db.query(`
-                SELECT oi.quantity, oi.price, p.name, p.image_url
+                SELECT oi.quantity, oi.price, p.id AS product_id, p.name, p.image_url
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.id
                 WHERE oi.order_id = $1
