@@ -519,6 +519,30 @@
                         </div>
                     </div>
 
+                    <!-- YouTube Script: narrative origin-story essay (a different content muscle) -->
+                    <div class="content-card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">&#127916; YouTube Script <small style="font-weight:400; color:#7f8c8d;">— the story behind a fragrance, a 6 to 8 min narrative essay, not a review</small></h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group-dashboard">
+                                <label>Fragrance</label>
+                                <input type="text" id="yt-fragrance" list="yt-fragrance-list" placeholder="e.g. Dior Sauvage, Creed Aventus, YSL Black Opium">
+                                <datalist id="yt-fragrance-list"></datalist>
+                            </div>
+                            <button class="btn-dashboard primary" onclick="generateYoutubePrompt()">&#127908; Generate Script Prompt</button>
+                            <a class="btn-dashboard outline" href="https://claude.ai/new" target="_blank" rel="noopener" style="margin-left:0.5rem;">&#8599; Open claude.ai</a>
+                            <div id="yt-prompt-wrap" style="display:none; margin-top:1rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                                    <small style="color:#7f8c8d; text-transform:uppercase; letter-spacing:0.05em;">Paste this into claude.ai</small>
+                                    <button class="btn-dashboard outline sm" id="yt-copy-btn" onclick="copyYoutubePrompt(this)">&#128203; Copy prompt</button>
+                                </div>
+                                <textarea id="yt-prompt" rows="10" readonly style="width:100%; font-family:monospace; font-size:0.78rem; padding:0.75rem; border:1px solid #e0e0e0; border-radius:8px;"></textarea>
+                                <small style="color:#7f8c8d;">claude.ai can web-search to verify the history. Film or voice the script it returns, and pin the comment it gives you.</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Advanced: process a response whose prompt isn't in the inbox -->
                     <details class="content-card" style="margin-bottom: 1.5rem; padding:0;">
                         <summary style="cursor:pointer; padding:1.1rem 1.5rem; font-weight:600; color:#555; list-style-position:inside;">&#9881; Process a response directly <small style="font-weight:400; color:#7f8c8d;">— paste or .docx, for responses without an inbox prompt</small></summary>
@@ -2550,16 +2574,76 @@
                 const result = await response.json();
                 const products = result.data || result || [];
                 const select = document.getElementById('cs-product');
+                const ytList = document.getElementById('yt-fragrance-list');
                 products.forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.id;
                     opt.textContent = `${p.name} — KSh ${Number(p.price).toLocaleString()}`;
                     select.appendChild(opt);
+                    // Autocomplete the YouTube fragrance field with the perfume catalogue
+                    if (ytList && /perfume|fragrance/i.test(p.category || '')) {
+                        const o = document.createElement('option');
+                        o.value = p.name;
+                        ytList.appendChild(o);
+                    }
                 });
                 studioProductsLoaded = true;
             } catch (error) {
                 console.error('Failed to load products for Content Studio:', error);
             }
+        }
+
+        // ---- YouTube Script: origin-story narrative essay prompt (not a review) ----
+        function buildYoutubeScriptPrompt(fragrance) {
+            const f = (fragrance || '').trim();
+            return `You are a fragrance historian and narrative essayist writing a YouTube video script for CreviaBeauty, a premium fragrance house in Nairobi, Kenya. This is NOT a review. It is a 6 to 8 minute narrative essay about the ORIGIN and MEANING of one fragrance: why it exists, who created it, what they were solving for, and what it was really selling.
+
+FRAGRANCE: ${f}
+
+First research carefully (web-search to verify, do not invent specifics): the perfumer(s) and house, the launch year and the market moment, the creative brief or intention, the competing scents at the time, the notes and what they evoke, and how the culture received it and wears it now.
+
+Then write a flowing SPOKEN essay, first person, warm and intelligent, never salesy, structured as:
+1. COLD OPEN (0:00 to 0:30): one arresting idea or scene that reframes the fragrance. No "hi guys, welcome back".
+2. THE PERSON AND THE BRIEF: who made it and what they were chasing (a mood, a memory, a gap in the market).
+3. THE MOMENT: the world it launched into, what else was on the shelf, why it stood out.
+4. WHAT IT WAS REALLY SELLING: the deeper story (power, accessibility, rebellion, nostalgia). This is the heart of the video.
+5. THE LEGACY: how it changed things, who wears it now and why, what it means today.
+6. SOFT CLOSE: one reflective line, then a light, contextual CTA, never a hard sell.
+
+Return ONE JSON object, no text before or after, exactly this shape:
+{
+  "fragrance": "${f}",
+  "titles": ["3 SEO YouTube titles, e.g. 'Sauvage: How One Fragrance Became the World's Bestseller'"],
+  "hook": "the cold-open lines",
+  "script": "the full spoken script, 900 to 1200 words, plain text with paragraph breaks, no markdown",
+  "chapters": [{"time": "0:00", "title": "chapter title"}],
+  "thumbnail_text": "3 to 5 punchy words for the thumbnail",
+  "seo_description": "150 to 200 word YouTube description telling the story, ending with: Explore the collection at https://creviabeauty.com",
+  "tags": ["8 to 12 YouTube search tags"],
+  "pinned_comment": "I cover the why behind fragrances, not just reviews. Full collection at CreviaBeauty: https://creviabeauty.com"
+}
+
+RULES:
+- British / Kenyan English.
+- NEVER use em dashes. Use commas, periods or colons.
+- It is a history and a story, never a sales pitch.
+- If you are unsure of a fact, say so honestly in the narration rather than inventing names, dates or quotes.
+- Return ONLY the JSON object.`;
+        }
+
+        function generateYoutubePrompt() {
+            const f = document.getElementById('yt-fragrance').value.trim();
+            if (!f) { showAlert('Type a fragrance first', 'error'); return; }
+            document.getElementById('yt-prompt').value = buildYoutubeScriptPrompt(f);
+            document.getElementById('yt-prompt-wrap').style.display = 'block';
+        }
+
+        function copyYoutubePrompt(btn) {
+            const ta = document.getElementById('yt-prompt');
+            navigator.clipboard.writeText(ta.value).then(() => {
+                const old = btn.innerHTML; btn.innerHTML = '&#10003; Copied';
+                setTimeout(() => { btn.innerHTML = old; }, 1500);
+            }).catch(() => showAlert('Clipboard blocked by the browser', 'error'));
         }
 
         async function generatePrompt() {
