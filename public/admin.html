@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Pinyon+Script&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Pinyon+Script&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css?v=6">
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
@@ -1086,6 +1086,12 @@
                     <button class="btn-dashboard outline sm cs-theme-btn active" data-theme="navy" onclick="setSlideTheme('navy')">&#9899; Navy</button>
                     <button class="btn-dashboard outline sm cs-theme-btn" data-theme="ivory" onclick="setSlideTheme('ivory')">&#9898; Ivory (Gift)</button>
                     <button class="btn-dashboard outline sm cs-theme-btn" data-theme="black" onclick="setSlideTheme('black')">&#9711; Black (VIP)</button>
+                </div>
+                <div style="margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                    <span style="font-size:0.85rem; color:#7f8c8d;">Fonts:</span>
+                    <button class="btn-dashboard outline sm cs-font-btn active" data-font="playfair" onclick="setSlideFont('playfair')">Playfair</button>
+                    <button class="btn-dashboard outline sm cs-font-btn" data-font="cormorant" onclick="setSlideFont('cormorant')">Cormorant</button>
+                    <button class="btn-dashboard outline sm cs-font-btn" data-font="modern" onclick="setSlideFont('modern')">Modern</button>
                 </div>
                 <div style="margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                     <span style="font-size:0.85rem; color:#7f8c8d;">Background (all slides):</span>
@@ -2775,6 +2781,9 @@
             document.fonts.load('500 38px Montserrat');
             document.fonts.load('400 60px "Pinyon Script"');
             document.fonts.load('600 40px "Cormorant Garamond"');
+            document.fonts.load('700 60px "Cormorant Garamond"');
+            document.fonts.load('800 60px Montserrat');
+            document.fonts.load('400 40px Inter');
         }
 
         function wrapLines(ctx, text, maxWidth) {
@@ -2797,9 +2806,17 @@
         // Carousel type system: Cinzel wordmark, Playfair headlines, Montserrat body.
         // Three brand collections (navy primary, ivory gift, black VIP), champagne gold accent.
         const WORDMARK_FONT = 'Cinzel, "Playfair Display", Georgia, serif';
-        const HEADLINE_FONT = '"Playfair Display", Georgia, serif';
-        const BODY_FONT = 'Montserrat, Inter, Arial, sans-serif';
         const SCRIPT_FONT = '"Pinyon Script", "Playfair Display", cursive';
+        // Selectable headline + body pairings. Wordmark (Cinzel) and script (Pinyon)
+        // stay fixed as brand anchors; only the headline/body combination changes.
+        const FONT_SETS = {
+            playfair:  { label: 'Playfair',  headline: '"Playfair Display", Georgia, serif',   body: 'Montserrat, Inter, Arial, sans-serif' },
+            cormorant: { label: 'Cormorant', headline: '"Cormorant Garamond", Georgia, serif', body: 'Inter, Arial, sans-serif' },
+            modern:    { label: 'Modern',    headline: 'Montserrat, Arial, sans-serif',        body: 'Inter, Arial, sans-serif' },
+        };
+        let currentFontSet = 'playfair';
+        let HEADLINE_FONT = FONT_SETS.playfair.headline;
+        let BODY_FONT = FONT_SETS.playfair.body;
         const SLIDE_GOLD = '#d4af6a';
 
         const SLIDE_THEMES = {
@@ -2990,6 +3007,15 @@
             ctx.textBaseline = 'top';
         }
 
+        // Category-aware brand tagline: fragrance vs skincare vs hair/makeup.
+        let currentCarouselCategory = '';
+        function deckSignaturePhrase() {
+            const c = (currentCarouselCategory || '').toLowerCase();
+            if (/perfume|fragrance|candle|scent/.test(c)) return 'Signature Scent';
+            if (/skin/.test(c)) return 'Natural Glow';
+            return 'Signature Look';
+        }
+
         // Slide number (bottom-left) + small-caps tagline (bottom-centre)
         function drawSlideFooter(ctx, W, t, index) {
             ctx.textAlign = 'left'; ctx.textBaseline = 'top';
@@ -2997,7 +3023,7 @@
             ctx.fillText(String(index + 1).padStart(2, '0'), 72, 980);
             ctx.textAlign = 'center'; ctx.fillStyle = t.sub; ctx.font = `500 19px ${BODY_FONT}`;
             if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
-            ctx.fillText('DISCOVER YOUR SIGNATURE SCENT', W / 2, 986);
+            ctx.fillText(('Discover Your ' + deckSignaturePhrase()).toUpperCase(), W / 2, 986);
             if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
         }
 
@@ -3119,7 +3145,7 @@
                 ctx.fillStyle = t.heading; ctx.font = `600 54px ${HEADLINE_FONT}`;
                 ctx.fillText('Discover Your', W / 2, 474);
                 ctx.fillStyle = t.gold; ctx.font = `400 80px ${SCRIPT_FONT}`;
-                ctx.fillText('Signature Scent', W / 2, 532);
+                ctx.fillText(deckSignaturePhrase(), W / 2, 532);
                 let y = 658;
                 ctx.fillStyle = t.body; ctx.font = `500 33px ${BODY_FONT}`;
                 for (const line of wrapLines(ctx, slide.body, W - 340)) { ctx.fillText(line, W / 2, y); y += 46; }
@@ -3160,6 +3186,7 @@
             currentCarouselArticleId = articleId;
             carouselSlides = article.carousel || [];
             carouselSlug = article.slug || 'carousel';
+            currentCarouselCategory = article.category || '';
             if (!carouselSlides.length) { showAlert('This article has no carousel slides', 'error'); return; }
 
             document.getElementById('carousel-modal-title').textContent = `Carousel — ${article.title}`;
@@ -3314,6 +3341,16 @@
         function setSlideTheme(theme) {
             currentSlideTheme = theme;
             document.querySelectorAll('.cs-theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+            renderCarouselPreview();
+        }
+
+        // Switch the headline + body font pairing and re-render.
+        function setSlideFont(key) {
+            const set = FONT_SETS[key] || FONT_SETS.playfair;
+            currentFontSet = key;
+            HEADLINE_FONT = set.headline;
+            BODY_FONT = set.body;
+            document.querySelectorAll('.cs-font-btn').forEach(b => b.classList.toggle('active', b.dataset.font === key));
             renderCarouselPreview();
         }
 
