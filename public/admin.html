@@ -119,6 +119,12 @@
                                 <span class="label">Carousel Assets</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="#youtube" class="nav-link" data-section="youtube">
+                                <span class="icon">&#127916;</span>
+                                <span class="label">YouTube Scripts</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -540,6 +546,14 @@
                                 <textarea id="yt-prompt" rows="10" readonly style="width:100%; font-family:monospace; font-size:0.78rem; padding:0.75rem; border:1px solid #e0e0e0; border-radius:8px;"></textarea>
                                 <small style="color:#7f8c8d;">claude.ai can web-search to verify the history. Film or voice the script it returns, and pin the comment it gives you.</small>
                             </div>
+                            <div style="margin-top:1.25rem; border-top:1px solid #eee; padding-top:1.1rem;">
+                                <div class="form-group-dashboard">
+                                    <label>Paste Claude's reply, then save it to YouTube Scripts</label>
+                                    <textarea id="yt-response" rows="6" style="width:100%; font-family:monospace; font-size:0.8rem; padding:0.75rem; border:1px solid #e0e0e0; border-radius:8px;" placeholder='Paste the full reply, including the {"type": "crevia-youtube", ...} block'></textarea>
+                                </div>
+                                <button class="btn-dashboard primary" onclick="processYoutubeResponse()">&#9881; Save Script</button>
+                                <div id="yt-process-result" style="margin-top:0.75rem;"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -598,6 +612,20 @@
                         </div>
                     </div>
                     <div id="ca-list"></div>
+                </section>
+
+                <!-- YouTube Scripts -->
+                <section id="section-youtube" class="dashboard-section" style="display: none;">
+                    <div class="content-card" style="margin-bottom:1.5rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">&#127916; YouTube Scripts <small style="font-weight:400; color:#7f8c8d;">— fragrance origin-story essays</small></h3>
+                            <button class="btn-dashboard outline sm" onclick="loadYoutubeScripts()">&#8635; Refresh</button>
+                        </div>
+                        <div class="card-body">
+                            <p style="color:#7f8c8d; margin:0;">Generate a script prompt in <strong>Content Studio &rarr; YouTube Script</strong>, paste Claude's reply there, and it lands here. Each script exports as a <strong>teleprompter PDF</strong> and a <strong>teaser carousel</strong> for Instagram.</p>
+                        </div>
+                    </div>
+                    <div id="yt-list"></div>
                 </section>
 
                 <section id="section-rewards" class="dashboard-section" style="display: none;">
@@ -1247,6 +1275,7 @@
                 case 'messages': loadContacts(); break;
                 case 'content-studio': loadStudioArticles(); loadStudioProducts(); loadPromptInbox(); break;
                 case 'carousel-assets': loadCarouselAssets(); break;
+                case 'youtube': loadYoutubeScripts(); break;
                 case 'rewards': loadRewardsSettings(); loadPointsWithdrawals(); break;
                 case 'payments': loadPaymentSettings(); break;
             }
@@ -2612,6 +2641,7 @@ Then write a flowing SPOKEN essay, first person, warm and intelligent, never sal
 
 Return ONE JSON object, no text before or after, exactly this shape:
 {
+  "type": "crevia-youtube",
   "fragrance": "${f}",
   "titles": ["3 SEO YouTube titles, e.g. 'Sauvage: How One Fragrance Became the World's Bestseller'"],
   "hook": "the cold-open lines",
@@ -2620,7 +2650,14 @@ Return ONE JSON object, no text before or after, exactly this shape:
   "thumbnail_text": "3 to 5 punchy words for the thumbnail",
   "seo_description": "150 to 200 word YouTube description telling the story, ending with: Explore the collection at https://creviabeauty.com",
   "tags": ["8 to 12 YouTube search tags"],
-  "pinned_comment": "I cover the why behind fragrances, not just reviews. Full collection at CreviaBeauty: https://creviabeauty.com"
+  "pinned_comment": "I cover the why behind fragrances, not just reviews. Full collection at CreviaBeauty: https://creviabeauty.com",
+  "carousel": [
+    {"heading": "Hook from the video's core idea", "body": "1-2 short lines"},
+    {"heading": "The story beat 1", "body": "1-2 short lines"},
+    {"heading": "The story beat 2", "body": "1-2 short lines"},
+    {"heading": "What it was really selling", "body": "1-2 short lines"},
+    {"heading": "Watch the full story", "body": "The full essay is on our YouTube. @creviabeauty"}
+  ]
 }
 
 RULES:
@@ -2628,6 +2665,7 @@ RULES:
 - NEVER use em dashes. Use commas, periods or colons.
 - It is a history and a story, never a sales pitch.
 - If you are unsure of a fact, say so honestly in the narration rather than inventing names, dates or quotes.
+- "carousel" is a 5-slide Instagram teaser for the video (short, hooky), last slide points to YouTube.
 - Return ONLY the JSON object.`;
         }
 
@@ -2644,6 +2682,134 @@ RULES:
                 const old = btn.innerHTML; btn.innerHTML = '&#10003; Copied';
                 setTimeout(() => { btn.innerHTML = old; }, 1500);
             }).catch(() => showAlert('Clipboard blocked by the browser', 'error'));
+        }
+
+        // ---- YouTube Scripts library (sidebar section) ----
+        let youtubeScripts = [];
+
+        async function processYoutubeResponse() {
+            const raw = document.getElementById('yt-response').value.trim();
+            if (!raw) { showAlert('Paste the response first', 'error'); return; }
+            try {
+                const r = await fetch('/api/admin/youtube/process', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ raw }) });
+                const data = await r.json();
+                if (data.success) {
+                    document.getElementById('yt-response').value = '';
+                    document.getElementById('yt-process-result').innerHTML = '<span style="color:#27ae60;">&#10003; Saved. <a href="#youtube" onclick="showSection(\'youtube\')" style="color:#15173a;font-weight:600;">Open YouTube Scripts &rarr;</a></span>';
+                    showAlert('YouTube script saved', 'success');
+                } else {
+                    showAlert(getErrorMessage(data, 'Failed to save'), 'error');
+                }
+            } catch (e) { showAlert('Failed to save', 'error'); }
+        }
+
+        async function loadYoutubeScripts() {
+            const list = document.getElementById('yt-list');
+            list.innerHTML = '<p style="color:#7f8c8d;">Loading&hellip;</p>';
+            try {
+                youtubeScripts = await (await fetch('/api/admin/youtube')).json();
+                if (!Array.isArray(youtubeScripts) || !youtubeScripts.length) {
+                    list.innerHTML = '<div class="content-card"><div class="card-body"><p style="color:#7f8c8d;margin:0;">No scripts yet. Generate one in Content Studio &rarr; YouTube Script, paste Claude\'s reply, and Save.</p></div></div>';
+                    return;
+                }
+                list.innerHTML = youtubeScripts.map(renderYoutubeCard).join('');
+            } catch (e) {
+                list.innerHTML = '<p style="color:#e74c3c;">Failed to load scripts.</p>';
+            }
+        }
+
+        function renderYoutubeCard(s) {
+            const titles = (s.titles || []).map(t => `<li>${escapeHtml(t)}</li>`).join('');
+            const chapters = (s.chapters || []).map(c => `<div style="font-size:0.85rem;color:#555;"><strong>${escapeHtml(c.time || '')}</strong> ${escapeHtml(c.title || '')}</div>`).join('');
+            const tags = (s.tags || []).map(t => `<span style="display:inline-block;background:#f0ece2;color:#8a6d2f;font-size:0.72rem;padding:2px 8px;border-radius:999px;margin:0 4px 4px 0;">${escapeHtml(t)}</span>`).join('');
+            const hasCarousel = Array.isArray(s.carousel) && s.carousel.length;
+            return `
+            <div class="content-card" style="margin-bottom:1.5rem;">
+                <div class="card-body">
+                    <span class="status-badge pending">${(s.chapters && s.chapters.length) ? (s.chapters.length + ' chapters') : 'script'}</span>
+                    <h3 style="margin:0.4rem 0 0.2rem 0;">${escapeHtml(s.title || 'Untitled')}</h3>
+                    <small style="color:#7f8c8d;">${escapeHtml(s.fragrance || '')}${s.created_at ? ' &middot; ' + new Date(s.created_at).toLocaleDateString('en-KE') : ''}</small>
+                    <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button class="btn-dashboard primary sm" onclick="exportYoutubePdf(${s.id})">&#128462; Script PDF</button>
+                        <button class="btn-dashboard outline sm" onclick="ytCopyField(${s.id},'script',this)">&#128203; Copy script</button>
+                        ${hasCarousel ? `<button class="btn-dashboard outline sm" onclick="openYoutubeCarousel(${s.id})">&#127912; Teaser carousel</button>` : ''}
+                        <button class="btn-dashboard outline sm" onclick="ytCopyField(${s.id},'seo_description',this)">&#128203; Copy description</button>
+                        <button class="btn-dashboard danger sm" onclick="deleteYoutubeScript(${s.id})">&#128465; Delete</button>
+                    </div>
+                    ${titles ? `<div style="margin-top:1rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Title options</small><ul style="margin:0.3rem 0 0 1.1rem;">${titles}</ul></div>` : ''}
+                    ${s.thumbnail_text ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Thumbnail</small><div style="font-weight:700;color:#15173a;">${escapeHtml(s.thumbnail_text)}</div></div>` : ''}
+                    ${s.hook ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Cold open</small><p style="margin:0.3rem 0;font-style:italic;color:#333;">${escapeHtml(s.hook)}</p></div>` : ''}
+                    <div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Script</small>
+                        <div style="max-height:240px;overflow-y:auto;background:#faf8f4;border:1px solid #eee;border-radius:8px;padding:0.9rem;margin-top:0.3rem;white-space:pre-wrap;font-size:0.9rem;line-height:1.6;color:#222;">${escapeHtml(s.script || '')}</div>
+                    </div>
+                    ${chapters ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Chapters</small><div style="margin-top:0.3rem;">${chapters}</div></div>` : ''}
+                    ${tags ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Tags</small><div style="margin-top:0.3rem;">${tags}</div></div>` : ''}
+                    ${s.pinned_comment ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Pinned comment</small><p style="margin:0.3rem 0;color:#333;">${escapeHtml(s.pinned_comment)}</p></div>` : ''}
+                </div>
+            </div>`;
+        }
+
+        function ytCopyField(id, field, btn) {
+            const s = youtubeScripts.find(x => x.id === id); if (!s) return;
+            navigator.clipboard.writeText(s[field] || '').then(() => {
+                const old = btn.innerHTML; btn.innerHTML = '&#10003; Copied';
+                setTimeout(() => { btn.innerHTML = old; }, 1500);
+            }).catch(() => showAlert('Clipboard blocked', 'error'));
+        }
+
+        async function deleteYoutubeScript(id) {
+            if (!confirm('Delete this script?')) return;
+            try { await fetch('/api/admin/youtube/' + id, { method: 'DELETE' }); loadYoutubeScripts(); }
+            catch (e) { showAlert('Failed to delete', 'error'); }
+        }
+
+        // Reuse the carousel modal for the YouTube teaser deck.
+        function openYoutubeCarousel(id) {
+            const s = youtubeScripts.find(x => x.id === id);
+            if (!s || !(s.carousel || []).length) { showAlert('No teaser carousel in this script', 'error'); return; }
+            currentCarouselArticleId = null;
+            carouselSlides = s.carousel;
+            carouselSlug = s.slug || 'youtube-teaser';
+            currentCarouselCategory = 'Perfumes';
+            deckProduct = null;
+            document.getElementById('carousel-modal-title').textContent = 'Teaser — ' + s.title;
+            renderCarouselPreview();
+            document.getElementById('cs-modal-pack').innerHTML = '';
+            document.getElementById('carousel-modal').classList.add('active');
+        }
+
+        // Branded teleprompter PDF via a styled print window (same approach as the carousel PDF).
+        function exportYoutubePdf(id) {
+            const s = youtubeScripts.find(x => x.id === id); if (!s) return;
+            const esc = t => escapeHtml(t || '');
+            const paras = (s.script || '').split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
+            const chapters = (s.chapters || []).map(c => `<li><strong>${esc(c.time)}</strong> ${esc(c.title)}</li>`).join('');
+            const tags = (s.tags || []).join(', ');
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html><html><head><title>${esc(s.title)}</title>
+                <style>
+                  @page { margin: 22mm 20mm; }
+                  body { font-family: Georgia, serif; color:#1a1a1a; line-height:1.7; max-width:720px; margin:0 auto; }
+                  .wm { text-align:center; letter-spacing:6px; color:#a9843a; font-size:13px; font-weight:700; }
+                  h1 { font-size:24px; color:#15173a; margin:6px 0 2px; }
+                  .meta { color:#888; font-size:12px; margin-bottom:18px; }
+                  .lbl { text-transform:uppercase; letter-spacing:2px; font-size:11px; color:#a9843a; margin-top:20px; font-family:Arial,sans-serif; }
+                  .hook { font-style:italic; font-size:17px; color:#333; }
+                  p { margin:0 0 12px; } ul { color:#333; } li { margin-bottom:4px; }
+                  .pin { background:#faf6ec; border-left:3px solid #d4af6a; padding:8px 12px; }
+                </style></head><body>
+                <div class="wm">CREVIA BEAUTY</div>
+                <h1>${esc(s.title)}</h1>
+                <div class="meta">${esc(s.fragrance)} &middot; YouTube narrative essay</div>
+                ${s.hook ? `<div class="lbl">Cold open</div><p class="hook">${esc(s.hook)}</p>` : ''}
+                <div class="lbl">Script</div>${paras}
+                ${chapters ? `<div class="lbl">Chapters</div><ul>${chapters}</ul>` : ''}
+                ${s.seo_description ? `<div class="lbl">Description</div><p>${esc(s.seo_description)}</p>` : ''}
+                ${tags ? `<div class="lbl">Tags</div><p>${esc(tags)}</p>` : ''}
+                ${s.pinned_comment ? `<div class="lbl">Pinned comment</div><p class="pin">${esc(s.pinned_comment)}</p>` : ''}
+                </body></html>`);
+            win.document.close(); win.focus();
+            setTimeout(() => win.print(), 500);
         }
 
         async function generatePrompt() {

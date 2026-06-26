@@ -60,4 +60,5 @@ module.exports = (app, db) => {
     const articles = articlesRoutes(db);
     app.use('/api/articles', articles.public);
     app.use('/api/admin/articles', articles.admin);
+    app.use('/api/admin/youtube', articles.youtube);
 };

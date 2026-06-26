@@ -520,6 +520,17 @@ async function initializeDatabase() {
             );
             CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
             CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at);
+
+            CREATE TABLE IF NOT EXISTS youtube_scripts (
+                id SERIAL PRIMARY KEY,
+                fragrance VARCHAR(200),
+                title VARCHAR(300) NOT NULL,
+                slug VARCHAR(200) UNIQUE NOT NULL,
+                data JSONB NOT NULL DEFAULT '{}',
+                status VARCHAR(20) DEFAULT 'draft',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_youtube_created ON youtube_scripts(created_at);
         `);
 
         // Add marketer/rewards columns to users table (migration)

@@ -562,5 +562,69 @@ module.exports = (db) => {
         res.json({ success: true });
     }));
 
-    return { public: publicRouter, admin: adminRouter };
+    // ============ YOUTUBE SCRIPTS ============
+    // Origin-story narrative essays. Different shape from articles (script/chapters/
+    // tags), stored separately so they never leak into the blog.
+    function normalizeYoutube(payload) {
+        const arr = v => Array.isArray(v) ? v : [];
+        const titles = arr(payload.titles).map(s => String(s).trim()).filter(Boolean);
+        const title = (titles[0] || payload.fragrance || 'YouTube Script').toString().slice(0, 290);
+        const chapters = arr(payload.chapters).map(c => ({
+            time: String((c && c.time) || '').trim(),
+            title: String((c && (c.title || c.label)) || '').trim()
+        })).filter(c => c.time || c.title);
+        const carousel = arr(payload.carousel).map(s => ({
+            heading: String((s && s.heading) || '').trim(),
+            body: String((s && s.body) || '').trim()
+        })).filter(s => s.heading || s.body);
+        return stripEmDashes({
+            fragrance: String(payload.fragrance || '').trim().slice(0, 190),
+            titles, title,
+            hook: String(payload.hook || '').trim(),
+            script: String(payload.script || '').trim(),
+            chapters,
+            thumbnail_text: String(payload.thumbnail_text || '').trim(),
+            seo_description: String(payload.seo_description || '').trim(),
+            tags: arr(payload.tags).map(s => String(s).trim()).filter(Boolean),
+            pinned_comment: String(payload.pinned_comment || '').trim(),
+            carousel
+        });
+    }
+
+    const youtubeRouter = express.Router();
+    youtubeRouter.use(requireAdmin);
+
+    youtubeRouter.post('/process', asyncHandler(async (req, res) => {
+        const raw = typeof req.body.raw === 'string' ? req.body.raw : JSON.stringify(req.body);
+        if (!raw || !raw.trim()) throw AppError.badRequest('Paste Claude\'s response first');
+        const payload = extractJson(raw);
+        if (!payload || typeof payload !== 'object') throw AppError.badRequest('Could not find a JSON object in the response');
+        const yt = normalizeYoutube(payload);
+        if (!yt.script) throw AppError.badRequest('The JSON is missing the "script" field');
+        let base = slugify(yt.fragrance || yt.title) || 'youtube-script';
+        let slug = base, n = 1;
+        while ((await db.query('SELECT 1 FROM youtube_scripts WHERE slug = $1', [slug])).rows.length) slug = `${base}-${++n}`;
+        const r = await db.query(
+            'INSERT INTO youtube_scripts (fragrance, title, slug, data, status) VALUES ($1,$2,$3,$4,$5) RETURNING id, slug',
+            [yt.fragrance || null, yt.title, slug, JSON.stringify(yt), 'draft']
+        );
+        res.json({ success: true, id: r.rows[0].id, slug: r.rows[0].slug });
+    }));
+
+    youtubeRouter.get('/', asyncHandler(async (req, res) => {
+        const r = await db.query('SELECT id, fragrance, title, slug, data, status, created_at FROM youtube_scripts ORDER BY created_at DESC');
+        res.json(r.rows.map(row => ({
+            id: row.id, slug: row.slug, status: row.status, created_at: row.created_at,
+            ...(row.data || {})
+        })));
+    }));
+
+    youtubeRouter.delete('/:id', asyncHandler(async (req, res) => {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) throw AppError.badRequest('Invalid ID');
+        await db.query('DELETE FROM youtube_scripts WHERE id = $1', [id]);
+        res.json({ success: true });
+    }));
+
+    return { public: publicRouter, admin: adminRouter, youtube: youtubeRouter };
 };

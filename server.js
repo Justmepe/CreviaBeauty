@@ -63,6 +63,7 @@ app.use(globalLimiter);
 // Mounting a larger parser on the articles admin path first means the global
 // parser below skips these requests (body already parsed).
 app.use('/api/admin/articles', express.json({ limit: '2mb' }));
+app.use('/api/admin/youtube', express.json({ limit: '2mb' }));
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
