@@ -273,9 +273,9 @@ def fetch_product(search_term):
         products = body.get("data", body) if isinstance(body, dict) else body
         if products:
             p = products[0]
+            # Keep image paths relative (/uploads/...). Prefixing SITE_URL bakes in
+            # http://localhost:3010, which a visitor's browser can never reach.
             image = p.get("image_url") or ""
-            if image.startswith("/"):
-                image = SITE_URL + image
             return {
                 "name": p.get("name"),
                 "category": p.get("category"),
@@ -301,9 +301,9 @@ def fetch_products(category=None, limit=100):
         rows = body.get("data", body) if isinstance(body, dict) else body
         out = []
         for p in rows or []:
+            # Keep image paths relative (/uploads/...). Prefixing SITE_URL bakes in
+            # http://localhost:3010, which a visitor's browser can never reach.
             image = p.get("image_url") or ""
-            if image.startswith("/"):
-                image = SITE_URL + image
             out.append({
                 "name": p.get("name"), "category": p.get("category"),
                 "brand": p.get("brand"), "price": p.get("price"),

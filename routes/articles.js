@@ -154,6 +154,11 @@ function normalizeArticle(payload) {
     if (ctaLink && !/^(\/|https?:\/\/)/i.test(ctaLink)) ctaLink = '/' + ctaLink;
 
     let heroImage = String(payload.hero_image_url || payload.hero_image || '').trim();
+    // Normalise self-referential absolute URLs to a relative /uploads path: the engine
+    // may prefix images with a localhost SITE_URL that no visitor's browser can reach.
+    const upIdx = heroImage.indexOf('/uploads/');
+    if (upIdx > 0 && /^https?:\/\//i.test(heroImage)) heroImage = heroImage.slice(upIdx);
+    if (/^https?:\/\/localhost/i.test(heroImage)) heroImage = '';
     if (heroImage && !/^(\/uploads\/|https?:\/\/)/i.test(heroImage)) heroImage = '';
 
     const rawSocial = (payload.social && typeof payload.social === 'object') ? payload.social : {};
