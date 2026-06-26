@@ -586,6 +586,7 @@ module.exports = (db) => {
             thumbnail_text: String(payload.thumbnail_text || '').trim(),
             seo_description: String(payload.seo_description || '').trim(),
             tags: arr(payload.tags).map(s => String(s).trim()).filter(Boolean),
+            facts_to_verify: arr(payload.facts_to_verify).map(s => String(s).trim()).filter(Boolean),
             pinned_comment: String(payload.pinned_comment || '').trim(),
             carousel
         });

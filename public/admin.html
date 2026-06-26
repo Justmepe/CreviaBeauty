@@ -2629,7 +2629,7 @@
 
 FRAGRANCE: ${f}
 
-First research carefully (web-search to verify, do not invent specifics): the perfumer(s) and house, the launch year and the market moment, the creative brief or intention, the competing scents at the time, the notes and what they evoke, and how the culture received it and wears it now.
+First research carefully. Prefer authoritative fragrance sources: Fragrantica and Basenotes for the perfumer, launch year and notes; the brand's own house and press material; and industry press such as WWD. Treat Wikipedia as a cross-check only, never your main source. Find: the perfumer(s) and house, the launch year and market moment, the creative brief, the competing scents at the time, the notes and what they evoke, and how the culture received it and wears it now. If sources disagree, or you cannot confirm a specific name, date, note or ranking, do NOT state it as fact in the script.
 
 Then write a flowing SPOKEN essay, first person, warm and intelligent, never salesy, structured as:
 1. COLD OPEN (0:00 to 0:30): one arresting idea or scene that reframes the fragrance. No "hi guys, welcome back".
@@ -2650,6 +2650,7 @@ Return ONE JSON object, no text before or after, exactly this shape:
   "thumbnail_text": "3 to 5 punchy words for the thumbnail",
   "seo_description": "150 to 200 word YouTube description telling the story, ending with: Explore the collection at https://creviabeauty.com",
   "tags": ["8 to 12 YouTube search tags"],
+  "facts_to_verify": ["each specific name, date, note or ranking the editor should confirm before filming, or [] if fully confident in every claim"],
   "pinned_comment": "I cover the why behind fragrances, not just reviews. Full collection at CreviaBeauty: https://creviabeauty.com",
   "carousel": [
     {"heading": "Hook from the video's core idea", "body": "1-2 short lines"},
@@ -2664,7 +2665,8 @@ RULES:
 - British / Kenyan English.
 - NEVER use em dashes. Use commas, periods or colons.
 - It is a history and a story, never a sales pitch.
-- If you are unsure of a fact, say so honestly in the narration rather than inventing names, dates or quotes.
+- NEVER name your source inside the narration. Do not say "according to Wikipedia" or similar. State corroborated facts confidently, or attribute to a strong named source (the perfumer, the house, WWD).
+- If you are unsure of any specific name, date, note or ranking, leave it OUT of the script and list it in "facts_to_verify" instead of stating it.
 - "carousel" is a 5-slide Instagram teaser for the video (short, hooky), last slide points to YouTube.
 - Return ONLY the JSON object.`;
         }
@@ -2738,6 +2740,7 @@ RULES:
                     </div>
                     ${titles ? `<div style="margin-top:1rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Title options</small><ul style="margin:0.3rem 0 0 1.1rem;">${titles}</ul></div>` : ''}
                     ${s.thumbnail_text ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Thumbnail</small><div style="font-weight:700;color:#15173a;">${escapeHtml(s.thumbnail_text)}</div></div>` : ''}
+                    ${(s.facts_to_verify && s.facts_to_verify.length) ? `<div style="margin-top:0.85rem;background:#fff8e6;border:1px solid #f0d98a;border-radius:8px;padding:0.75rem 0.9rem;"><small style="color:#a9843a;text-transform:uppercase;letter-spacing:0.05em;font-weight:700;">&#9888; Verify before filming</small><ul style="margin:0.4rem 0 0 1.1rem;color:#6b5a2f;font-size:0.88rem;">${s.facts_to_verify.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul></div>` : ''}
                     ${s.hook ? `<div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Cold open</small><p style="margin:0.3rem 0;font-style:italic;color:#333;">${escapeHtml(s.hook)}</p></div>` : ''}
                     <div style="margin-top:0.75rem;"><small style="color:#7f8c8d;text-transform:uppercase;letter-spacing:0.05em;">Script</small>
                         <div style="max-height:240px;overflow-y:auto;background:#faf8f4;border:1px solid #eee;border-radius:8px;padding:0.9rem;margin-top:0.3rem;white-space:pre-wrap;font-size:0.9rem;line-height:1.6;color:#222;">${escapeHtml(s.script || '')}</div>
@@ -2784,6 +2787,7 @@ RULES:
             const esc = t => escapeHtml(t || '');
             const paras = (s.script || '').split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
             const chapters = (s.chapters || []).map(c => `<li><strong>${esc(c.time)}</strong> ${esc(c.title)}</li>`).join('');
+            const verify = (s.facts_to_verify || []).map(f => `<li>${esc(f)}</li>`).join('');
             const tags = (s.tags || []).join(', ');
             const win = window.open('', '_blank');
             win.document.write(`<!DOCTYPE html><html><head><title>${esc(s.title)}</title>
@@ -2797,10 +2801,12 @@ RULES:
                   .hook { font-style:italic; font-size:17px; color:#333; }
                   p { margin:0 0 12px; } ul { color:#333; } li { margin-bottom:4px; }
                   .pin { background:#faf6ec; border-left:3px solid #d4af6a; padding:8px 12px; }
+                  .verify { background:#fff8e6; border:1px solid #f0d98a; border-radius:6px; padding:8px 14px; color:#6b5a2f; }
                 </style></head><body>
                 <div class="wm">CREVIA BEAUTY</div>
                 <h1>${esc(s.title)}</h1>
                 <div class="meta">${esc(s.fragrance)} &middot; YouTube narrative essay</div>
+                ${verify ? `<div class="lbl">&#9888; Verify before filming</div><div class="verify"><ul>${verify}</ul></div>` : ''}
                 ${s.hook ? `<div class="lbl">Cold open</div><p class="hook">${esc(s.hook)}</p>` : ''}
                 <div class="lbl">Script</div>${paras}
                 ${chapters ? `<div class="lbl">Chapters</div><ul>${chapters}</ul>` : ''}
