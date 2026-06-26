@@ -3477,6 +3477,25 @@
             }
         }
 
+        // Publish / unpublish a deck straight from Carousel Assets, then refresh so
+        // the button + badge persist across reloads (no more vanishing publish button).
+        async function setDeckStatus(id, status) {
+            try {
+                const response = await fetch(`/api/admin/articles/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await response.json();
+                if (data.success || response.ok) {
+                    showAlert(status === 'published' ? 'Published — now live on the blog' : 'Moved back to draft', 'success');
+                    loadCarouselAssets();
+                } else {
+                    showAlert(getErrorMessage(data, 'Failed to update status'), 'error');
+                }
+            } catch (e) { showAlert('Failed to update status', 'error'); }
+        }
+
         async function loadCarouselAssets() {
             const list = document.getElementById('ca-list');
             list.innerHTML = '<p style="color:#7f8c8d;">Loading…</p>';
@@ -3506,6 +3525,9 @@
                                         <button class="btn-dashboard primary sm" onclick="downloadDeckPdf(${a.id})">&#11015; PDF</button>
                                         <button class="btn-dashboard outline sm" onclick="window.open('${pageUrl}', '_blank')">&#8599; Page</button>
                                         <button class="btn-dashboard outline sm" onclick="openCarousel(${a.id})">&#128065; Preview deck</button>
+                                        ${a.status === 'published'
+                                            ? `<button class="btn-dashboard outline sm" onclick="setDeckStatus(${a.id}, 'draft')">&#8635; Unpublish</button>`
+                                            : `<button class="btn-dashboard success sm" onclick="setDeckStatus(${a.id}, 'published')">&#9989; Publish</button>`}
                                     </div>
                                     <div style="margin-top:0.75rem;">
                                         <small style="color:#7f8c8d; text-transform:uppercase; letter-spacing:0.05em;">Slides — download in order</small><br>
