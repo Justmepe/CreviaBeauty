@@ -1124,6 +1124,24 @@
         </div>
     </div>
 
+    <!-- Video kit modal: storyboard (.jsx) or per-scene image prompts -->
+    <div class="modal" id="video-modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="video-modal-title">Video</h3>
+                <button class="modal-close" onclick="document.getElementById('video-modal').classList.remove('active')">&times;</button>
+            </div>
+            <div style="padding:1.5rem;">
+                <div id="video-modal-help" style="color:#7f8c8d; font-size:0.9rem; margin-top:0;"></div>
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:0.5rem; margin:0.5rem 0;">
+                    <a class="btn-dashboard outline sm" href="https://claude.ai/new" target="_blank" rel="noopener">&#8599; Open claude.ai</a>
+                    <button class="btn-dashboard outline sm" onclick="copyVideoModal(this)">&#128203; Copy</button>
+                </div>
+                <textarea id="video-modal-text" rows="16" readonly style="width:100%; font-family:monospace; font-size:0.76rem; padding:0.75rem; border:1px solid #e0e0e0; border-radius:8px;"></textarea>
+            </div>
+        </div>
+    </div>
+
     <!-- Carousel Modal -->
     <div class="modal" id="carousel-modal">
         <div class="modal-content" style="max-width: 960px;">
@@ -2735,6 +2753,8 @@ RULES:
                         <button class="btn-dashboard primary sm" onclick="exportYoutubePdf(${s.id})">&#128462; Script PDF</button>
                         <button class="btn-dashboard outline sm" onclick="ytCopyField(${s.id},'script',this)">&#128203; Copy script</button>
                         ${hasCarousel ? `<button class="btn-dashboard outline sm" onclick="openYoutubeCarousel(${s.id})">&#127912; Teaser carousel</button>` : ''}
+                        <button class="btn-dashboard outline sm" onclick="openVideoStoryboard(${s.id})">&#127916; Video storyboard</button>
+                        <button class="btn-dashboard outline sm" onclick="openImagePrompts(${s.id})">&#128444; Image prompts</button>
                         <button class="btn-dashboard outline sm" onclick="ytCopyField(${s.id},'seo_description',this)">&#128203; Copy description</button>
                         <button class="btn-dashboard danger sm" onclick="deleteYoutubeScript(${s.id})">&#128465; Delete</button>
                     </div>
@@ -2816,6 +2836,79 @@ RULES:
                 </body></html>`);
             win.document.close(); win.focus();
             setTimeout(() => win.print(), 500);
+        }
+
+        // ---- Video kit: storyboard (.jsx) + per-scene AI image prompts ----
+        function ytStoryBeats(s) {
+            const chapters = (s.chapters || []).map((c, i) => `${String(i + 1).padStart(2, '0')}. ${c.time || ''} ${c.title || ''}`.trim()).join('\n');
+            return { chapters, script: (s.script || '').slice(0, 4000) };
+        }
+
+        function buildVideoStoryboardPrompt(s, scaffold) {
+            const { chapters, script } = ytStoryBeats(s);
+            return `You are adapting the CreviaBeauty cinematic video engine to one fragrance. Below is the full Crevia scaffold. Return a COMPLETE drop-in replacement .jsx file: keep every helper, the palette, IMG, SignOff, Atmosphere and the CreviaVideo export EXACTLY as written. Change only:
+1) The SCENES array: replace the example with one scene per chapter below, in order (use <SignOff start end/> as the final ~10 seconds).
+2) Stage "duration" and the IMG array length: match the number of scenes.
+
+Each scene: <Bg start end mood="..." src={IMG[i]} focus="bottom|center|left"/>, then <Chapter num label/>, a <Kicker>, one or two <div style={sHead}>{"two short lines\\nwith a break"}</div> headlines, and a <div style={sCap}>one supporting line</div>. Pick mood from: glass, ivory, charcoal, champagne, counter, quiet. Pace each scene ~22 to 28 seconds. Punchy, cinematic copy drawn from the story. NEVER use em dashes.
+
+FRAGRANCE: ${s.fragrance || s.title}
+TITLE: ${s.title}
+CHAPTERS:
+${chapters}
+
+NARRATIVE (source for the headlines/captions):
+${script}
+
+=== SCAFFOLD (keep all of it except SCENES, duration and IMG length) ===
+${scaffold}
+
+Return ONLY the complete .jsx file, no commentary.`;
+        }
+
+        function buildImagePromptsPrompt(s) {
+            const { chapters, script } = ytStoryBeats(s);
+            return `You are art-directing the images for a CreviaBeauty fragrance film. For the fragrance and scenes below, write ONE detailed AI image-generation prompt per scene (for Midjourney, DALL-E or similar), in scene order. Every image must share the Crevia visual language: cinematic and editorial, a midnight-navy and champagne-gold palette, soft directional light, shallow depth of field, fine film grain, a luxury fragrance mood. Vary the framing across scenes (macro of a dark glass bottle, hands, a portrait in shadow, still life, an interior or landscape as the beat suggests). No text, no logos, no watermark.
+
+FRAGRANCE: ${s.fragrance || s.title}
+SCENES:
+${chapters}
+
+STORY CONTEXT:
+${script}
+
+Return ONE JSON object, no commentary, exactly:
+{
+  "fragrance": "${s.fragrance || s.title}",
+  "images": [
+    { "scene": 1, "chapter": "the chapter title", "prompt": "the full image prompt, 30 to 60 words, ending with: cinematic, navy and champagne, film grain, no text, --ar 16:9" }
+  ]
+}
+NEVER use em dashes. Return ONLY the JSON.`;
+        }
+
+        async function openVideoStoryboard(id) {
+            const s = youtubeScripts.find(x => x.id === id); if (!s) return;
+            let scaffold = '';
+            try { scaffold = await (await fetch('/assets/crevia-video-scaffold.jsx')).text(); }
+            catch (e) { showAlert('Could not load the video scaffold', 'error'); return; }
+            document.getElementById('video-modal-title').textContent = 'Video storyboard — ' + s.title;
+            document.getElementById('video-modal-help').innerHTML = 'Paste into claude.ai. It returns a complete <strong>crevia-scenes.jsx</strong>. Save it beside <strong>animations.jsx</strong> in a .dc.html and export the video. Backgrounds are procedural until you add images.';
+            document.getElementById('video-modal-text').value = buildVideoStoryboardPrompt(s, scaffold);
+            document.getElementById('video-modal').classList.add('active');
+        }
+
+        function openImagePrompts(id) {
+            const s = youtubeScripts.find(x => x.id === id); if (!s) return;
+            document.getElementById('video-modal-title').textContent = 'Image prompts — ' + s.title;
+            document.getElementById('video-modal-help').innerHTML = 'Paste into claude.ai for one AI image prompt per scene. Generate the images, upload them to the Gallery, then paste the URLs into the <strong>IMG</strong> array at the top of your crevia-scenes.jsx (in scene order). Empty slots fall back to the procedural background.';
+            document.getElementById('video-modal-text').value = buildImagePromptsPrompt(s);
+            document.getElementById('video-modal').classList.add('active');
+        }
+
+        function copyVideoModal(btn) {
+            const ta = document.getElementById('video-modal-text');
+            navigator.clipboard.writeText(ta.value).then(() => { const o = btn.innerHTML; btn.innerHTML = '&#10003; Copied'; setTimeout(() => { btn.innerHTML = o; }, 1500); }).catch(() => showAlert('Clipboard blocked', 'error'));
         }
 
         async function generatePrompt() {
