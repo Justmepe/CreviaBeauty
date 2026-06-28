@@ -433,6 +433,32 @@ function Intro() {
     }
   }, "100% Authentic \xA0\xB7\xA0 Free Nairobi delivery \xA0\xB7\xA0 Refund if it\u2019s ever a fake"))));
 }
+function RotatingImg({
+  imgs
+}) {
+  const list = (imgs || []).filter(Boolean);
+  const [idx, setIdx] = React.useState(0);
+  React.useEffect(() => {
+    if (list.length < 2) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % list.length), 2600);
+    return () => clearInterval(t);
+  }, [list.length]);
+  return React.createElement(React.Fragment, null, list.map((src, i) => React.createElement("img", {
+    key: i,
+    src: src,
+    alt: "",
+    style: {
+      position: 'absolute',
+      inset: 0,
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      display: 'block',
+      opacity: i === idx ? 1 : 0,
+      transition: 'opacity 0.9s ease'
+    }
+  })));
+}
 function ProductLayer({
   p,
   tag
@@ -442,15 +468,8 @@ function ProductLayer({
       position: 'absolute',
       inset: 0
     }
-  }, p.img ? React.createElement("img", {
-    src: p.img,
-    alt: "",
-    style: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      display: 'block'
-    }
+  }, p.imgs && p.imgs.length || p.img ? React.createElement(RotatingImg, {
+    imgs: p.imgs && p.imgs.length ? p.imgs : [p.img]
   }) : React.createElement("div", {
     style: {
       position: 'absolute',

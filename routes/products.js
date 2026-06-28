@@ -49,7 +49,7 @@ module.exports = (db) => {
         } = req.query;
         const offset = (page - 1) * limit;
 
-        let query = 'SELECT * FROM products WHERE 1=1';
+        let query = "SELECT *, (SELECT COALESCE(array_agg(pi.image_url ORDER BY pi.sort_order, pi.id), ARRAY[]::text[]) FROM product_images pi WHERE pi.product_id = products.id) AS gallery FROM products WHERE 1=1";
         let countQuery = 'SELECT COUNT(*) as total FROM products WHERE 1=1';
         const params = [];
         let paramIndex = 1;

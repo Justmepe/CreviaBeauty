@@ -224,11 +224,30 @@ function Intro() {
 
 // ── product card that flips through a category's products ──────────────────
 
+// Cross-fades through a product's images (cover + gallery) so a product with
+// several photos shows them all instead of a single still.
+function RotatingImg({ imgs }) {
+  const list = (imgs || []).filter(Boolean);
+  const [idx, setIdx] = React.useState(0);
+  React.useEffect(() => {
+    if (list.length < 2) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % list.length), 2600);
+    return () => clearInterval(t);
+  }, [list.length]);
+  return (
+    <>
+      {list.map((src, i) => (
+        <img key={i} src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: i === idx ? 1 : 0, transition: 'opacity 0.9s ease' }} />
+      ))}
+    </>
+  );
+}
+
 function ProductLayer({ p, tag }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
-      {p.img ? (
-        <img src={p.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      {((p.imgs && p.imgs.length) || p.img) ? (
+        <RotatingImg imgs={(p.imgs && p.imgs.length) ? p.imgs : [p.img]} />
       ) : (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: 'repeating-linear-gradient(135deg, #1a1410 0 14px, #15100d 14px 28px)' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', border: `1px solid ${GOLD_SOFT}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

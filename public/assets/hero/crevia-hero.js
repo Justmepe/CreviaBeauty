@@ -91,17 +91,36 @@
         .slice(0, 10)
         .map(toCard);
     });
-    return { byCategory: byCategory, newest: withImg.slice(0, 6).map(toCard) };
+    // Mobile/fallback shows one product at a time, so flatten the newest few
+    // into one slide PER image, newest first, so a product's extra photos play.
+    var newest = [];
+    withImg.slice(0, 6).forEach(function (p) {
+      var c = toCard(p);
+      c.imgs.slice(0, 3).forEach(function (u) {
+        newest.push({ name: c.name, price: c.price, was: c.was, img: u, imgs: [u], category: c.category });
+      });
+    });
+    return { byCategory: byCategory, newest: newest.slice(0, 10) };
+  }
+
+  // Cover image first, then gallery shots, de-duplicated.
+  function imgsOf(p) {
+    var arr = [p.image_url].concat(p.gallery || p.images || []);
+    var seen = {}, out = [];
+    arr.forEach(function (u) { if (u && !seen[u]) { seen[u] = 1; out.push(u); } });
+    return out;
   }
 
   function toCard(p) {
     var price = Number(p.price) || 0;
     var was = p.original_price != null ? Number(p.original_price) : null;
+    var imgs = imgsOf(p);
     return {
       name: p.name || '',
       price: price,
       was: was && was > price ? was : null,
-      img: p.image_url,
+      img: imgs[0] || p.image_url,
+      imgs: imgs,
       category: p.category || ''
     };
   }
