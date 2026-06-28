@@ -686,6 +686,19 @@ def run_series(series, copy_to_clipboard):
 # a fragrance exists. The reply lands in the same inbox but routes to the
 # YouTube Scripts processor (the file name carries a youtube- prefix).
 
+def clean_fragrance_name(name):
+    """Strip SKU noise (size, decant, em dashes) so the essay names the fragrance,
+    not the listing, e.g. 'Tom Ford Black Orchid — 10ml Decant' -> 'Tom Ford Black Orchid'."""
+    if not name:
+        return name
+    n = re.sub(r"\s*[—–-]\s*\d+\s*ml.*$", "", name, flags=re.I)   # drop a '— 10ml Decant' tail
+    n = n.replace("—", ", ").replace("–", ", ")
+    n = re.sub(r"\b\d+\s*ml\b", "", n, flags=re.I)
+    n = re.sub(r"\bdecant\b", "", n, flags=re.I)
+    n = re.sub(r"\s{2,}", " ", n).strip(" ,-")
+    return n or name
+
+
 def pick_youtube_product():
     """Rotate weekly through the perfume catalogue (separate counter from series)."""
     products = [p for p in (fetch_products("Perfumes") or fetch_products() or []) if p.get("name")]
@@ -703,7 +716,7 @@ def pick_youtube_product():
 
 
 def build_youtube_prompt(product):
-    name = product["name"] if product else "a classic designer fragrance"
+    name = clean_fragrance_name(product["name"]) if product else "a classic designer fragrance"
     return f"""You are a fragrance historian and narrative essayist writing a YouTube video script for CreviaBeauty, a premium fragrance house in Nairobi, Kenya. This is NOT a review. It is a 6 to 8 minute narrative essay about the ORIGIN and MEANING of one fragrance: why it exists, who created it, what they were solving for, and what it was really selling.
 
 FRAGRANCE: {name}
