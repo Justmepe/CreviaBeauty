@@ -352,6 +352,16 @@ module.exports = (db) => {
             throw AppError.notFound('Product not found');
         }
 
+        // Products that appear in real orders are kept for order history.
+        const ordered = await db.query('SELECT 1 FROM order_items WHERE product_id = $1 LIMIT 1', [productId]);
+        if (ordered.rows.length) {
+            throw AppError.badRequest('This product is part of existing orders, so it cannot be deleted. Set its stock to 0 to hide it from the store instead.');
+        }
+
+        // reviews.product_id has no ON DELETE CASCADE, so it blocks deletion.
+        // Remove the product's reviews first; cart, wishlist, images and variants
+        // all cascade automatically.
+        await db.query('DELETE FROM reviews WHERE product_id = $1', [productId]);
         await db.query('DELETE FROM products WHERE id = $1', [productId]);
 
         logger.info('Product deleted', { productId });
