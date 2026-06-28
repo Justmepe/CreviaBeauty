@@ -247,6 +247,22 @@ function RotatingImg({ imgs, t }) {
   );
 }
 
+// Varied entrance per product so the hero is not a single predictable zoom.
+// e: 0 (just appeared) -> 1 (settled). drift: 0 -> 1 across the whole slot.
+// Slides keep a >1 base scale so the translate never exposes a gap.
+function entranceTransform(kind, e, drift) {
+  const s = 1 - e;                      // 1 at entry, 0 once settled
+  const z = 1.03 + 0.035 * drift;       // settled scale with a slow ambient drift
+  switch (((kind % 6) + 6) % 6) {
+    case 0: return `scale(${z + 0.10 * s})`;                                   // strong push-in
+    case 1: return `translateX(${-48 * s}px) scale(${1.10 + 0.035 * drift})`;  // slide from left
+    case 2: return `translateX(${48 * s}px) scale(${1.10 + 0.035 * drift})`;   // slide from right
+    case 3: return `translateY(${44 * s}px) scale(${1.10 + 0.035 * drift})`;   // rise up
+    case 4: return `scale(${z + 0.04 * s})`;                                   // gentle zoom
+    default: return `scale(${z})`;                                             // pure fade + drift
+  }
+}
+
 function ProductLayer({ p, tag, t }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -292,14 +308,14 @@ function ProductCard({ cat }) {
   const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1)); // smooth fade-in, no quick pop
   const cur = cat.products[idx];
   const prev = idx > 0 ? cat.products[idx - 1] : null;
-  // subtle ken-burns within the slot
-  const kb = 1.0 + 0.03 * clamp(slotT / SLOT, 0, 1);
+  const slotProg = clamp(slotT / SLOT, 0, 1);
+  const kind = (parseInt(cat.n, 10) + idx) % 6;     // rotate the entrance style
 
   return (
     <div style={{ position: 'absolute', left: 980, top: 168, width: 560, height: 540, opacity: clamp(catO, 0, 1), transform: `translateY(${ty}px)`, willChange: 'transform,opacity' }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${GOLD_SOFT}`, boxShadow: '0 40px 90px rgba(0,0,0,0.55), 0 0 60px oklch(81% 0.105 84 / 0.10)' }}>
         {prev && <ProductLayer p={prev} tag={cat.tag} t={0} />}
-        <div style={{ position: 'absolute', inset: 0, opacity: phase, transform: `scale(${kb})`, transformOrigin: 'center' }}>
+        <div style={{ position: 'absolute', inset: 0, opacity: phase, transform: entranceTransform(kind, phase, slotProg), transformOrigin: 'center' }}>
           <ProductLayer p={cur} tag={cat.tag} t={slotT} />
         </div>
       </div>
@@ -464,13 +480,14 @@ function MobileProductCard({ cat }) {
   const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
   const cur = cat.products[idx];
   const prev = idx > 0 ? cat.products[idx - 1] : null;
-  const kb = 1.0 + 0.03 * clamp(slotT / SLOT, 0, 1);
+  const slotProg = clamp(slotT / SLOT, 0, 1);
+  const kind = (parseInt(cat.n, 10) + idx) % 6;
 
   return (
     <div style={{ position: 'absolute', left: 60, top: 150, width: 780, height: 760, opacity: clamp(catO, 0, 1), transform: `translateY(${ty}px)`, willChange: 'transform,opacity' }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: 6, overflow: 'hidden', border: `1px solid ${GOLD_SOFT}`, boxShadow: '0 40px 90px rgba(0,0,0,0.55), 0 0 60px oklch(81% 0.105 84 / 0.10)' }}>
         {prev && <ProductLayer p={prev} tag={cat.tag} t={0} />}
-        <div style={{ position: 'absolute', inset: 0, opacity: phase, transform: `scale(${kb})`, transformOrigin: 'center' }}>
+        <div style={{ position: 'absolute', inset: 0, opacity: phase, transform: entranceTransform(kind, phase, slotProg), transformOrigin: 'center' }}>
           <ProductLayer p={cur} tag={cat.tag} t={slotT} />
         </div>
       </div>

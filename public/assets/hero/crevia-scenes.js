@@ -470,6 +470,24 @@ function RotatingImg({
     }
   })));
 }
+function entranceTransform(kind, e, drift) {
+  const s = 1 - e;
+  const z = 1.03 + 0.035 * drift;
+  switch ((kind % 6 + 6) % 6) {
+    case 0:
+      return `scale(${z + 0.10 * s})`;
+    case 1:
+      return `translateX(${-48 * s}px) scale(${1.10 + 0.035 * drift})`;
+    case 2:
+      return `translateX(${48 * s}px) scale(${1.10 + 0.035 * drift})`;
+    case 3:
+      return `translateY(${44 * s}px) scale(${1.10 + 0.035 * drift})`;
+    case 4:
+      return `scale(${z + 0.04 * s})`;
+    default:
+      return `scale(${z})`;
+  }
+}
 function ProductLayer({
   p,
   tag,
@@ -612,7 +630,8 @@ function ProductCard({
   const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
   const cur = cat.products[idx];
   const prev = idx > 0 ? cat.products[idx - 1] : null;
-  const kb = 1.0 + 0.03 * clamp(slotT / SLOT, 0, 1);
+  const slotProg = clamp(slotT / SLOT, 0, 1);
+  const kind = (parseInt(cat.n, 10) + idx) % 6;
   return React.createElement("div", {
     style: {
       position: 'absolute',
@@ -642,7 +661,7 @@ function ProductCard({
       position: 'absolute',
       inset: 0,
       opacity: phase,
-      transform: `scale(${kb})`,
+      transform: entranceTransform(kind, phase, slotProg),
       transformOrigin: 'center'
     }
   }, React.createElement(ProductLayer, {
@@ -1044,7 +1063,8 @@ function MobileProductCard({
   const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
   const cur = cat.products[idx];
   const prev = idx > 0 ? cat.products[idx - 1] : null;
-  const kb = 1.0 + 0.03 * clamp(slotT / SLOT, 0, 1);
+  const slotProg = clamp(slotT / SLOT, 0, 1);
+  const kind = (parseInt(cat.n, 10) + idx) % 6;
   return React.createElement("div", {
     style: {
       position: 'absolute',
@@ -1074,7 +1094,7 @@ function MobileProductCard({
       position: 'absolute',
       inset: 0,
       opacity: phase,
-      transform: `scale(${kb})`,
+      transform: entranceTransform(kind, phase, slotProg),
       transformOrigin: 'center'
     }
   }, React.createElement(ProductLayer, {
