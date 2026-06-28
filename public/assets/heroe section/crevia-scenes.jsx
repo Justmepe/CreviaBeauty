@@ -47,7 +47,7 @@ const liveProducts = (name) => {
 // ── categories — each holds 10s, one product per second ────────────────────
 const CATEGORIES = [
   { n: '01', name: 'Perfumes',
-    headline: 'Smell unforgettable — pay like it’s nothing.',
+    headline: 'Smell unforgettable. Pay like it’s nothing.',
     tag: 'Batch-code verified authentic',
     stack: ['Designer & luxury houses', 'Women’s, Men’s & Unisex', 'Refund if it’s ever a fake'],
     products: [
@@ -80,8 +80,8 @@ const CATEGORIES = [
 
 // ── timing ─────────────────────────────────────────────────────────────────
 const INTRO   = 3.4;   // brand intro window
-const SEG     = 45;    // seconds each category holds (slower, calmer pacing)
-const OVERLAP = 0.6;   // crossfade overlap between categories
+const SEG     = 60;    // seconds each category holds (slow, calm pacing)
+const OVERLAP = 1.2;   // long crossfade overlap between categories (smooth)
 const N = CATEGORIES.length;
 const catStart = (i) => INTRO - 0.2 + i * SEG;
 const catEnd   = (i) => catStart(i) + SEG + OVERLAP;
@@ -170,7 +170,7 @@ function TopRule() {
 
 // always-on risk-reversal strip (the offer, reinforced)
 function GuaranteeStrip() {
-  const items = ['100% Authentic — or your money back', 'Free delivery in Nairobi', 'Best prices, guaranteed'];
+  const items = ['100% Authentic, or your money back', 'Free delivery in Nairobi', 'Best prices, guaranteed'];
   return (
     <div style={{ position: 'absolute', bottom: 52, left: 130, right: 130, display: 'flex', alignItems: 'center', gap: 40, borderTop: `1px solid ${FAINT}`, paddingTop: 22 }}>
       {items.map((it, i) => (
@@ -238,7 +238,7 @@ function RotatingImg({ imgs, t, hold }) {
   const H = (typeof hold === 'number' && hold > 0.8) ? hold : 3.6; // seconds each image holds
   const tt = typeof t === 'number' ? t : 0;          // time since THIS product appeared
   const idx = Math.floor(tt / H) % list.length;      // starts on the cover, no pop
-  const fade = Math.min(1.1, H * 0.4);
+  const fade = Math.min(1.8, H * 0.5);
   return (
     <>
       {list.map((src, i) => (
@@ -253,13 +253,13 @@ function RotatingImg({ imgs, t, hold }) {
 // Slides keep a >1 base scale so the translate never exposes a gap.
 function entranceTransform(kind, e, drift) {
   const s = 1 - e;                      // 1 at entry, 0 once settled
-  const z = 1.03 + 0.035 * drift;       // settled scale with a slow ambient drift
+  const z = 1.03 + 0.03 * drift;        // settled scale with a slow ambient drift
   switch (((kind % 6) + 6) % 6) {
-    case 0: return `scale(${z + 0.10 * s})`;                                   // strong push-in
-    case 1: return `translateX(${-48 * s}px) scale(${1.10 + 0.035 * drift})`;  // slide from left
-    case 2: return `translateX(${48 * s}px) scale(${1.10 + 0.035 * drift})`;   // slide from right
-    case 3: return `translateY(${44 * s}px) scale(${1.10 + 0.035 * drift})`;   // rise up
-    case 4: return `scale(${z + 0.04 * s})`;                                   // gentle zoom
+    case 0: return `scale(${z + 0.06 * s})`;                                   // gentle push-in
+    case 1: return `translateX(${-30 * s}px) scale(${1.07 + 0.03 * drift})`;   // slide from left
+    case 2: return `translateX(${30 * s}px) scale(${1.07 + 0.03 * drift})`;    // slide from right
+    case 3: return `translateY(${28 * s}px) scale(${1.07 + 0.03 * drift})`;    // rise up
+    case 4: return `scale(${z + 0.03 * s})`;                                   // soft zoom
     default: return `scale(${z})`;                                             // pure fade + drift
   }
 }
@@ -312,7 +312,7 @@ function ProductCard({ cat }) {
   let idx = 0; for (let i = 0; i < products.length; i++) { if (localTime >= starts[i]) idx = i; }
   const SLOT = weights[idx] * unit;                  // this product's total time
   const slotT = localTime - starts[idx];             // time since THIS product appeared
-  const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1)); // smooth fade-in, no quick pop
+  const phase = Easing.easeInOutCubic(clamp(slotT / 1.5, 0, 1)); // smooth fade-in, no quick pop
   const cur = products[idx];
   const prev = idx > 0 ? products[idx - 1] : null;
   const slotProg = clamp(slotT / SLOT, 0, 1);
@@ -488,7 +488,7 @@ function MobileProductCard({ cat }) {
   let idx = 0; for (let i = 0; i < products.length; i++) { if (localTime >= starts[i]) idx = i; }
   const SLOT = weights[idx] * unit;
   const slotT = localTime - starts[idx];
-  const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
+  const phase = Easing.easeInOutCubic(clamp(slotT / 1.5, 0, 1));
   const cur = products[idx];
   const prev = idx > 0 ? products[idx - 1] : null;
   const slotProg = clamp(slotT / SLOT, 0, 1);
