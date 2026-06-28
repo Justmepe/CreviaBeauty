@@ -421,6 +421,24 @@ async function viewProduct(productId) {
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
 
+        // Cursor-follow zoom on the main image (desktop hover only). Moving the
+        // mouse pans the magnified view; leaving resets it smoothly.
+        const zoomWrap = modal.querySelector('.modal-image-main');
+        const zoomImg = modal.querySelector('#modal-main-img');
+        if (zoomWrap && zoomImg && window.matchMedia && window.matchMedia('(hover: hover)').matches) {
+            zoomWrap.addEventListener('mousemove', (e) => {
+                const r = zoomWrap.getBoundingClientRect();
+                const x = ((e.clientX - r.left) / r.width) * 100;
+                const y = ((e.clientY - r.top) / r.height) * 100;
+                zoomImg.style.transformOrigin = `${x}% ${y}%`;
+                zoomImg.style.transform = 'scale(2.2)';
+            });
+            zoomWrap.addEventListener('mouseleave', () => {
+                zoomImg.style.transform = '';
+                zoomImg.style.transformOrigin = 'center center';
+            });
+        }
+
         // Add modal styles if not already added
         if (!document.getElementById('modal-styles')) {
             const modalStyles = document.createElement('style');
@@ -499,6 +517,8 @@ async function viewProduct(productId) {
                     justify-content: center;
                     padding: 16px;
                     min-height: 0;
+                    overflow: hidden;       /* contain the hover zoom */
+                    cursor: zoom-in;
                 }
                 .modal-image-main img {
                     width: 100%;
@@ -506,6 +526,10 @@ async function viewProduct(productId) {
                     max-height: 78vh;
                     object-fit: contain;   /* show the whole product photo, never crop */
                     min-height: 300px;
+                    /* only the scale transitions; transform-origin tracks the cursor instantly */
+                    transition: transform 0.18s ease-out;
+                    transform-origin: center center;
+                    will-change: transform;
                 }
                 .modal-thumbs {
                     display: flex;
