@@ -80,7 +80,7 @@ const CATEGORIES = [
 
 // ── timing ─────────────────────────────────────────────────────────────────
 const INTRO   = 3.4;   // brand intro window
-const SEG     = 30;    // seconds each category holds (6 products × 5s)
+const SEG     = 45;    // seconds each category holds (slower, calmer pacing)
 const OVERLAP = 0.6;   // crossfade overlap between categories
 const N = CATEGORIES.length;
 const catStart = (i) => INTRO - 0.2 + i * SEG;

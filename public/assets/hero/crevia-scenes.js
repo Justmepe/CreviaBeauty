@@ -105,7 +105,7 @@ const CATEGORIES = [{
   }]
 }];
 const INTRO = 3.4;
-const SEG = 30;
+const SEG = 45;
 const OVERLAP = 0.6;
 const N = CATEGORIES.length;
 const catStart = i => INTRO - 0.2 + i * SEG;
