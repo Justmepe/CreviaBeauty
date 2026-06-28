@@ -80,7 +80,7 @@ const CATEGORIES = [
 
 // ── timing ─────────────────────────────────────────────────────────────────
 const INTRO   = 3.4;   // brand intro window
-const SEG     = 30;    // seconds each category holds (10 products × 3s)
+const SEG     = 30;    // seconds each category holds (6 products × 5s)
 const OVERLAP = 0.6;   // crossfade overlap between categories
 const N = CATEGORIES.length;
 const catStart = (i) => INTRO - 0.2 + i * SEG;
@@ -228,16 +228,16 @@ function Intro() {
 // several photos shows them all. Driven by the engine's own timeline clock
 // (not a setInterval) so it stays frame-synced and smooth, with no extra
 // re-renders fighting the animation loop.
-function RotatingImg({ imgs }) {
+function RotatingImg({ imgs, t }) {
   const list = (imgs || []).filter(Boolean);
-  const time = useTime();
   if (list.length <= 1) {
     return list.length
       ? <img src={list[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       : null;
   }
-  const HOLD = 3.4;                                  // seconds each image holds
-  const idx = Math.floor(time / HOLD) % list.length;
+  const HOLD = 3.6;                                  // seconds each image holds
+  const tt = typeof t === 'number' ? t : 0;          // time since THIS product appeared
+  const idx = Math.floor(tt / HOLD) % list.length;   // always starts on the cover, no pop
   return (
     <>
       {list.map((src, i) => (
@@ -247,11 +247,11 @@ function RotatingImg({ imgs }) {
   );
 }
 
-function ProductLayer({ p, tag }) {
+function ProductLayer({ p, tag, t }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
       {((p.imgs && p.imgs.length) || p.img) ? (
-        <RotatingImg imgs={(p.imgs && p.imgs.length) ? p.imgs : [p.img]} />
+        <RotatingImg imgs={(p.imgs && p.imgs.length) ? p.imgs : [p.img]} t={t} />
       ) : (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: 'repeating-linear-gradient(135deg, #1a1410 0 14px, #15100d 14px 28px)' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', border: `1px solid ${GOLD_SOFT}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -288,18 +288,19 @@ function ProductCard({ cat }) {
   const count = cat.products.length;
   const SLOT = SEG / count; // spread the products evenly across the segment
   const idx = clamp(Math.floor(localTime / SLOT), 0, count - 1);
-  const phase = clamp((localTime - idx * SLOT) / 0.28, 0, 1); // quick fade-in per product
+  const slotT = localTime - idx * SLOT;                          // time since THIS product appeared
+  const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1)); // smooth fade-in, no quick pop
   const cur = cat.products[idx];
   const prev = idx > 0 ? cat.products[idx - 1] : null;
   // subtle ken-burns within the slot
-  const kb = 1.0 + 0.03 * clamp((localTime - idx * SLOT) / SLOT, 0, 1);
+  const kb = 1.0 + 0.03 * clamp(slotT / SLOT, 0, 1);
 
   return (
     <div style={{ position: 'absolute', left: 980, top: 168, width: 560, height: 540, opacity: clamp(catO, 0, 1), transform: `translateY(${ty}px)`, willChange: 'transform,opacity' }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: 4, overflow: 'hidden', border: `1px solid ${GOLD_SOFT}`, boxShadow: '0 40px 90px rgba(0,0,0,0.55), 0 0 60px oklch(81% 0.105 84 / 0.10)' }}>
-        {prev && <ProductLayer p={prev} tag={cat.tag} />}
+        {prev && <ProductLayer p={prev} tag={cat.tag} t={0} />}
         <div style={{ position: 'absolute', inset: 0, opacity: phase, transform: `scale(${kb})`, transformOrigin: 'center' }}>
-          <ProductLayer p={cur} tag={cat.tag} />
+          <ProductLayer p={cur} tag={cat.tag} t={slotT} />
         </div>
       </div>
       {/* product progress ticks */}
@@ -459,17 +460,18 @@ function MobileProductCard({ cat }) {
   const count = cat.products.length;
   const SLOT = SEG / count;
   const idx = clamp(Math.floor(localTime / SLOT), 0, count - 1);
-  const phase = clamp((localTime - idx * SLOT) / 0.28, 0, 1);
+  const slotT = localTime - idx * SLOT;
+  const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
   const cur = cat.products[idx];
   const prev = idx > 0 ? cat.products[idx - 1] : null;
-  const kb = 1.0 + 0.03 * clamp((localTime - idx * SLOT) / SLOT, 0, 1);
+  const kb = 1.0 + 0.03 * clamp(slotT / SLOT, 0, 1);
 
   return (
     <div style={{ position: 'absolute', left: 60, top: 150, width: 780, height: 760, opacity: clamp(catO, 0, 1), transform: `translateY(${ty}px)`, willChange: 'transform,opacity' }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: 6, overflow: 'hidden', border: `1px solid ${GOLD_SOFT}`, boxShadow: '0 40px 90px rgba(0,0,0,0.55), 0 0 60px oklch(81% 0.105 84 / 0.10)' }}>
-        {prev && <ProductLayer p={prev} tag={cat.tag} />}
+        {prev && <ProductLayer p={prev} tag={cat.tag} t={0} />}
         <div style={{ position: 'absolute', inset: 0, opacity: phase, transform: `scale(${kb})`, transformOrigin: 'center' }}>
-          <ProductLayer p={cur} tag={cat.tag} />
+          <ProductLayer p={cur} tag={cat.tag} t={slotT} />
         </div>
       </div>
       <div style={{ position: 'absolute', left: 0, bottom: -26, display: 'flex', gap: 8 }}>

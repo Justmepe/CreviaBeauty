@@ -88,7 +88,7 @@
     CATEGORY_ORDER.forEach(function (cat) {
       byCategory[cat] = withImg
         .filter(function (p) { return p.category === cat; })
-        .slice(0, 10)
+        .slice(0, 6)            // 6 per category over a 30s segment = ~5s each (calmer pace)
         .map(toCard);
     });
     // Mobile/fallback shows one product at a time, so flatten the newest few
