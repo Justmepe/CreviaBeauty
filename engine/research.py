@@ -681,6 +681,89 @@ def run_series(series, copy_to_clipboard):
     return out_file
 
 
+# ── YouTube origin-story essays (weekly) ──────────────────────────────────
+# Different muscle from the carousel series: a 6-8 min narrative essay about why
+# a fragrance exists. The reply lands in the same inbox but routes to the
+# YouTube Scripts processor (the file name carries a youtube- prefix).
+
+def pick_youtube_product():
+    """Rotate weekly through the perfume catalogue (separate counter from series)."""
+    products = [p for p in (fetch_products("Perfumes") or fetch_products() or []) if p.get("name")]
+    if not products:
+        return None
+    try:
+        rot = json.loads(ROTATION_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        rot = {}
+    idx = rot.get("youtube", 0) % len(products)
+    rot["youtube"] = idx + 1
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    ROTATION_FILE.write_text(json.dumps(rot, indent=2), encoding="utf-8")
+    return products[idx]
+
+
+def build_youtube_prompt(product):
+    name = product["name"] if product else "a classic designer fragrance"
+    return f"""You are a fragrance historian and narrative essayist writing a YouTube video script for CreviaBeauty, a premium fragrance house in Nairobi, Kenya. This is NOT a review. It is a 6 to 8 minute narrative essay about the ORIGIN and MEANING of one fragrance: why it exists, who created it, what they were solving for, and what it was really selling.
+
+FRAGRANCE: {name}
+
+First research carefully. Prefer authoritative fragrance sources: Fragrantica and Basenotes for the perfumer, launch year and notes; the brand's own house and press material; and industry press such as WWD. Treat Wikipedia as a cross-check only, never your main source. Find: the perfumer(s) and house, the launch year and market moment, the creative brief, the competing scents at the time, the notes and what they evoke, and how the culture received it and wears it now. If sources disagree, or you cannot confirm a specific name, date, note or ranking, do NOT state it as fact in the script.
+
+Then write a flowing SPOKEN essay, first person, warm and intelligent, never salesy, structured as: 1) COLD OPEN (0:00 to 0:30) one arresting idea that reframes the fragrance, no "hi guys welcome back"; 2) THE PERSON AND THE BRIEF; 3) THE MOMENT it launched into; 4) WHAT IT WAS REALLY SELLING (power, accessibility, rebellion, nostalgia) which is the heart; 5) THE LEGACY; 6) SOFT CLOSE with one reflective line and a light contextual CTA.
+
+Return ONE JSON object, no text before or after, exactly this shape:
+{{
+  "type": "crevia-youtube",
+  "fragrance": "{name}",
+  "titles": ["3 SEO YouTube titles"],
+  "hook": "the cold-open lines",
+  "script": "the full spoken script, 900 to 1200 words, plain text with paragraph breaks, no markdown",
+  "chapters": [{{"time": "0:00", "title": "chapter title"}}],
+  "thumbnail_text": "3 to 5 punchy words",
+  "seo_description": "150 to 200 word description, ending with: Explore the collection at https://creviabeauty.com",
+  "tags": ["8 to 12 search tags"],
+  "facts_to_verify": ["each specific name, date, note or ranking to confirm before filming, or [] if fully confident"],
+  "pinned_comment": "I cover the why behind fragrances, not just reviews. Full collection at CreviaBeauty: https://creviabeauty.com",
+  "carousel": [
+    {{"heading": "Hook from the core idea", "body": "1-2 short lines"}},
+    {{"heading": "Story beat 1", "body": "1-2 short lines"}},
+    {{"heading": "Story beat 2", "body": "1-2 short lines"}},
+    {{"heading": "What it was really selling", "body": "1-2 short lines"}},
+    {{"heading": "Watch the full story", "body": "The full essay is on our YouTube. @creviabeauty"}}
+  ]
+}}
+
+RULES:
+- British / Kenyan English.
+- NEVER use em dashes. Use commas, periods or colons.
+- It is a history and a story, never a sales pitch.
+- NEVER name your source in the narration. Do not say "according to Wikipedia" or similar.
+- If unsure of any specific name, date, note or ranking, leave it OUT of the script and list it in facts_to_verify.
+- "carousel" is a 5-slide Instagram teaser, last slide points to YouTube.
+- Return ONLY the JSON object."""
+
+
+def run_youtube(copy_to_clipboard):
+    print("\n=== YouTube origin-story (weekly) ===")
+    product = pick_youtube_product()
+    print(f"    {product['name'] if product else '(no perfume found, going general)'}")
+    prompt = build_youtube_prompt(product)
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    slug = slugify(product["name"]) if product else "fragrance"
+    out_file = OUTPUT_DIR / f"youtube-{slug}-prompt.txt"
+    out_file.write_text(prompt, encoding="utf-8")
+    print(f"\nYouTube prompt saved: {out_file}")
+    if copy_to_clipboard:
+        try:
+            subprocess.run("clip", input=prompt.encode("utf-16-le"), check=True)
+            print("Prompt copied to clipboard.")
+        except Exception:
+            print("(clipboard copy failed, open the file instead)")
+    print("Next: copy into claude.ai, then Inject the reply in the Prompt Inbox. It saves to YouTube Scripts.")
+    return out_file
+
+
 def main():
     parser = argparse.ArgumentParser(description="Crevia Beauty research engine")
     parser.add_argument("topic", nargs="?", help="Topic / pain point to research")
@@ -691,10 +774,17 @@ def main():
     parser.add_argument("--discover", action="store_true", help="Run today's series (weekday rotation). Default when no topic is given.")
     parser.add_argument("--watch", type=float, metavar="HOURS", help="Continuous mode: re-run every N hours")
     parser.add_argument("--copy", action="store_true", help="Copy the prompt to the clipboard")
+    parser.add_argument("--youtube", action="store_true", help="Queue a YouTube origin-story prompt (weekly fragrance rotation)")
     args = parser.parse_args()
+
+    # The weekday the weekly YouTube essay is queued (Wed). Mon=0 .. Sun=6.
+    YOUTUBE_WEEKDAY = 2
 
     # One unit of work: a chosen series, an ad-hoc topic, or today's series by default.
     def do_run():
+        if args.youtube:
+            run_youtube(args.copy)
+            return
         if args.topic and not args.series:
             print(f"\n=== Ad-hoc topic: {args.topic} ===")
             web = search_web(args.topic)
@@ -710,6 +800,12 @@ def main():
             print(f"\nPrompt saved: {out}")
         else:
             run_series(pick_series(args.series), args.copy)
+            # Once a week, also queue a YouTube origin-story prompt into the inbox.
+            if not args.series and date.today().weekday() == YOUTUBE_WEEKDAY:
+                try:
+                    run_youtube(args.copy)
+                except Exception as e:
+                    print(f"[warn] weekly youtube prompt failed: {e}")
 
     if args.watch:
         print(f"Continuous mode: one post every {args.watch}h (today's series). Ctrl+C to stop.")

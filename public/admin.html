@@ -2510,7 +2510,8 @@
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
                             <div>
                                 <span class="status-badge ${p.status === 'done' ? 'approved' : 'pending'}" style="margin-right:0.5rem;">${p.status === 'done' ? 'DONE' : 'PENDING'}</span>
-                                <strong style="text-transform:capitalize;">${escapeHtml(p.topic)}</strong><br>
+                                ${/^youtube-/.test(p.name) ? '<span class="status-badge" style="background:#15173a;color:#d4af6a;margin-right:0.5rem;">&#127916; YOUTUBE</span>' : ''}
+                                <strong style="text-transform:capitalize;">${escapeHtml(/^youtube-/.test(p.name) ? p.topic.replace(/^youtube /, '') : p.topic)}</strong><br>
                                 <small style="color:#7f8c8d;">researched ${new Date(p.modified).toLocaleString('en-KE')}</small>
                             </div>
                             <div style="white-space:nowrap;">
@@ -2549,8 +2550,11 @@
 
             btn.disabled = true;
             btn.textContent = 'Processing…';
+            // YouTube origin-story prompts (queued weekly by the engine) carry a
+            // different JSON shape and route to the YouTube Scripts processor.
+            const isYoutube = /^youtube-/.test(prompt.name || '');
             try {
-                const response = await fetch('/api/admin/articles/process', {
+                const response = await fetch(isYoutube ? '/api/admin/youtube/process' : '/api/admin/articles/process', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ raw })
@@ -2558,22 +2562,26 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    const a = data.article;
-                    const slides = (a.content && a.content.carousel) || [];
-                    studioArticles.unshift({ id: a.id, slug: a.slug, title: a.title, status: a.status, carousel: slides, social: (a.content && a.content.social) || null, intro: a.content && a.content.intro });
-                    // Archive the prompt as done
                     await fetch(`/api/admin/articles/inbox/${encodeURIComponent(prompt.name)}/done`, { method: 'POST' });
-                    resultBox.innerHTML = `
-                        <div style="background:rgba(201,165,90,0.1); border:1px solid #d4af6a; border-radius:8px; padding:1rem;">
-                            &#9881; <strong>Processed as draft:</strong> ${escapeHtml(a.title)}
-                            <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
-                                <button class="btn-dashboard outline sm" onclick="window.open('${data.preview_url}', '_blank')">&#128065; Preview Blog Page</button>
-                                ${slides.length ? `<button class="btn-dashboard outline sm" onclick="openCarousel(${a.id})">&#127912; Carousel — PNG / PDF (${slides.length} slides)</button>` : ''}
-                                <button class="btn-dashboard success sm" onclick="publishNow(${a.id}, '${escapeHtml(a.slug)}')">&#9989; Publish Now</button>
-                            </div>
-                        </div>`;
-                    showAlert('Draft ready — review, then publish', 'success');
-                    loadStudioArticles();
+                    if (isYoutube) {
+                        resultBox.innerHTML = `<div style="background:rgba(201,165,90,0.1); border:1px solid #d4af6a; border-radius:8px; padding:1rem;">&#127916; <strong>Saved to YouTube Scripts.</strong> <a href="#youtube" onclick="showSection('youtube')" style="color:#15173a; font-weight:600;">Open YouTube Scripts &rarr;</a></div>`;
+                        showAlert('YouTube script saved', 'success');
+                    } else {
+                        const a = data.article;
+                        const slides = (a.content && a.content.carousel) || [];
+                        studioArticles.unshift({ id: a.id, slug: a.slug, title: a.title, status: a.status, carousel: slides, social: (a.content && a.content.social) || null, intro: a.content && a.content.intro });
+                        resultBox.innerHTML = `
+                            <div style="background:rgba(201,165,90,0.1); border:1px solid #d4af6a; border-radius:8px; padding:1rem;">
+                                &#9881; <strong>Processed as draft:</strong> ${escapeHtml(a.title)}
+                                <div style="margin-top:0.75rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                    <button class="btn-dashboard outline sm" onclick="window.open('${data.preview_url}', '_blank')">&#128065; Preview Blog Page</button>
+                                    ${slides.length ? `<button class="btn-dashboard outline sm" onclick="openCarousel(${a.id})">&#127912; Carousel — PNG / PDF (${slides.length} slides)</button>` : ''}
+                                    <button class="btn-dashboard success sm" onclick="publishNow(${a.id}, '${escapeHtml(a.slug)}')">&#9989; Publish Now</button>
+                                </div>
+                            </div>`;
+                        showAlert('Draft ready — review, then publish', 'success');
+                        loadStudioArticles();
+                    }
                 } else {
                     resultBox.innerHTML = `<div style="background:rgba(233,69,96,0.08); border:1px solid #e94560; border-radius:8px; padding:1rem;">${escapeHtml(getErrorMessage(data, 'Failed to process'))}</div>`;
                 }
