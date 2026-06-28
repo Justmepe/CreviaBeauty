@@ -435,7 +435,8 @@ function Intro() {
 }
 function RotatingImg({
   imgs,
-  t
+  t,
+  hold
 }) {
   const list = (imgs || []).filter(Boolean);
   if (list.length <= 1) {
@@ -450,9 +451,10 @@ function RotatingImg({
       }
     }) : null;
   }
-  const HOLD = 3.6;
+  const H = typeof hold === 'number' && hold > 0.8 ? hold : 3.6;
   const tt = typeof t === 'number' ? t : 0;
-  const idx = Math.floor(tt / HOLD) % list.length;
+  const idx = Math.floor(tt / H) % list.length;
+  const fade = Math.min(1.1, H * 0.4);
   return React.createElement(React.Fragment, null, list.map((src, i) => React.createElement("img", {
     key: i,
     src: src,
@@ -465,7 +467,7 @@ function RotatingImg({
       objectFit: 'cover',
       display: 'block',
       opacity: i === idx ? 1 : 0,
-      transition: 'opacity 1.1s ease-in-out',
+      transition: `opacity ${fade}s ease-in-out`,
       willChange: 'opacity'
     }
   })));
@@ -491,7 +493,8 @@ function entranceTransform(kind, e, drift) {
 function ProductLayer({
   p,
   tag,
-  t
+  t,
+  hold
 }) {
   return React.createElement("div", {
     style: {
@@ -500,7 +503,8 @@ function ProductLayer({
     }
   }, p.imgs && p.imgs.length || p.img ? React.createElement(RotatingImg, {
     imgs: p.imgs && p.imgs.length ? p.imgs : [p.img],
-    t: t
+    t: t,
+    hold: hold
   }) : React.createElement("div", {
     style: {
       position: 'absolute',
@@ -623,13 +627,29 @@ function ProductCard({
     catO = 1 - e;
     ty = -e * 12;
   }
-  const count = cat.products.length;
-  const SLOT = SEG / count;
-  const idx = clamp(Math.floor(localTime / SLOT), 0, count - 1);
-  const slotT = localTime - idx * SLOT;
+  const products = cat.products;
+  const weights = products.map(function (pp) {
+    return clamp(pp.imgs && pp.imgs.length || 1, 1, 4);
+  });
+  const totalW = weights.reduce(function (a, b) {
+    return a + b;
+  }, 0) || 1;
+  const unit = SEG / totalW;
+  let acc = 0;
+  const starts = weights.map(function (w) {
+    const s0 = acc;
+    acc += w * unit;
+    return s0;
+  });
+  let idx = 0;
+  for (let i = 0; i < products.length; i++) {
+    if (localTime >= starts[i]) idx = i;
+  }
+  const SLOT = weights[idx] * unit;
+  const slotT = localTime - starts[idx];
   const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
-  const cur = cat.products[idx];
-  const prev = idx > 0 ? cat.products[idx - 1] : null;
+  const cur = products[idx];
+  const prev = idx > 0 ? products[idx - 1] : null;
   const slotProg = clamp(slotT / SLOT, 0, 1);
   const kind = (parseInt(cat.n, 10) + idx) % 6;
   return React.createElement("div", {
@@ -667,7 +687,8 @@ function ProductCard({
   }, React.createElement(ProductLayer, {
     p: cur,
     tag: cat.tag,
-    t: slotT
+    t: slotT,
+    hold: unit
   }))), React.createElement("div", {
     style: {
       position: 'absolute',
@@ -1056,13 +1077,29 @@ function MobileProductCard({
     catO = 1 - e;
     ty = -e * 12;
   }
-  const count = cat.products.length;
-  const SLOT = SEG / count;
-  const idx = clamp(Math.floor(localTime / SLOT), 0, count - 1);
-  const slotT = localTime - idx * SLOT;
+  const products = cat.products;
+  const weights = products.map(function (pp) {
+    return clamp(pp.imgs && pp.imgs.length || 1, 1, 4);
+  });
+  const totalW = weights.reduce(function (a, b) {
+    return a + b;
+  }, 0) || 1;
+  const unit = SEG / totalW;
+  let acc = 0;
+  const starts = weights.map(function (w) {
+    const s0 = acc;
+    acc += w * unit;
+    return s0;
+  });
+  let idx = 0;
+  for (let i = 0; i < products.length; i++) {
+    if (localTime >= starts[i]) idx = i;
+  }
+  const SLOT = weights[idx] * unit;
+  const slotT = localTime - starts[idx];
   const phase = Easing.easeInOutCubic(clamp(slotT / 0.9, 0, 1));
-  const cur = cat.products[idx];
-  const prev = idx > 0 ? cat.products[idx - 1] : null;
+  const cur = products[idx];
+  const prev = idx > 0 ? products[idx - 1] : null;
   const slotProg = clamp(slotT / SLOT, 0, 1);
   const kind = (parseInt(cat.n, 10) + idx) % 6;
   return React.createElement("div", {
@@ -1100,7 +1137,8 @@ function MobileProductCard({
   }, React.createElement(ProductLayer, {
     p: cur,
     tag: cat.tag,
-    t: slotT
+    t: slotT,
+    hold: unit
   }))), React.createElement("div", {
     style: {
       position: 'absolute',
