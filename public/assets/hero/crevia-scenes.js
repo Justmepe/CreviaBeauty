@@ -437,12 +437,21 @@ function RotatingImg({
   imgs
 }) {
   const list = (imgs || []).filter(Boolean);
-  const [idx, setIdx] = React.useState(0);
-  React.useEffect(() => {
-    if (list.length < 2) return;
-    const t = setInterval(() => setIdx(i => (i + 1) % list.length), 2600);
-    return () => clearInterval(t);
-  }, [list.length]);
+  const time = useTime();
+  if (list.length <= 1) {
+    return list.length ? React.createElement("img", {
+      src: list[0],
+      alt: "",
+      style: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        display: 'block'
+      }
+    }) : null;
+  }
+  const HOLD = 3.4;
+  const idx = Math.floor(time / HOLD) % list.length;
   return React.createElement(React.Fragment, null, list.map((src, i) => React.createElement("img", {
     key: i,
     src: src,
@@ -455,7 +464,8 @@ function RotatingImg({
       objectFit: 'cover',
       display: 'block',
       opacity: i === idx ? 1 : 0,
-      transition: 'opacity 0.9s ease'
+      transition: 'opacity 1.1s ease-in-out',
+      willChange: 'opacity'
     }
   })));
 }

@@ -225,19 +225,23 @@ function Intro() {
 // ── product card that flips through a category's products ──────────────────
 
 // Cross-fades through a product's images (cover + gallery) so a product with
-// several photos shows them all instead of a single still.
+// several photos shows them all. Driven by the engine's own timeline clock
+// (not a setInterval) so it stays frame-synced and smooth, with no extra
+// re-renders fighting the animation loop.
 function RotatingImg({ imgs }) {
   const list = (imgs || []).filter(Boolean);
-  const [idx, setIdx] = React.useState(0);
-  React.useEffect(() => {
-    if (list.length < 2) return;
-    const t = setInterval(() => setIdx(i => (i + 1) % list.length), 2600);
-    return () => clearInterval(t);
-  }, [list.length]);
+  const time = useTime();
+  if (list.length <= 1) {
+    return list.length
+      ? <img src={list[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      : null;
+  }
+  const HOLD = 3.4;                                  // seconds each image holds
+  const idx = Math.floor(time / HOLD) % list.length;
   return (
     <>
       {list.map((src, i) => (
-        <img key={i} src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: i === idx ? 1 : 0, transition: 'opacity 0.9s ease' }} />
+        <img key={i} src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: i === idx ? 1 : 0, transition: 'opacity 1.1s ease-in-out', willChange: 'opacity' }} />
       ))}
     </>
   );
