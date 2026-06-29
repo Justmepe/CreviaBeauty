@@ -13,6 +13,7 @@ const { reviewIdRules, approveReviewRules } = require('../validators/review');
 const { invalidateCache } = require('../middleware/cache');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
+const { sendPaidReceiptToDiscord } = require('../utils/orderReceipt');
 
 module.exports = (db) => {
     // All admin routes require authentication
@@ -269,9 +270,20 @@ module.exports = (db) => {
 
             // Update order status
             await client.query('UPDATE orders SET status = $1 WHERE id = $2', [status, orderId]);
+
+            // For Cash on Delivery, completing the order means cash was collected,
+            // so mark it paid (which triggers the PAID receipt below).
+            if (isCompleting && existing.payment_method === 'cod' && existing.payment_status !== 'paid') {
+                await client.query('UPDATE orders SET payment_status = $1 WHERE id = $2', ['paid', orderId]);
+            }
         });
 
         logger.info('Order status updated', { orderId, status, previousStatus });
+
+        // COD just got paid on delivery — send the final PAID receipt to Discord.
+        if (isCompleting && existing.payment_method === 'cod' && existing.payment_status !== 'paid') {
+            sendPaidReceiptToDiscord(db, orderId);
+        }
 
         res.json({ success: true });
     }));
@@ -290,14 +302,21 @@ module.exports = (db) => {
             throw AppError.badRequest('Invalid payment status');
         }
 
-        const existingResult = await db.query('SELECT id FROM orders WHERE id = $1', [orderId]);
-        if (!existingResult.rows[0]) {
+        const existingResult = await db.query('SELECT id, payment_status FROM orders WHERE id = $1', [orderId]);
+        const existing = existingResult.rows[0];
+        if (!existing) {
             throw AppError.notFound('Order not found');
         }
 
         await db.query('UPDATE orders SET payment_status = $1 WHERE id = $2', [payment_status, orderId]);
 
         logger.info('Payment status updated', { orderId, payment_status });
+
+        // On transition to paid, push the final PAID receipt to Discord
+        // (background — don't block the response on PDF render + upload).
+        if (payment_status === 'paid' && existing.payment_status !== 'paid') {
+            sendPaidReceiptToDiscord(db, orderId);
+        }
 
         res.json({ success: true });
     }));

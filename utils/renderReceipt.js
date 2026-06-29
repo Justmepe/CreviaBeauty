@@ -185,6 +185,12 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
     const paymentDisplay = opts.paymentText ? esc(opts.paymentText) : paymentLine(order, settings);
     const statusDisplay = esc(opts.statusText || statusLine(order));
 
+    // Before payment the document is an INVOICE; once paid it becomes a RECEIPT.
+    const isPaid = opts.statusText
+        ? opts.statusText === 'Paid'
+        : order.payment_status === 'paid';
+    const docType = isPaid ? 'Receipt' : 'Invoice';
+
     const itemRows = items.map(it => `
         <tr>
             <td class="qty">${Number(it.quantity) || 0} &times;</td>
@@ -202,7 +208,7 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${esc(receiptNo)} - Crevia Beauty Receipt</title>
+<title>${esc(receiptNo)} - Crevia Beauty ${docType}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,500&family=Pinyon+Script&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -263,6 +269,20 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
     }
     .head .contact span { display: block; }
     .body { padding: 20px 22px; }
+    .doctype {
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        margin-bottom: 16px;
+    }
+    .doctype .doctype-label {
+        font-family: Montserrat, sans-serif; font-size: 14px; font-weight: 700;
+        letter-spacing: 5px; text-transform: uppercase; color: var(--heading);
+    }
+    .doctype .paid-stamp {
+        font-family: Montserrat, sans-serif; font-size: 11px; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: #1c7a3f;
+        border: 2px solid #1c7a3f; border-radius: 5px; padding: 2px 8px;
+        transform: rotate(-6deg);
+    }
     .meta { border-bottom: 1px dashed var(--frame); padding-bottom: 14px; margin-bottom: 14px; }
     .row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
     .row .k { color: var(--sub); font-family: Inter, sans-serif; }
@@ -330,6 +350,10 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
             <div class="contact"><span>www.creviabeauty.com</span><span>support@creviabeauty.com</span></div>
         </div>
         <div class="body">
+            <div class="doctype">
+                <span class="doctype-label">${docType}</span>
+                ${isPaid ? '<span class="paid-stamp">Paid</span>' : ''}
+            </div>
             <div class="meta">
                 <div class="row"><span class="k">Receipt No</span><span class="v">${esc(receiptNo)}</span></div>
                 ${showOrderNo ? `<div class="row"><span class="k">Order No</span><span class="v">${esc(orderNo)}</span></div>` : ''}
