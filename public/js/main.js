@@ -401,8 +401,8 @@ async function viewProduct(productId) {
                             <span class="current-price">${formatPrice(product.price)}</span>
                             ${product.original_price ? `<span class="old-price">${formatPrice(product.original_price)}</span>` : ''}
                         </div>
-                        <div class="modal-stock">
-                            ${product.stock > 0 ? `<span class="in-stock">✓ In Stock (${product.stock} available)</span>` : '<span class="out-stock">✗ Out of Stock</span>'}
+                        <div class="modal-urgency" id="modal-urgency">
+                            ${product.stock > 0 ? '<span class="in-stock">✓ In Stock</span>' : '<span class="out-stock">✗ Out of Stock</span>'}
                         </div>
                         ${variantsBlock}
                         ${wigBlock}
@@ -420,6 +420,9 @@ async function viewProduct(productId) {
 
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
+
+        // Live "X viewing now" + low-stock urgency (heartbeat while modal open).
+        startUrgency(product.id);
 
         // Cursor-follow zoom on the main image (desktop hover only). Moving the
         // mouse pans the magnified view; leaving resets it smoothly.
@@ -611,16 +614,49 @@ async function viewProduct(productId) {
                     text-decoration: line-through;
                     margin-left: 1rem;
                 }
-                .modal-stock {
+                .modal-urgency {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    flex-wrap: wrap;
                     margin-bottom: 1.5rem;
+                    min-height: 1.2rem;
                 }
-                .modal-stock .in-stock {
+                .modal-urgency .in-stock {
                     color: #27ae60;
                     font-weight: 500;
                 }
-                .modal-stock .out-stock {
+                .modal-urgency .out-stock {
                     color: #e94560;
                     font-weight: 500;
+                }
+                /* Low stock — restrained amber, not an alarm */
+                .modal-urgency .u-lowstock {
+                    color: #b26a00;
+                    font-weight: 600;
+                }
+                /* Live viewers — muted Navy with a soft pulsing dot (premium, not red) */
+                .modal-urgency .u-viewers {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.45rem;
+                    color: #1a1a2e;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    opacity: 0.85;
+                }
+                .modal-urgency .u-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #1a1a2e;
+                    box-shadow: 0 0 0 0 rgba(26, 26, 46, 0.45);
+                    animation: urgencyPulse 2.2s ease-out infinite;
+                }
+                @keyframes urgencyPulse {
+                    0%   { box-shadow: 0 0 0 0 rgba(26, 26, 46, 0.45); }
+                    70%  { box-shadow: 0 0 0 7px rgba(26, 26, 46, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(26, 26, 46, 0); }
                 }
                 .modal-actions {
                     display: flex;
@@ -740,8 +776,66 @@ function setModalImage(btn) {
     btn.classList.add('active');
 }
 
+// ===== Live viewers / urgency badge =====
+// Stable, opaque per-browser id so the server can count distinct viewers
+// without a login. Random, non-identifying — purely a headcount key.
+function getViewerId() {
+    try {
+        let id = localStorage.getItem('crevia_vid');
+        if (!id) {
+            id = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            localStorage.setItem('crevia_vid', id);
+        }
+        return id;
+    } catch (e) {
+        return 'v_' + Math.random().toString(36).slice(2);
+    }
+}
+
+let _urgencyTimer = null;
+
+function renderUrgency(data) {
+    const el = document.getElementById('modal-urgency');
+    if (!el || !data) return;
+    const parts = [];
+    if (!data.inStock) {
+        el.innerHTML = '<span class="out-stock">✗ Out of Stock</span>';
+        return;
+    }
+    if (data.lowStock) {
+        parts.push(`<span class="u-lowstock">Only ${data.lowStock} left</span>`);
+    } else {
+        parts.push('<span class="in-stock">✓ In Stock</span>');
+    }
+    if (data.show && data.viewers >= 2) {
+        parts.push(`<span class="u-viewers"><span class="u-dot"></span>${data.viewers} people viewing now</span>`);
+    }
+    el.innerHTML = parts.join('');
+}
+
+async function pingUrgency(productId) {
+    try {
+        const res = await fetch(`/api/products/${productId}/activity?vid=${encodeURIComponent(getViewerId())}`);
+        if (!res.ok) return;
+        renderUrgency(await res.json());
+    } catch (e) { /* badge is non-critical — fail silent */ }
+}
+
+function startUrgency(productId) {
+    stopUrgency();
+    pingUrgency(productId);
+    // Heartbeat: keeps this viewer "present" (30s server window) and refreshes
+    // the count while the modal stays open.
+    _urgencyTimer = setInterval(() => pingUrgency(productId), 25000);
+}
+
+function stopUrgency() {
+    if (_urgencyTimer) { clearInterval(_urgencyTimer); _urgencyTimer = null; }
+}
+
 // Close product modal
 function closeProductModal() {
+    stopUrgency();
     const modal = document.querySelector('.product-modal');
     if (modal) {
         modal.remove();

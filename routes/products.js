@@ -11,6 +11,7 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { requireAdmin } = require('../middleware/auth');
 const { productRules, productIdRules, productQueryRules } = require('../validators/product');
 const { cacheMiddleware, invalidateCache, TTL } = require('../middleware/cache');
+const liveViewers = require('../middleware/liveViewers');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -191,6 +192,21 @@ module.exports = (db) => {
         product.images = [product.image_url, ...gallery.rows.map(r => r.image_url)].filter(Boolean);
 
         res.json(product);
+    }));
+
+    // Live activity for the urgency badge: registers an anonymous heartbeat and
+    // returns a blended "X viewing now" count plus a low-stock nudge. No login
+    // needed — the client sends an opaque viewer id (falls back to session id).
+    router.get('/:id/activity', productIdRules, asyncHandler(async (req, res) => {
+        const productId = parseInt(req.params.id, 10);
+        const viewerId = (typeof req.query.vid === 'string' && req.query.vid.slice(0, 64)) || req.sessionID || req.ip;
+        liveViewers.touch(productId, viewerId);
+
+        const result = await db.query('SELECT stock FROM products WHERE id = $1', [productId]);
+        if (result.rows.length === 0) throw AppError.notFound('Product not found');
+
+        res.set('Cache-Control', 'no-store');
+        res.json(liveViewers.activity(productId, result.rows[0].stock));
     }));
 
     // Cover image is field "image" (one); extra angle shots are field "images" (many).
