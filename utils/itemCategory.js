@@ -1,11 +1,14 @@
 /**
- * Resolve a free-text order line-item name to a product category.
+ * Resolve a free-text order line-item name to catalog attributes
+ * (category, subcategory, brand).
  *
  * Order line items live in `orders.items_json` as free text ({name, quantity,
- * price}) with no product_id/category. To power category & top-product
- * analytics we resolve each name to a category in two tiers:
- *   1. Match against the live product catalog (exact, then containment).
- *   2. Fall back to a keyword heuristic over the known store categories.
+ * price}) with no product_id/category. To power richer analytics we resolve
+ * each name in tiers:
+ *   1. Match against the live product catalog (exact, then containment) and
+ *      inherit its category / subcategory / brand.
+ *   2. Fall back to a keyword heuristic for category and a known-brand scan of
+ *      the item name for brand.
  *
  * Categories in the catalog: Hair, Skincare, Makeup, Perfumes, Candles,
  * Body Care, Beauty Tools.
@@ -47,12 +50,20 @@ function guessCategoryFromName(name) {
 
 /**
  * Build a resolver bound to the current product catalog.
- * @param {Array<{name:string, category:string}>} products
- * @returns {(rawName:string) => {name:string, category:string, matched:boolean}}
+ * @param {Array<{name:string, category:string, subcategory?:string, brand?:string}>} products
+ * @returns {(rawName:string) => {name, category, subcategory, brand, matched}}
  */
 function buildCategoryResolver(products) {
+    const clean = (v) => (v == null ? '' : String(v).trim());
+
     const indexed = (products || [])
-        .map((p) => ({ name: p.name, category: p.category || 'Other', norm: normalize(p.name) }))
+        .map((p) => ({
+            name: p.name,
+            category: clean(p.category) || 'Other',
+            subcategory: clean(p.subcategory) || null,
+            brand: clean(p.brand) || null,
+            norm: normalize(p.name)
+        }))
         .filter((p) => p.norm.length >= 3)
         // Longest names first so "Argan Oil Shampoo" wins over "Oil".
         .sort((a, b) => b.norm.length - a.norm.length);
@@ -62,23 +73,52 @@ function buildCategoryResolver(products) {
         if (!exact.has(p.norm)) exact.set(p.norm, p);
     }
 
+    // Known brands (normalized) for scanning unmatched item names. Longest first
+    // so "tom ford" matches before a hypothetical "tom".
+    const brands = [];
+    const seenBrand = new Set();
+    for (const p of products || []) {
+        const b = clean(p.brand);
+        const nb = normalize(b);
+        if (b && nb.length >= 3 && !seenBrand.has(nb)) {
+            seenBrand.add(nb);
+            brands.push({ brand: b, norm: nb });
+        }
+    }
+    brands.sort((a, b) => b.norm.length - a.norm.length);
+
+    function detectBrand(itemNorm) {
+        if (!itemNorm) return null;
+        for (const b of brands) {
+            // Word-boundary-ish containment on the normalized (space-delimited) name.
+            if ((' ' + itemNorm + ' ').includes(' ' + b.norm + ' ') || itemNorm.includes(b.norm)) {
+                return b.brand;
+            }
+        }
+        return null;
+    }
+
     return function resolve(rawName) {
         const n = normalize(rawName);
         if (n) {
             // 1. exact normalized match
             const hit = exact.get(n);
-            if (hit) return { name: hit.name, category: hit.category, matched: true };
+            if (hit) {
+                return { name: hit.name, category: hit.category, subcategory: hit.subcategory, brand: hit.brand, matched: true };
+            }
             // 2. containment match (require >= 4 chars to avoid spurious hits)
             for (const p of indexed) {
                 if (p.norm.length >= 4 && (n.includes(p.norm) || p.norm.includes(n))) {
-                    return { name: p.name, category: p.category, matched: true };
+                    return { name: p.name, category: p.category, subcategory: p.subcategory, brand: p.brand, matched: true };
                 }
             }
         }
-        // 3. keyword heuristic fallback
+        // 3. heuristic fallbacks
         return {
             name: String(rawName || 'Unknown').trim() || 'Unknown',
             category: guessCategoryFromName(rawName) || 'Other',
+            subcategory: null,
+            brand: detectBrand(n),
             matched: false
         };
     };

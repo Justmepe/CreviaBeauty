@@ -113,14 +113,15 @@ module.exports = (db) => {
             db.query(`SELECT status, COUNT(*) AS count FROM orders GROUP BY status ORDER BY count DESC`),
             // Structured line items (storefront checkout writes to order_items)
             db.query(`
-                SELECT p.name, COALESCE(p.category, 'Other') AS category, oi.quantity, oi.price
+                SELECT p.name, COALESCE(p.category, 'Other') AS category,
+                       p.subcategory, p.brand, oi.quantity, oi.price
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.id
             `),
             // Free-text line items (manual / receipt orders store these in items_json)
             db.query(`SELECT items_json FROM orders WHERE items_json IS NOT NULL AND items_json <> ''`),
-            // Catalog used to resolve free-text item names back to a category
-            db.query(`SELECT id, name, category FROM products`),
+            // Catalog used to resolve free-text item names back to category/brand
+            db.query(`SELECT id, name, category, subcategory, brand FROM products`),
             db.query(`
                 SELECT COALESCE(payment_method, 'cod') AS method,
                        COUNT(*)                  AS count,
@@ -143,28 +144,39 @@ module.exports = (db) => {
         const totalOrders = num(s.total_orders);
         const totalRevenue = num(s.total_revenue);
 
-        // Aggregate category + top-product revenue from BOTH structured order_items
-        // and free-text items_json. Category is taken from (in priority order):
-        // an explicit category on the item, the linked product_id, the live
-        // catalog by name, then a keyword heuristic.
+        // Aggregate revenue by category / subcategory / brand / product from BOTH
+        // structured order_items and free-text items_json. Each attribute is taken
+        // in priority order: an explicit field on the item, the linked product_id,
+        // the live catalog by name, then a keyword/known-brand heuristic.
         const resolveCategory = buildCategoryResolver(productsRes.rows);
         const productById = new Map(productsRes.rows.map(p => [String(p.id), p]));
-        const catMap = new Map();   // category -> { revenue, units }
-        const prodMap = new Map();  // product name -> { revenue, units }
+        const catMap = new Map();    // category -> { revenue, units }
+        const subMap = new Map();    // subcategory -> { revenue, units }
+        const brandMap = new Map();  // brand -> { revenue, units }
+        const prodMap = new Map();   // product name -> { revenue, units, brand, category }
         const clean = (v) => (v == null ? '' : String(v).trim());
-        const addLine = (name, category, qty, price) => {
+        const bump = (map, key, revenue, qty, extra) => {
+            const e = map.get(key) || Object.assign({ revenue: 0, units: 0 }, extra);
+            e.revenue += revenue; e.units += qty;
+            if (extra) Object.assign(e, extra, { revenue: e.revenue, units: e.units });
+            map.set(key, e);
+        };
+        const addLine = ({ name, category, subcategory, brand, qty, price }) => {
             const revenue = qty * price;
             if (!revenue && !qty) return;
             const cat = clean(category) || 'Other';
-            const c = catMap.get(cat) || { revenue: 0, units: 0 };
-            c.revenue += revenue; c.units += qty; catMap.set(cat, c);
-            const key = clean(name) || 'Unknown';
-            const p = prodMap.get(key) || { revenue: 0, units: 0 };
-            p.revenue += revenue; p.units += qty; prodMap.set(key, p);
+            bump(catMap, cat, revenue, qty);
+            // Null subcategory falls back to the parent category so the chart stays meaningful.
+            bump(subMap, clean(subcategory) || cat, revenue, qty);
+            bump(brandMap, clean(brand) || 'Unbranded / Other', revenue, qty);
+            bump(prodMap, clean(name) || 'Unknown', revenue, qty, { brand: clean(brand) || null, category: cat });
         };
 
         for (const r of lineItemsRes.rows) {
-            addLine(r.name, r.category, num(r.quantity), num(r.price));
+            addLine({
+                name: r.name, category: r.category, subcategory: r.subcategory, brand: r.brand,
+                qty: num(r.quantity), price: num(r.price)
+            });
         }
         for (const r of jsonOrdersRes.rows) {
             let items;
@@ -174,25 +186,27 @@ module.exports = (db) => {
                 const qty = num(it.quantity != null ? it.quantity : it.qty) || 1;
                 const price = num(it.price != null ? it.price : it.unit_price);
                 const linked = it.product_id != null ? productById.get(String(it.product_id)) : null;
-                // Prefer an explicit category, then the linked product, then resolve by name.
-                let name = clean(it.name) || (linked && linked.name);
-                let category = clean(it.category) || (linked && linked.category);
-                if (!category || !name) {
-                    const m = resolveCategory(it.name || (linked && linked.name));
-                    if (!name) name = m.name;
-                    if (!category) category = m.category;
-                }
-                addLine(name, category, qty, price);
+                const m = resolveCategory(it.name || (linked && linked.name) || '');
+                // Prefer an explicit field, then linked product, then resolver.
+                addLine({
+                    name: clean(it.name) || (linked && linked.name) || m.name,
+                    category: clean(it.category) || (linked && linked.category) || m.category,
+                    subcategory: clean(it.subcategory) || (linked && linked.subcategory) || m.subcategory,
+                    brand: clean(it.brand) || (linked && linked.brand) || m.brand,
+                    qty, price
+                });
             }
         }
 
-        const revenueByCategory = [...catMap.entries()]
-            .map(([category, v]) => ({ category, revenue: Math.round(v.revenue), units: v.units }))
+        const toSorted = (map, keyName) => [...map.entries()]
+            .map(([k, v]) => Object.assign({ [keyName]: k, revenue: Math.round(v.revenue), units: v.units },
+                v.brand !== undefined ? { brand: v.brand, category: v.category } : {}))
             .sort((a, b) => b.revenue - a.revenue);
-        const topProducts = [...prodMap.entries()]
-            .map(([name, v]) => ({ name, revenue: Math.round(v.revenue), units: v.units }))
-            .sort((a, b) => b.revenue - a.revenue)
-            .slice(0, 6);
+
+        const revenueByCategory = toSorted(catMap, 'category');
+        const revenueBySubcategory = toSorted(subMap, 'subcategory');
+        const revenueByBrand = toSorted(brandMap, 'brand');
+        const topProducts = toSorted(prodMap, 'name').slice(0, 6);
 
         res.json({
             summary: {
@@ -214,6 +228,8 @@ module.exports = (db) => {
             })),
             ordersByStatus: statusRes.rows.map(r => ({ status: r.status || 'unknown', count: num(r.count) })),
             revenueByCategory,
+            revenueBySubcategory,
+            revenueByBrand,
             topProducts,
             paymentMethods: paymentRes.rows.map(r => ({
                 method: r.method,

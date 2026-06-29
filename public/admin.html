@@ -302,6 +302,30 @@
                         </div>
                     </div>
 
+                    <!-- Brand + subcategory (two-up) -->
+                    <div class="charts-grid">
+                        <div class="content-card chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Revenue by Brand</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-mount" id="chart-brand" style="height: 300px;">
+                                    <div class="chart-placeholder">Loading chart&hellip;</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-card chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Revenue by Subcategory</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-mount" id="chart-subcategory" style="height: 300px;">
+                                    <div class="chart-placeholder">Loading chart&hellip;</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Top products (full width bar) -->
                     <div class="content-card chart-card">
                         <div class="card-header">
@@ -1355,7 +1379,7 @@
     <script src="/js/vendor/react-dom.production.min.js"></script>
     <script src="/js/vendor/prop-types.min.js"></script>
     <script src="/js/vendor/recharts.js"></script>
-    <script src="/js/dashboard-charts.js?v=1"></script>
+    <script src="/js/dashboard-charts.js?v=2"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
@@ -1669,18 +1693,21 @@
 
         // Warm review-request message. Uses the first name, the product, and
         // fragrance wording when the item is a scent. No em dashes (brand style).
-        function buildReviewMessage(name, productName, url, category) {
+        function buildReviewMessage(name, productName, url, category, isGift) {
             const first = (String(name || 'there').trim().split(/\s+/)[0]) || 'there';
             const isScent = /perfum|fragrance|cologne|scent|edp|edt/i.test((category || '') + ' ' + (productName || ''));
             const help = isScent
                 ? 'helps other fragrance lovers find their perfect scent'
                 : 'helps other beauty lovers find their perfect match';
+            const middle = isGift
+                ? 'Since this was a gift, I would love to know how they reacted when they received it. I hope it was a wonderful moment! 🌸'
+                : 'I hope it is everything you wished for! 🌸';
             return [
                 'Hi ' + first + '! 😊',
                 '',
                 'Your receipt for the ' + productName + ' is attached above for your records.',
                 '',
-                'I hope it is everything you wished for! 🌸',
+                middle,
                 '',
                 'When you get a chance, a quick review would mean a lot and ' + help + ':',
                 '👉 ' + url,
@@ -1747,7 +1774,8 @@
                 }
 
                 const url = location.origin + data.path;
-                const msg = buildReviewMessage(customerName, data.productName || productName, url, category);
+                const isGift = !!(o.is_gift || det.is_gift);
+                const msg = buildReviewMessage(customerName, data.productName || productName, url, category, isGift);
                 const phone = normalizeMsisdn(customerPhone);
                 if (win) win.location = (phone ? `https://wa.me/${phone}` : 'https://wa.me/') + `?text=${encodeURIComponent(msg)}`;
                 showAlert('Review request created. WhatsApp opened.', 'success');

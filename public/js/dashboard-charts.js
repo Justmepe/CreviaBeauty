@@ -200,11 +200,63 @@
         );
     }
 
+    /* ---------- Revenue by brand (horizontal bars) ---------- */
+    function renderBrandBar(rows) {
+        var root = rootFor('chart-brand');
+        if (!root) return;
+        if (!rows || !rows.length) {
+            root.render(emptyState('No brand sales yet'));
+            return;
+        }
+        var data = rows.slice(0, 8).reverse().map(function (r) {
+            return { name: r.brand && r.brand.length > 20 ? r.brand.slice(0, 18) + '…' : r.brand, revenue: r.revenue, units: r.units };
+        });
+        root.render(
+            h(ResponsiveContainer, { width: '100%', height: '100%' },
+                h(BarChart, { data: data, layout: 'vertical', margin: { top: 6, right: 24, left: 8, bottom: 6 } },
+                    h(CartesianGrid, { strokeDasharray: '3 3', stroke: '#eef0f3', horizontal: false }),
+                    h(XAxis, { type: 'number', tickFormatter: function (v) { return v >= 1000 ? (v / 1000) + 'k' : v; }, tickLine: false, axisLine: { stroke: '#e9ecef' } }),
+                    h(YAxis, { type: 'category', dataKey: 'name', tickLine: false, axisLine: false, width: 130 }),
+                    h(Tooltip, { content: currencyTooltip, cursor: { fill: 'rgba(212,175,106,0.08)' } }),
+                    h(Bar, { dataKey: 'revenue', name: 'Revenue', fill: GOLD, radius: [0, 6, 6, 0], maxBarSize: 26 })
+                )
+            )
+        );
+    }
+
+    /* ---------- Revenue by subcategory (vertical bars) ---------- */
+    function renderSubcategoryBar(rows) {
+        var root = rootFor('chart-subcategory');
+        if (!root) return;
+        if (!rows || !rows.length) {
+            root.render(emptyState('No subcategory sales yet'));
+            return;
+        }
+        var data = rows.slice(0, 8);
+        root.render(
+            h(ResponsiveContainer, { width: '100%', height: '100%' },
+                h(BarChart, { data: data, margin: { top: 10, right: 16, left: 0, bottom: 0 } },
+                    h(CartesianGrid, { strokeDasharray: '3 3', stroke: '#eef0f3', vertical: false }),
+                    h(XAxis, { dataKey: 'subcategory', tickLine: false, axisLine: { stroke: '#e9ecef' }, interval: 0, angle: data.length > 3 ? -18 : 0, textAnchor: data.length > 3 ? 'end' : 'middle', height: data.length > 3 ? 70 : 30 }),
+                    h(YAxis, { tickFormatter: function (v) { return v >= 1000 ? (v / 1000) + 'k' : v; }, tickLine: false, axisLine: false, width: 48 }),
+                    h(Tooltip, { content: currencyTooltip, cursor: { fill: 'rgba(26,26,46,0.05)' } }),
+                    h(Bar, { dataKey: 'revenue', name: 'Revenue', radius: [6, 6, 0, 0], maxBarSize: 48 },
+                        data.map(function (r, i) {
+                            return h(Cell, { key: i, fill: PIE_FALLBACK[i % PIE_FALLBACK.length] });
+                        })
+                    )
+                )
+            )
+        );
+    }
+
     window.renderDashboardCharts = function (data) {
         if (!data) return;
         try { renderRevenueTrend(data.revenueByDay); } catch (e) { console.error('revenue chart', e); }
         try { renderStatusPie(data.ordersByStatus); } catch (e) { console.error('status chart', e); }
         try { renderCategoryBar(data.revenueByCategory); } catch (e) { console.error('category chart', e); }
+        try { renderSubcategoryBar(data.revenueBySubcategory); } catch (e) { console.error('subcategory chart', e); }
+        try { renderBrandBar(data.revenueByBrand); } catch (e) { console.error('brand chart', e); }
         try { renderTopProducts(data.topProducts); } catch (e) { console.error('top products chart', e); }
     };
 })();
