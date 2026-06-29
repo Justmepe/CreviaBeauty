@@ -14,6 +14,7 @@ const { invalidateCache } = require('../middleware/cache');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 const { sendPaidReceiptToDiscord } = require('../utils/orderReceipt');
+const { buildCategoryResolver } = require('../utils/itemCategory');
 
 module.exports = (db) => {
     // All admin routes require authentication
@@ -72,7 +73,7 @@ module.exports = (db) => {
         }
 
         const itemsResult = await db.query(`
-            SELECT oi.*, p.name, p.image_url
+            SELECT oi.*, p.name, p.image_url, p.category
             FROM order_items oi
             JOIN products p ON oi.product_id = p.id
             WHERE oi.order_id = $1
@@ -87,7 +88,7 @@ module.exports = (db) => {
     router.get('/analytics', asyncHandler(async (req, res) => {
         const num = (v) => Number(v) || 0;
 
-        const [summaryRes, revByDayRes, statusRes, categoryRes, topProductsRes, paymentRes, recentRes] = await Promise.all([
+        const [summaryRes, revByDayRes, statusRes, lineItemsRes, jsonOrdersRes, productsRes, paymentRes, recentRes] = await Promise.all([
             db.query(`
                 SELECT
                     (SELECT COUNT(*) FROM products)                                   AS total_products,
@@ -110,25 +111,16 @@ module.exports = (db) => {
                 ORDER BY d.day
             `),
             db.query(`SELECT status, COUNT(*) AS count FROM orders GROUP BY status ORDER BY count DESC`),
+            // Structured line items (storefront checkout writes to order_items)
             db.query(`
-                SELECT COALESCE(p.category, 'Other') AS category,
-                       COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue,
-                       COALESCE(SUM(oi.quantity), 0)            AS units
+                SELECT p.name, COALESCE(p.category, 'Other') AS category, oi.quantity, oi.price
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.id
-                GROUP BY p.category
-                ORDER BY revenue DESC
             `),
-            db.query(`
-                SELECT p.name,
-                       SUM(oi.quantity)            AS units,
-                       SUM(oi.price * oi.quantity) AS revenue
-                FROM order_items oi
-                JOIN products p ON oi.product_id = p.id
-                GROUP BY p.id, p.name
-                ORDER BY revenue DESC
-                LIMIT 6
-            `),
+            // Free-text line items (manual / receipt orders store these in items_json)
+            db.query(`SELECT items_json FROM orders WHERE items_json IS NOT NULL AND items_json <> ''`),
+            // Catalog used to resolve free-text item names back to a category
+            db.query(`SELECT id, name, category FROM products`),
             db.query(`
                 SELECT COALESCE(payment_method, 'cod') AS method,
                        COUNT(*)                  AS count,
@@ -151,6 +143,57 @@ module.exports = (db) => {
         const totalOrders = num(s.total_orders);
         const totalRevenue = num(s.total_revenue);
 
+        // Aggregate category + top-product revenue from BOTH structured order_items
+        // and free-text items_json. Category is taken from (in priority order):
+        // an explicit category on the item, the linked product_id, the live
+        // catalog by name, then a keyword heuristic.
+        const resolveCategory = buildCategoryResolver(productsRes.rows);
+        const productById = new Map(productsRes.rows.map(p => [String(p.id), p]));
+        const catMap = new Map();   // category -> { revenue, units }
+        const prodMap = new Map();  // product name -> { revenue, units }
+        const clean = (v) => (v == null ? '' : String(v).trim());
+        const addLine = (name, category, qty, price) => {
+            const revenue = qty * price;
+            if (!revenue && !qty) return;
+            const cat = clean(category) || 'Other';
+            const c = catMap.get(cat) || { revenue: 0, units: 0 };
+            c.revenue += revenue; c.units += qty; catMap.set(cat, c);
+            const key = clean(name) || 'Unknown';
+            const p = prodMap.get(key) || { revenue: 0, units: 0 };
+            p.revenue += revenue; p.units += qty; prodMap.set(key, p);
+        };
+
+        for (const r of lineItemsRes.rows) {
+            addLine(r.name, r.category, num(r.quantity), num(r.price));
+        }
+        for (const r of jsonOrdersRes.rows) {
+            let items;
+            try { items = JSON.parse(r.items_json); } catch (e) { continue; }
+            if (!Array.isArray(items)) continue;
+            for (const it of items) {
+                const qty = num(it.quantity != null ? it.quantity : it.qty) || 1;
+                const price = num(it.price != null ? it.price : it.unit_price);
+                const linked = it.product_id != null ? productById.get(String(it.product_id)) : null;
+                // Prefer an explicit category, then the linked product, then resolve by name.
+                let name = clean(it.name) || (linked && linked.name);
+                let category = clean(it.category) || (linked && linked.category);
+                if (!category || !name) {
+                    const m = resolveCategory(it.name || (linked && linked.name));
+                    if (!name) name = m.name;
+                    if (!category) category = m.category;
+                }
+                addLine(name, category, qty, price);
+            }
+        }
+
+        const revenueByCategory = [...catMap.entries()]
+            .map(([category, v]) => ({ category, revenue: Math.round(v.revenue), units: v.units }))
+            .sort((a, b) => b.revenue - a.revenue);
+        const topProducts = [...prodMap.entries()]
+            .map(([name, v]) => ({ name, revenue: Math.round(v.revenue), units: v.units }))
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 6);
+
         res.json({
             summary: {
                 totalProducts: num(s.total_products),
@@ -170,16 +213,8 @@ module.exports = (db) => {
                 orders: num(r.orders)
             })),
             ordersByStatus: statusRes.rows.map(r => ({ status: r.status || 'unknown', count: num(r.count) })),
-            revenueByCategory: categoryRes.rows.map(r => ({
-                category: r.category,
-                revenue: num(r.revenue),
-                units: num(r.units)
-            })),
-            topProducts: topProductsRes.rows.map(r => ({
-                name: r.name,
-                units: num(r.units),
-                revenue: num(r.revenue)
-            })),
+            revenueByCategory,
+            topProducts,
             paymentMethods: paymentRes.rows.map(r => ({
                 method: r.method,
                 count: num(r.count),
