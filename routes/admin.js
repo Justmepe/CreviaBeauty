@@ -81,6 +81,120 @@ module.exports = (db) => {
         res.json({ ...order, items: itemsResult.rows });
     }));
 
+    // ============ DASHBOARD ANALYTICS ============
+
+    // Aggregated analytics for the admin dashboard charts/KPIs
+    router.get('/analytics', asyncHandler(async (req, res) => {
+        const num = (v) => Number(v) || 0;
+
+        const [summaryRes, revByDayRes, statusRes, categoryRes, topProductsRes, paymentRes, recentRes] = await Promise.all([
+            db.query(`
+                SELECT
+                    (SELECT COUNT(*) FROM products)                                   AS total_products,
+                    (SELECT COUNT(*) FROM products WHERE stock < 10)                  AS low_stock,
+                    (SELECT COUNT(*) FROM orders)                                     AS total_orders,
+                    (SELECT COUNT(*) FROM orders WHERE status = 'pending')            AS pending_orders,
+                    (SELECT COUNT(*) FROM orders WHERE status = 'delivered')          AS delivered_orders,
+                    (SELECT COALESCE(SUM(total), 0) FROM orders)                      AS total_revenue,
+                    (SELECT COALESCE(SUM(total), 0) FROM orders WHERE status = 'delivered') AS realized_revenue,
+                    (SELECT COUNT(*) FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') AS orders_30d,
+                    (SELECT COALESCE(SUM(total), 0) FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') AS revenue_30d
+            `),
+            db.query(`
+                SELECT to_char(d.day, 'YYYY-MM-DD') AS date,
+                       COALESCE(SUM(o.total), 0)    AS revenue,
+                       COUNT(o.id)                  AS orders
+                FROM generate_series(CURRENT_DATE - INTERVAL '29 days', CURRENT_DATE, INTERVAL '1 day') AS d(day)
+                LEFT JOIN orders o ON o.created_at::date = d.day::date
+                GROUP BY d.day
+                ORDER BY d.day
+            `),
+            db.query(`SELECT status, COUNT(*) AS count FROM orders GROUP BY status ORDER BY count DESC`),
+            db.query(`
+                SELECT COALESCE(p.category, 'Other') AS category,
+                       COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue,
+                       COALESCE(SUM(oi.quantity), 0)            AS units
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                GROUP BY p.category
+                ORDER BY revenue DESC
+            `),
+            db.query(`
+                SELECT p.name,
+                       SUM(oi.quantity)            AS units,
+                       SUM(oi.price * oi.quantity) AS revenue
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                GROUP BY p.id, p.name
+                ORDER BY revenue DESC
+                LIMIT 6
+            `),
+            db.query(`
+                SELECT COALESCE(payment_method, 'cod') AS method,
+                       COUNT(*)                  AS count,
+                       COALESCE(SUM(total), 0)   AS revenue
+                FROM orders
+                GROUP BY payment_method
+                ORDER BY count DESC
+            `),
+            db.query(`
+                SELECT o.id, o.total, o.status, o.created_at,
+                       COALESCE(u.name, o.customer_name) AS user_name
+                FROM orders o
+                LEFT JOIN users u ON o.user_id = u.id
+                ORDER BY o.created_at DESC
+                LIMIT 6
+            `)
+        ]);
+
+        const s = summaryRes.rows[0] || {};
+        const totalOrders = num(s.total_orders);
+        const totalRevenue = num(s.total_revenue);
+
+        res.json({
+            summary: {
+                totalProducts: num(s.total_products),
+                lowStock: num(s.low_stock),
+                totalOrders,
+                pendingOrders: num(s.pending_orders),
+                deliveredOrders: num(s.delivered_orders),
+                totalRevenue,
+                realizedRevenue: num(s.realized_revenue),
+                avgOrderValue: totalOrders ? Math.round(totalRevenue / totalOrders) : 0,
+                orders30d: num(s.orders_30d),
+                revenue30d: num(s.revenue_30d)
+            },
+            revenueByDay: revByDayRes.rows.map(r => ({
+                date: r.date,
+                revenue: num(r.revenue),
+                orders: num(r.orders)
+            })),
+            ordersByStatus: statusRes.rows.map(r => ({ status: r.status || 'unknown', count: num(r.count) })),
+            revenueByCategory: categoryRes.rows.map(r => ({
+                category: r.category,
+                revenue: num(r.revenue),
+                units: num(r.units)
+            })),
+            topProducts: topProductsRes.rows.map(r => ({
+                name: r.name,
+                units: num(r.units),
+                revenue: num(r.revenue)
+            })),
+            paymentMethods: paymentRes.rows.map(r => ({
+                method: r.method,
+                count: num(r.count),
+                revenue: num(r.revenue)
+            })),
+            recentOrders: recentRes.rows.map(r => ({
+                id: r.id,
+                total: num(r.total),
+                status: r.status,
+                created_at: r.created_at,
+                user_name: r.user_name
+            }))
+        });
+    }));
+
     // Helper: Get points settings
     async function getPointsSettings() {
         const result = await db.query('SELECT setting_key, setting_value FROM points_settings');
@@ -318,6 +432,67 @@ module.exports = (db) => {
             sendPaidReceiptToDiscord(db, orderId);
         }
 
+        res.json({ success: true });
+    }));
+
+    // Delete an order (clean up mistakes/tests). Hard delete and irreversible:
+    // restores stock and reverses points like a cancel (for real user orders),
+    // clears rows that reference the order, then removes it. order_items go via
+    // ON DELETE CASCADE; points_transactions are left as an audit trail.
+    router.delete('/orders/:id', asyncHandler(async (req, res) => {
+        const orderId = parseInt(req.params.id, 10);
+        if (isNaN(orderId)) {
+            throw AppError.badRequest('Invalid order ID');
+        }
+
+        const existingResult = await db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+        const existing = existingResult.rows[0];
+        if (!existing) {
+            throw AppError.notFound('Order not found');
+        }
+
+        await db.transaction(async (client) => {
+            const alreadyCancelled = existing.status === 'cancelled';
+
+            // Restore stock unless it was already restored by a prior cancel.
+            if (!alreadyCancelled) {
+                const itemsResult = await client.query(
+                    'SELECT product_id, quantity FROM order_items WHERE order_id = $1', [orderId]
+                );
+                for (const item of itemsResult.rows) {
+                    await client.query(
+                        'UPDATE products SET stock = stock + $1 WHERE id = $2',
+                        [item.quantity, item.product_id]
+                    );
+                }
+            }
+
+            // Reverse points for a real (logged-in) order not already cancelled.
+            if (!alreadyCancelled && existing.user_id) {
+                if (existing.points_redeemed > 0) {
+                    await client.query(
+                        'UPDATE users SET points_balance = points_balance + $1 WHERE id = $2',
+                        [existing.points_redeemed, existing.user_id]
+                    );
+                }
+                if ((existing.status === 'delivered' || existing.status === 'complete') && existing.points_earned > 0) {
+                    await client.query(
+                        'UPDATE users SET points_balance = GREATEST(0, points_balance - $1) WHERE id = $2',
+                        [existing.points_earned, existing.user_id]
+                    );
+                }
+            }
+
+            // Clear / unlink rows that reference this order (no cascade on these).
+            await client.query('UPDATE reviews SET order_id = NULL WHERE order_id = $1', [orderId]);
+            await client.query('DELETE FROM review_requests WHERE order_id = $1', [orderId]);
+            await client.query('DELETE FROM commissions WHERE order_id = $1', [orderId]);
+            await client.query('UPDATE customer_referrals SET first_order_id = NULL WHERE first_order_id = $1', [orderId]);
+
+            await client.query('DELETE FROM orders WHERE id = $1', [orderId]);
+        });
+
+        logger.info('Order deleted', { orderId });
         res.json({ success: true });
     }));
 

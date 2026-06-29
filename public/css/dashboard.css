@@ -620,6 +620,74 @@
     padding: 0;
 }
 
+/* Analytics Charts */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-card .card-body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+
+.chart-mount {
+    width: 100%;
+    position: relative;
+}
+
+.chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    color: #b0b6bd;
+    font-size: 0.9rem;
+}
+
+.chart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 200px;
+    color: #9aa0a6;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.chart-empty .icon {
+    font-size: 2rem;
+    opacity: 0.6;
+}
+
+/* Recharts tooltip polish */
+.recharts-default-tooltip {
+    border-radius: 10px !important;
+    border: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
+    padding: 0.6rem 0.85rem !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.82rem !important;
+}
+
+.recharts-tooltip-label {
+    color: #1a1a2e !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.recharts-cartesian-axis-tick text,
+.recharts-polar-angle-axis-tick text,
+.recharts-legend-item-text {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.78rem !important;
+    fill: #7f8c8d !important;
+}
+
 /* Dashboard Tables */
 .dashboard-table {
     width: 100%;

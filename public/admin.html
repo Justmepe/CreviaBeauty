@@ -200,11 +200,12 @@
                 <section id="section-dashboard" class="dashboard-section" style="display: none;">
                     <!-- Stats Cards -->
                     <div class="stats-grid" id="stats-grid">
-                        <div class="stat-card primary">
-                            <div class="stat-icon">&#128722;</div>
+                        <div class="stat-card gold">
+                            <div class="stat-icon">&#128176;</div>
                             <div class="stat-details">
-                                <div class="stat-label">Total Products</div>
-                                <div class="stat-value" id="stat-products">0</div>
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-value" id="stat-revenue">KSh 0</div>
+                                <div class="stat-change positive" id="stat-revenue-sub">Last 30 days</div>
                             </div>
                         </div>
                         <div class="stat-card success">
@@ -212,6 +213,7 @@
                             <div class="stat-details">
                                 <div class="stat-label">Total Orders</div>
                                 <div class="stat-value" id="stat-orders">0</div>
+                                <div class="stat-change positive" id="stat-orders-sub">&nbsp;</div>
                             </div>
                         </div>
                         <div class="stat-card warning">
@@ -219,13 +221,31 @@
                             <div class="stat-details">
                                 <div class="stat-label">Pending Orders</div>
                                 <div class="stat-value" id="stat-pending">0</div>
+                                <div class="stat-change" id="stat-delivered-sub">&nbsp;</div>
                             </div>
                         </div>
-                        <div class="stat-card gold">
-                            <div class="stat-icon">&#128176;</div>
+                        <div class="stat-card info">
+                            <div class="stat-icon">&#128202;</div>
                             <div class="stat-details">
-                                <div class="stat-label">Revenue</div>
-                                <div class="stat-value" id="stat-revenue">KSh 0</div>
+                                <div class="stat-label">Avg Order Value</div>
+                                <div class="stat-value" id="stat-aov">KSh 0</div>
+                                <div class="stat-change">Per order</div>
+                            </div>
+                        </div>
+                        <div class="stat-card primary">
+                            <div class="stat-icon">&#128722;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Total Products</div>
+                                <div class="stat-value" id="stat-products">0</div>
+                                <div class="stat-change">In catalog</div>
+                            </div>
+                        </div>
+                        <div class="stat-card danger">
+                            <div class="stat-icon">&#9888;</div>
+                            <div class="stat-details">
+                                <div class="stat-label">Low Stock</div>
+                                <div class="stat-value" id="stat-lowstock">0</div>
+                                <div class="stat-change negative" id="stat-lowstock-sub">Items &lt; 10 units</div>
                             </div>
                         </div>
                     </div>
@@ -244,6 +264,54 @@
                             <div class="icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">&#128101;</div>
                             <span class="text">Manage Marketers</span>
                         </a>
+                    </div>
+
+                    <!-- Revenue trend (full width) -->
+                    <div class="content-card chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Revenue &amp; Orders &middot; Last 30 Days</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-mount" id="chart-revenue" style="height: 320px;">
+                                <div class="chart-placeholder">Loading chart&hellip;</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Two-up charts -->
+                    <div class="charts-grid">
+                        <div class="content-card chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Orders by Status</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-mount" id="chart-status" style="height: 300px;">
+                                    <div class="chart-placeholder">Loading chart&hellip;</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-card chart-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Revenue by Category</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-mount" id="chart-category" style="height: 300px;">
+                                    <div class="chart-placeholder">Loading chart&hellip;</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top products (full width bar) -->
+                    <div class="content-card chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Top Products by Revenue</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-mount" id="chart-topproducts" style="height: 300px;">
+                                <div class="chart-placeholder">Loading chart&hellip;</div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Recent Orders -->
@@ -1282,6 +1350,12 @@
     </div>
 
     <script src="/js/main.js?v=7"></script>
+    <!-- Analytics charts: vendored React + Recharts (served from 'self', CSP-safe) -->
+    <script src="/js/vendor/react.production.min.js"></script>
+    <script src="/js/vendor/react-dom.production.min.js"></script>
+    <script src="/js/vendor/prop-types.min.js"></script>
+    <script src="/js/vendor/recharts.js"></script>
+    <script src="/js/dashboard-charts.js?v=1"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
@@ -1409,33 +1483,38 @@
         // Dashboard Data
         async function loadDashboardData() {
             try {
-                const [productsRes, ordersRes] = await Promise.all([
-                    fetch('/api/products'),
-                    fetch('/api/admin/orders')
-                ]);
+                const res = await fetch('/api/admin/analytics');
+                if (!res.ok) throw new Error('analytics ' + res.status);
+                const data = await res.json();
+                const s = data.summary || {};
 
-                const productsData = await productsRes.json();
-                const ordersData = await ordersRes.json();
+                const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                const setHtml = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
 
-                const products = productsData.data || productsData || [];
-                const orders = ordersData.data || ordersData || [];
+                // KPI cards
+                setText('stat-revenue', `KSh ${Number(s.totalRevenue || 0).toLocaleString('en-KE')}`);
+                setHtml('stat-revenue-sub', `KSh ${Number(s.revenue30d || 0).toLocaleString('en-KE')} in last 30 days`);
+                setText('stat-orders', s.totalOrders || 0);
+                setHtml('stat-orders-sub', `${s.orders30d || 0} in last 30 days`);
+                setText('stat-pending', s.pendingOrders || 0);
+                setHtml('stat-delivered-sub', `${s.deliveredOrders || 0} delivered`);
+                setText('stat-aov', `KSh ${Number(s.avgOrderValue || 0).toLocaleString('en-KE')}`);
+                setText('stat-products', s.totalProducts || 0);
+                setText('stat-lowstock', s.lowStock || 0);
 
-                const pending = orders.filter(o => o.status === 'pending').length;
-                const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-
-                document.getElementById('stat-products').textContent = products.length;
-                document.getElementById('stat-orders').textContent = orders.length;
-                document.getElementById('stat-pending').textContent = pending;
-                document.getElementById('stat-revenue').textContent = `KSh ${revenue.toLocaleString()}`;
-
-                // Update badge
-                if (pending > 0) {
-                    document.getElementById('orders-badge').style.display = 'block';
-                    document.getElementById('orders-badge').textContent = pending;
+                // Orders badge
+                if ((s.pendingOrders || 0) > 0) {
+                    const badge = document.getElementById('orders-badge');
+                    if (badge) { badge.style.display = 'block'; badge.textContent = s.pendingOrders; }
                 }
 
                 // Recent orders
-                renderRecentOrders(orders.slice(0, 5));
+                renderRecentOrders(data.recentOrders || []);
+
+                // Charts (Recharts)
+                if (typeof window.renderDashboardCharts === 'function') {
+                    window.renderDashboardCharts(data);
+                }
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
             }
@@ -1549,6 +1628,7 @@
                             <button class="action-btn view" onclick="viewOrderDetails(${o.id})" title="View">&#128065;</button>
                             <button class="action-btn" onclick="window.open('/admin/receipt/${o.id}', '_blank')" title="Receipt">&#129534;</button>
                             ${(o.whatsapp || o.phone) && o.receipt_token ? `<button class="action-btn" onclick="sendWhatsApp(${o.id})" title="Send receipt on WhatsApp" style="color:#25D366;">&#128241;</button>` : ''}
+                            <button class="action-btn" onclick="deleteOrder(${o.id})" title="Delete order" style="color:#e94560;">&#128465;</button>
                         </td>
                     </tr>
                 `).join('');
@@ -1607,6 +1687,24 @@
                 }
             } catch (error) {
                 showAlert('Failed to update order status', 'error');
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            const o = currentOrders.find(x => x.id === orderId);
+            const who = o ? (o.user_name || 'this order') : 'this order';
+            if (!confirm(`Permanently delete order #${orderId} (${who})? This cannot be undone.`)) return;
+            try {
+                const response = await fetch(`/api/admin/orders/${orderId}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert('Order deleted', 'success');
+                    loadOrders();
+                } else {
+                    showAlert(getErrorMessage(data, 'Failed to delete order'), 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to delete order', 'error');
             }
         }
 
