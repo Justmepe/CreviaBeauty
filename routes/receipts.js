@@ -67,6 +67,7 @@ module.exports = (db) => {
             const whatsapp = String(req.body.whatsapp || '').trim().slice(0, 50) || null;
             const deliveryLocation = String(req.body.deliveryLocation || '').trim().slice(0, 200) || null;
             const notes = String(req.body.notes || '').trim().slice(0, 200) || null;
+            const isGift = req.body.gift === '1' || req.body.gift === 'on' || req.body.gift === true;
             const paymentMethod = ['cod', 'mpesa', 'bank'].includes(req.body.paymentMethod)
                 ? req.body.paymentMethod : 'cod';
             const paymentRef = String(req.body.paymentRef || '').trim().slice(0, 60) || null;
@@ -88,18 +89,18 @@ module.exports = (db) => {
                 INSERT INTO orders
                     (user_id, total, status, phone, payment_method, payment_status,
                      payment_reference, customer_name, items_json, source,
-                     whatsapp, delivery_location, notes)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+                     whatsapp, delivery_location, notes, is_gift)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
                 RETURNING id, created_at
             `, [
                 null, total, 'pending', phone || null, paymentMethod, paymentStatus,
                 paymentRef, customerName, JSON.stringify(items), source,
-                whatsapp, deliveryLocation, notes
+                whatsapp, deliveryLocation, notes, isGift
             ]);
             const order = { ...insert.rows[0], total, phone, payment_method: paymentMethod,
                 payment_status: paymentStatus, payment_reference: paymentRef,
                 customer_name: customerName, source,
-                whatsapp, delivery_location: deliveryLocation, notes };
+                whatsapp, delivery_location: deliveryLocation, notes, is_gift: isGift };
 
             logger.info('Receipt created', { orderId: order.id, source, total, items: items.length });
 

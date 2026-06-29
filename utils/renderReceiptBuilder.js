@@ -149,6 +149,14 @@ function renderReceiptBuilderPage(mode = 'guest') {
                 <input type="text" name="notes" maxlength="200" placeholder="e.g. landmark, delivery instructions">
             </div>
 
+            <div class="field">
+                <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);cursor:pointer;">
+                    <input type="checkbox" name="gift" value="1" style="width:auto;">
+                    This is a gift
+                </label>
+                <small class="hint">Tailors the review follow-up message (asks how the recipient reacted).</small>
+            </div>
+
             <div class="totals">
                 <div class="row"><span>Subtotal</span><span id="t-sub">KES 0</span></div>
                 <div class="row"><span>Delivery</span><span id="t-del">KES 0</span></div>

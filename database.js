@@ -377,6 +377,9 @@ async function initializeDatabase() {
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='notes') THEN
                     ALTER TABLE orders ADD COLUMN notes TEXT;
                 END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='is_gift') THEN
+                    ALTER TABLE orders ADD COLUMN is_gift BOOLEAN DEFAULT FALSE;
+                END IF;
                 IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='receipt_token') THEN
                     ALTER TABLE orders ADD COLUMN receipt_token VARCHAR(40)
                         DEFAULT md5(random()::text || clock_timestamp()::text);
