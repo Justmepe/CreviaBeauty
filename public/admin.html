@@ -1650,7 +1650,7 @@
                         </td>
                         <td>
                             <button class="action-btn view" onclick="viewOrderDetails(${o.id})" title="View">&#128065;</button>
-                            <button class="action-btn" onclick="window.open('/admin/receipt/${o.id}', '_blank')" title="Receipt">&#129534;</button>
+                            <button class="btn-dashboard sm" onclick="window.open('/admin/receipt/${o.id}', '_blank')" title="Open and print or save as PDF" style="padding:0.25rem 0.55rem; font-size:0.7rem; margin:0 0.15rem;">${o.payment_status === 'paid' ? '&#129534; Receipt' : '&#128209; Invoice'}</button>
                             ${(o.whatsapp || o.phone) && o.receipt_token ? `<button class="action-btn" onclick="sendWhatsApp(${o.id})" title="Send receipt on WhatsApp" style="color:#25D366;">&#128241;</button>` : ''}
                             ${(o.status === 'delivered' || o.status === 'complete') && o.payment_status === 'paid' ? `<button class="action-btn" onclick="sendReviewRequest(${o.id})" title="Send review request on WhatsApp" style="color:#f39c12;">&#11088;</button>` : ''}
                             <button class="action-btn" onclick="deleteOrder(${o.id})" title="Delete order" style="color:#e94560;">&#128465;</button>
