@@ -143,6 +143,61 @@ app.get('/admin/preview/:id', requireAdmin, async (req, res) => {
         res.redirect(302, '/admin');
     }
 });
+// Receipt builder forms. The public guest form lets any customer fill in their
+// own details; the admin form issues a receipt for an off-website sale.
+const { renderReceiptBuilderPage } = require('./utils/renderReceiptBuilder');
+app.get('/receipt', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.send(renderReceiptBuilderPage('guest'));
+});
+app.get('/admin/receipt/new', requireAdmin, (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.send(renderReceiptBuilderPage('admin'));
+});
+
+// Admin-only branded receipt for an order, rendered print-ready (Save as PDF
+// from the browser). Append ?print=1 to auto-open the print dialog.
+const { renderReceiptPage } = require('./utils/renderReceipt');
+app.get('/admin/receipt/:id', requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) return res.redirect(302, '/admin');
+
+        const orderResult = await db.query(`
+            SELECT o.*, COALESCE(u.name, o.customer_name) AS user_name, u.email AS user_email
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
+            WHERE o.id = $1
+        `, [id]);
+        const order = orderResult.rows[0];
+        if (!order) return res.redirect(302, '/admin');
+
+        // Guest/manual orders carry free-text line items in items_json;
+        // website orders reference real products via order_items.
+        let items;
+        if (order.items_json) {
+            try { items = JSON.parse(order.items_json); } catch (e) { items = []; }
+        } else {
+            const itemsResult = await db.query(`
+                SELECT oi.quantity, oi.price, p.name
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = $1
+            `, [id]);
+            items = itemsResult.rows;
+        }
+
+        const settingsResult = await db.query('SELECT setting_key, setting_value FROM payment_settings');
+        const settings = {};
+        for (const row of settingsResult.rows) settings[row.setting_key] = row.setting_value;
+
+        res.set('Cache-Control', 'no-store');
+        res.send(renderReceiptPage(order, items, settings, { theme: req.query.theme }));
+    } catch (error) {
+        logger.error('Receipt render error', { id: req.params.id, error: error.message });
+        res.redirect(302, '/admin');
+    }
+});
 app.get('/blog/:slug', async (req, res) => {
     try {
         const result = await db.query(
@@ -342,6 +397,13 @@ const gracefulShutdown = async (signal) => {
             logger.info('Database connection closed');
         } catch (err) {
             logger.error('Error closing database', { error: err.message });
+        }
+
+        // Close the headless browser used for receipt PDFs
+        try {
+            await require('./utils/receiptPdf').closeBrowser();
+        } catch (err) {
+            logger.error('Error closing receipt browser', { error: err.message });
         }
 
         process.exit(0);

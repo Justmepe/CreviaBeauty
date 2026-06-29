@@ -16,6 +16,7 @@ const wishlistRoutes = require('./wishlist');
 const bundlesRoutes = require('./bundles');
 const heroSlidesRoutes = require('./heroSlides');
 const articlesRoutes = require('./articles');
+const receiptsRoutes = require('./receipts');
 
 module.exports = (app, db) => {
     // Auth routes
@@ -29,6 +30,9 @@ module.exports = (app, db) => {
 
     // Order routes
     app.use('/api/orders', orderRoutes(db));
+
+    // Receipt routes (guest self-service + admin manual)
+    app.use('/api/receipts', receiptsRoutes(db));
 
     // Review routes
     app.use('/api/reviews', reviewRoutes(db));

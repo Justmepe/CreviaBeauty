@@ -10,96 +10,64 @@ const { requireAuth } = require('../middleware/auth');
 const { createOrderRules } = require('../validators/order');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
+const { sendEmbed } = require('../utils/discord');
+const { renderReceiptPage } = require('../utils/renderReceipt');
+const { htmlToPdf } = require('../utils/receiptPdf');
 
-// Discord webhook for new-order notifications.
-// Set DISCORD_WEBHOOK_URL in .env to enable. If unset, notifications are skipped silently —
-// so dev/test/CI runs don't need it.
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const paymentMethodLabels = {
+    'cod': 'Cash on Delivery',
+    'mpesa': 'M-Pesa',
+    'bank': 'Bank Transfer'
+};
 
-// Send Discord notification for new orders
-async function sendDiscordOrderNotification(orderData) {
-    if (!DISCORD_WEBHOOK_URL) return;
-    try {
-        const paymentMethodLabels = {
-            'cod': 'Cash on Delivery',
-            'mpesa': 'M-Pesa',
-            'bank': 'Bank Transfer'
-        };
-
-        const embed = {
-            title: '🛒 New Order Received!',
-            color: 0x4CAF50, // Green color
-            fields: [
-                {
-                    name: '📦 Order ID',
-                    value: `#${orderData.orderId}`,
-                    inline: true
-                },
-                {
-                    name: '💰 Total Amount',
-                    value: `KSh ${Number(orderData.total).toLocaleString()}`,
-                    inline: true
-                },
-                {
-                    name: '🏷️ Payment Reference',
-                    value: orderData.paymentReference,
-                    inline: true
-                },
-                {
-                    name: '👤 Customer Name',
-                    value: orderData.customerName || 'N/A',
-                    inline: true
-                },
-                {
-                    name: '📧 Email',
-                    value: orderData.customerEmail || 'N/A',
-                    inline: true
-                },
-                {
-                    name: '📱 Phone',
-                    value: orderData.phone || 'N/A',
-                    inline: true
-                },
-                {
-                    name: '💳 Payment Method',
-                    value: paymentMethodLabels[orderData.paymentMethod] || orderData.paymentMethod,
-                    inline: true
-                },
-                {
-                    name: '📍 Shipping Address',
-                    value: orderData.shippingAddress || 'N/A',
-                    inline: false
-                },
-                {
-                    name: '🛍️ Items',
-                    value: orderData.items.map(item => `• ${item.name} x${item.quantity} - KSh ${(parseFloat(item.price) * item.quantity).toLocaleString()}`).join('\n'),
-                    inline: false
-                }
-            ],
-            timestamp: new Date().toISOString(),
-            footer: {
-                text: 'CreviaBeauty Order System'
+// Send Discord notification for new orders, with the receipt PDF attached.
+// Set DISCORD_WEBHOOK_URL in .env to enable; if unset it is skipped silently.
+async function sendDiscordOrderNotification(orderData, file) {
+    const embed = {
+        title: '🛒 New Order Received!',
+        color: 0x4CAF50, // Green color
+        fields: [
+            { name: '📦 Order ID', value: `#${orderData.orderId}`, inline: true },
+            { name: '💰 Total Amount', value: `KSh ${Number(orderData.total).toLocaleString()}`, inline: true },
+            { name: '🏷️ Payment Reference', value: orderData.paymentReference, inline: true },
+            { name: '👤 Customer Name', value: orderData.customerName || 'N/A', inline: true },
+            { name: '📧 Email', value: orderData.customerEmail || 'N/A', inline: true },
+            { name: '📱 Phone', value: orderData.phone || 'N/A', inline: true },
+            { name: '💳 Payment Method', value: paymentMethodLabels[orderData.paymentMethod] || orderData.paymentMethod, inline: true },
+            { name: '📍 Shipping Address', value: orderData.shippingAddress || 'N/A', inline: false },
+            {
+                name: '🛍️ Items',
+                value: orderData.items.map(item => `• ${item.name} x${item.quantity} - KSh ${(parseFloat(item.price) * item.quantity).toLocaleString()}`).join('\n'),
+                inline: false
             }
+        ],
+        timestamp: new Date().toISOString(),
+        footer: { text: 'CreviaBeauty Order System' }
+    };
+    await sendEmbed(embed, file);
+}
+
+// Build the branded receipt PDF for a freshly-placed order. Never throws —
+// returns null on failure so notification still goes out without the file.
+async function buildOrderReceiptPdf(db, { orderId, total, phone, paymentMethod, paymentReference, customerName, items }) {
+    try {
+        const settingsResult = await db.query('SELECT setting_key, setting_value FROM payment_settings');
+        const settings = {};
+        for (const row of settingsResult.rows) settings[row.setting_key] = row.setting_value;
+
+        const order = {
+            id: orderId, total, phone, payment_method: paymentMethod,
+            payment_status: 'pending', payment_reference: paymentReference,
+            user_name: customerName, source: 'website'
         };
-
-        const response = await fetch(DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                embeds: [embed]
-            })
-        });
-
-        if (!response.ok) {
-            logger.error('Discord webhook failed', { status: response.status });
-        } else {
-            logger.info('Discord notification sent', { orderId: orderData.orderId });
-        }
+        const receiptItems = items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price }));
+        const html = renderReceiptPage(order, receiptItems, settings, {});
+        const buffer = await htmlToPdf(html);
+        const year = new Date().getFullYear();
+        return { buffer, filename: `CB-${year}-${String(orderId).padStart(6, '0')}.pdf` };
     } catch (error) {
-        // Don't throw - just log the error so order creation still succeeds
-        logger.error('Failed to send Discord notification', { error: error.message });
+        logger.error('Order receipt PDF failed', { orderId, error: error.message });
+        return null;
     }
 }
 
@@ -321,18 +289,31 @@ module.exports = (db) => {
             pointsEarned: result.pointsEarned
         });
 
-        // Send Discord notification (async, don't await to not block response)
-        sendDiscordOrderNotification({
-            orderId: result.orderId,
-            total: result.total,
-            paymentReference: result.paymentReference,
-            paymentMethod: result.paymentMethod,
-            phone,
-            shippingAddress,
-            items: result.items,
-            customerName: customer.name,
-            customerEmail: customer.email
-        });
+        // Notify admin with the receipt PDF attached (async, don't await — the
+        // PDF render adds a second or two and must not block the response).
+        (async () => {
+            const orderData = {
+                orderId: result.orderId,
+                total: result.total,
+                paymentReference: result.paymentReference,
+                paymentMethod: result.paymentMethod,
+                phone,
+                shippingAddress,
+                items: result.items,
+                customerName: customer.name,
+                customerEmail: customer.email
+            };
+            const file = await buildOrderReceiptPdf(db, {
+                orderId: result.orderId,
+                total: result.total,
+                phone,
+                paymentMethod: result.paymentMethod,
+                paymentReference: result.paymentReference,
+                customerName: customer.name,
+                items: result.items
+            });
+            await sendDiscordOrderNotification(orderData, file);
+        })().catch(err => logger.error('Order notification failed', { error: err.message }));
 
         res.json({
             success: true,

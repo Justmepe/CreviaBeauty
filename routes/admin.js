@@ -29,7 +29,7 @@ module.exports = (db) => {
         const total = parseInt(totalResult.rows[0].total);
 
         const ordersResult = await db.query(`
-            SELECT o.*, u.name as user_name, u.email as user_email,
+            SELECT o.*, COALESCE(u.name, o.customer_name) as user_name, u.email as user_email,
                    (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as item_count
             FROM orders o
             LEFT JOIN users u ON o.user_id = u.id

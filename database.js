@@ -326,6 +326,25 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // Add guest/manual receipt columns to orders (migration).
+        // Off-website sales (WhatsApp/Instagram/walk-in) and admin-issued
+        // receipts have no logged-in user and no products rows, so the
+        // customer name and free-text line items live directly on the order.
+        await client.query(`
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='customer_name') THEN
+                    ALTER TABLE orders ADD COLUMN customer_name VARCHAR(255);
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='items_json') THEN
+                    ALTER TABLE orders ADD COLUMN items_json TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='source') THEN
+                    ALTER TABLE orders ADD COLUMN source VARCHAR(20) DEFAULT 'website';
+                END IF;
+            END $$;
+        `);
+
         // Add cost_price column to products table (migration for profit-based commission)
         await client.query(`
             DO $$

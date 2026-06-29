@@ -85,6 +85,24 @@ echo "[4/6] Installing production dependencies"
 npm ci --omit=dev || npm install --production
 mkdir -p uploads && chmod 755 uploads
 
+echo "[4b/6] Installing Chromium system libraries (for receipt PDF generation)"
+# Puppeteer ships its own Chromium (downloaded during npm install), but the
+# binary needs these shared libs on the host to launch headless.
+if ! ldconfig -p 2>/dev/null | grep -q 'libnss3'; then
+  ASOUND="libasound2"
+  apt-cache show libasound2t64 >/dev/null 2>&1 && ASOUND="libasound2t64"
+  apt-get install -y \
+    ca-certificates fonts-liberation libatk-bridge2.0-0 libatk1.0-0 libc6 \
+    libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 \
+    libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 \
+    libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 \
+    libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxtst6 \
+    "${ASOUND}" \
+    || echo "  WARN: could not install all Chromium libs — receipt PDFs may fail."
+else
+  echo "  Chromium libraries already present — skipping."
+fi
+
 echo "[5/6] Installing nginx site (additive — does not touch other sites)"
 if [[ "${SKIP_NGINX}" == "1" ]]; then
   echo "  SKIP_NGINX=1 — leaving nginx alone (e.g. CloudPanel will route to 127.0.0.1:${APP_PORT})."
