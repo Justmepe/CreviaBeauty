@@ -438,6 +438,7 @@
                                 <div class="form-group">
                                     <label for="rr-product">Product bought *</label>
                                     <select id="rr-product"><option value="">Select an order first...</option></select>
+                                    <small id="rr-bought-hint" style="color:#7f8c8d; display:none; margin-top:0.3rem;"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="rr-name">Customer name</label>
@@ -1874,9 +1875,26 @@
             return d;
         }
 
+        // Full product catalog (id + name), loaded once. Lets the admin attach a
+        // real product to a review request even for manual/off-site orders that
+        // have no linked order_items (their purchase lives in items_json).
+        let _rrCatalog = [];
+        async function rrLoadCatalog() {
+            if (_rrCatalog.length) return _rrCatalog;
+            try {
+                const res = await fetch('/api/products?limit=100');
+                const result = await res.json();
+                _rrCatalog = (result.data || result || [])
+                    .map(p => ({ id: p.id, name: p.name }))
+                    .sort((a, b) => a.name.localeCompare(b.name));
+            } catch (e) { _rrCatalog = []; }
+            return _rrCatalog;
+        }
+
         async function loadReviewRequestForm() {
             const sel = document.getElementById('rr-order');
             if (!sel) return;
+            rrLoadCatalog(); // warm the catalog cache in the background
             try {
                 const res = await fetch('/api/admin/orders?limit=50');
                 const result = await res.json();
@@ -1892,21 +1910,66 @@
             }
         }
 
+        // Build the "Product bought" dropdown: real order items first (when the
+        // order has them), then the full catalog so any product is selectable.
+        function rrBuildProductOptions(orderItems, catalog, preselectId) {
+            let html = '';
+            if (orderItems.length) {
+                html += '<optgroup label="From this order">' +
+                    orderItems.map(it => `<option value="${it.product_id}">${escapeHtml(it.name)}</option>`).join('') +
+                    '</optgroup>';
+            }
+            html += '<optgroup label="All products">' +
+                catalog.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') +
+                '</optgroup>';
+            const sel = document.getElementById('rr-product');
+            sel.innerHTML = html || '<option value="">No products found</option>';
+            if (preselectId) sel.value = String(preselectId);
+        }
+
         async function onReviewOrderPicked() {
             const orderId = document.getElementById('rr-order').value;
             const prodSel = document.getElementById('rr-product');
+            const hint = document.getElementById('rr-bought-hint');
+            hint.style.display = 'none';
             if (!orderId) { prodSel.innerHTML = '<option value="">Select an order first...</option>'; return; }
             try {
-                const res = await fetch(`/api/admin/orders/${orderId}`);
-                const order = await res.json();
+                const [orderRes, catalog] = await Promise.all([
+                    fetch(`/api/admin/orders/${orderId}`).then(r => r.json()),
+                    rrLoadCatalog()
+                ]);
+                const order = orderRes;
                 const items = order.items || [];
-                prodSel.innerHTML = items.length
-                    ? items.map(it => `<option value="${it.product_id}">${escapeHtml(it.name)}</option>`).join('')
-                    : '<option value="">No items on this order</option>';
+
+                // Manual/off-site orders store what they bought as free-text JSON.
+                let bought = [];
+                if (!items.length && order.items_json) {
+                    try { bought = JSON.parse(order.items_json) || []; } catch (e) { bought = []; }
+                }
+
+                // Try to match the bought item name to a catalog product, so the
+                // right one is preselected even without a linked order_item.
+                let preselect = items.length ? items[0].product_id : null;
+                if (!preselect && bought.length) {
+                    const want = (bought[0].name || '').toLowerCase().trim();
+                    const hit = catalog.find(p => p.name.toLowerCase() === want)
+                             || catalog.find(p => want && p.name.toLowerCase().includes(want));
+                    if (hit) preselect = hit.id;
+                }
+
+                rrBuildProductOptions(items, catalog, preselect);
+
+                if (bought.length) {
+                    const names = bought.map(b => escapeHtml(b.name)).join(', ');
+                    hint.innerHTML = `Off-site order &mdash; they bought: <strong>${names}</strong>. ` +
+                        (preselect ? 'Matched it below; change if needed.' : 'Pick the matching product above.');
+                    hint.style.display = 'block';
+                }
+
                 document.getElementById('rr-name').value = order.customer_name || order.user_name || '';
                 document.getElementById('rr-phone').value = order.phone || '';
             } catch (e) {
-                prodSel.innerHTML = '<option value="">Failed to load items</option>';
+                prodSel.innerHTML = '<option value="">Failed to load products</option>';
             }
         }
 
