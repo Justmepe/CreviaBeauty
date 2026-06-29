@@ -386,6 +386,14 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // Seed the editable receipt brand note for existing installs (fresh
+        // installs get it via seedPaymentSettings). Leaves any edited value alone.
+        await client.query(`
+            INSERT INTO payment_settings (setting_key, setting_value)
+            VALUES ('receipt_brand_note', 'All products are 100% authentic. Thank you for choosing Crevia Beauty.')
+            ON CONFLICT (setting_key) DO NOTHING
+        `);
+
         // Add cost_price column to products table (migration for profit-based commission)
         await client.query(`
             DO $$
@@ -1141,7 +1149,9 @@ async function seedPaymentSettings(client) {
         ['bank_branch', 'Nairobi Branch'],
         ['cod_enabled', 'true'],
         ['mpesa_enabled', 'true'],
-        ['bank_enabled', 'true']
+        ['bank_enabled', 'true'],
+        // Editable brand line shown on receipts when no custom note is typed.
+        ['receipt_brand_note', 'All products are 100% authentic. Thank you for choosing Crevia Beauty.']
     ];
 
     for (const [key, value] of settings) {

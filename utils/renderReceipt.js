@@ -138,6 +138,33 @@ function statusLine(order) {
     return 'Awaiting Payment';
 }
 
+// Brand line used when no custom note is set and settings has none.
+const DEFAULT_BRAND_NOTE = 'All products are 100% authentic. Thank you for choosing Crevia Beauty.';
+
+// A situational note generated from the order's payment state, so an empty
+// notes field still produces something useful for the customer.
+function contextNote(order, settings, isPaid) {
+    if (isPaid) return 'Payment received with thanks. Your order is being prepared for delivery.';
+    if (order.payment_method === 'cod') {
+        return `Cash on Delivery. Please have ${money(order.total)} ready for our rider on delivery.`;
+    }
+    if (order.payment_method === 'mpesa') {
+        let ref = '';
+        switch (settings.mpesa_type) {
+            case 'paybill': ref = settings.mpesa_paybill_number || ''; break;
+            case 'till': ref = settings.mpesa_till_number || ''; break;
+            default: ref = settings.mpesa_phone || '';
+        }
+        return ref
+            ? `Kindly complete payment via M-Pesa to ${ref} to confirm dispatch.`
+            : 'Kindly complete payment via M-Pesa to confirm dispatch.';
+    }
+    if (order.payment_method === 'bank') {
+        return 'Kindly complete payment via Bank Transfer to confirm dispatch.';
+    }
+    return '';
+}
+
 // Build the CSS variable block for one theme, scoped by [data-theme="..."].
 function themeVars(name) {
     const t = THEMES[name];
@@ -183,7 +210,6 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
     const customerPhone = order.phone || '';
     const customerWhatsapp = order.whatsapp || '';
     const deliveryLocation = order.delivery_location || order.shipping_address || '';
-    const orderNotes = order.notes || '';
 
     const paymentDisplay = opts.paymentText ? esc(opts.paymentText) : paymentLine(order, settings);
     const statusDisplay = esc(opts.statusText || statusLine(order));
@@ -193,6 +219,14 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
         ? opts.statusText === 'Paid'
         : order.payment_status === 'paid';
     const docType = isPaid ? 'Receipt' : 'Invoice';
+
+    // Notes: a typed note wins; otherwise auto-generate a context line plus an
+    // (admin-editable) brand line. settings.receipt_brand_note '' means "none".
+    const manualNote = (order.notes || '').trim();
+    const brandNote = settings.receipt_brand_note !== undefined
+        ? String(settings.receipt_brand_note).trim()
+        : DEFAULT_BRAND_NOTE;
+    const orderNotes = manualNote || [contextNote(order, settings, isPaid), brandNote].filter(Boolean).join('\n');
 
     const itemRows = items.map(it => `
         <tr>
