@@ -181,6 +181,9 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
 
     const customerName = order.user_name || order.customer_name || 'Valued Customer';
     const customerPhone = order.phone || '';
+    const customerWhatsapp = order.whatsapp || '';
+    const deliveryLocation = order.delivery_location || order.shipping_address || '';
+    const orderNotes = order.notes || '';
 
     const paymentDisplay = opts.paymentText ? esc(opts.paymentText) : paymentLine(order, settings);
     const statusDisplay = esc(opts.statusText || statusLine(order));
@@ -284,6 +287,11 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
         transform: rotate(-6deg);
     }
     .meta { border-bottom: 1px dashed var(--frame); padding-bottom: 14px; margin-bottom: 14px; }
+    .stack { padding: 5px 0; }
+    .stack .k { display: block; color: var(--sub); font-family: Inter, sans-serif; font-size: 12px; }
+    .stack .v { display: block; color: var(--heading); font-weight: 600; font-size: 12.5px; margin-top: 2px; line-height: 1.4; white-space: pre-wrap; }
+    .notes-block { margin-top: 14px; padding-bottom: 0; border-bottom: none; }
+    .notes-block .stack .v { font-weight: 500; }
     .row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
     .row .k { color: var(--sub); font-family: Inter, sans-serif; }
     .row .v { font-weight: 600; text-align: right; color: var(--heading); }
@@ -366,6 +374,8 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
                 <div class="section-title">Customer</div>
                 <div class="row"><span class="k">Name</span><span class="v">${esc(customerName)}</span></div>
                 ${customerPhone ? `<div class="row"><span class="k">Phone</span><span class="v">${esc(customerPhone)}</span></div>` : ''}
+                ${customerWhatsapp ? `<div class="row"><span class="k">WhatsApp</span><span class="v">${esc(customerWhatsapp)}</span></div>` : ''}
+                ${deliveryLocation ? `<div class="stack"><span class="k">Delivery</span><span class="v">${esc(deliveryLocation)}</span></div>` : ''}
             </div>
 
             <div class="block">
@@ -384,6 +394,12 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
                     <span class="val">${money(total)}</span>
                 </div>
             </div>
+
+            ${orderNotes ? `
+            <div class="block notes-block">
+                <div class="section-title">Notes</div>
+                <div class="stack"><span class="v">${esc(orderNotes)}</span></div>
+            </div>` : ''}
         </div>
         <div class="foot">
             <div class="thanks">Thank you for choosing Crevia Beauty</div>

@@ -13,14 +13,23 @@ const logger = require('./logger');
 
 // Load the order (with customer name), its line items (free-text items_json for
 // guest/manual orders, else the product-backed order_items), and payment
-// settings. Returns null if the order doesn't exist.
+// settings. Looks up by order id (admin) or by receipt_token (public link).
+// Returns null if the order doesn't exist.
 async function fetchReceiptData(db, id) {
+    return fetchReceiptBy(db, 'o.id = $1', id);
+}
+
+async function fetchReceiptDataByToken(db, token) {
+    return fetchReceiptBy(db, 'o.receipt_token = $1', token);
+}
+
+async function fetchReceiptBy(db, whereClause, value) {
     const orderResult = await db.query(`
         SELECT o.*, COALESCE(u.name, o.customer_name) AS user_name, u.email AS user_email
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.id
-        WHERE o.id = $1
-    `, [id]);
+        WHERE ${whereClause}
+    `, [value]);
     const order = orderResult.rows[0];
     if (!order) return null;
 
@@ -33,7 +42,7 @@ async function fetchReceiptData(db, id) {
             FROM order_items oi
             JOIN products p ON oi.product_id = p.id
             WHERE oi.order_id = $1
-        `, [id]);
+        `, [order.id]);
         items = itemsResult.rows;
     }
 
@@ -78,4 +87,4 @@ async function sendPaidReceiptToDiscord(db, id) {
     }
 }
 
-module.exports = { fetchReceiptData, sendPaidReceiptToDiscord };
+module.exports = { fetchReceiptData, fetchReceiptDataByToken, sendPaidReceiptToDiscord };

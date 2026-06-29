@@ -361,6 +361,31 @@ async function initializeDatabase() {
             END $$;
         `);
 
+        // WhatsApp delivery + extra client details (migration).
+        // receipt_token gives each order an unguessable public link so the
+        // receipt can be shared with the customer over WhatsApp. It defaults to
+        // a random hash, so every insert (and existing row) gets one for free.
+        await client.query(`
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='whatsapp') THEN
+                    ALTER TABLE orders ADD COLUMN whatsapp VARCHAR(50);
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='delivery_location') THEN
+                    ALTER TABLE orders ADD COLUMN delivery_location TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='notes') THEN
+                    ALTER TABLE orders ADD COLUMN notes TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='receipt_token') THEN
+                    ALTER TABLE orders ADD COLUMN receipt_token VARCHAR(40)
+                        DEFAULT md5(random()::text || clock_timestamp()::text);
+                    UPDATE orders SET receipt_token = md5(random()::text || clock_timestamp()::text || id::text)
+                        WHERE receipt_token IS NULL;
+                END IF;
+            END $$;
+        `);
+
         // Add cost_price column to products table (migration for profit-based commission)
         await client.query(`
             DO $$

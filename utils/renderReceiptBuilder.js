@@ -90,6 +90,16 @@ function renderReceiptBuilderPage(mode = 'guest') {
             </div>
             <div class="grid2">
                 <div class="field">
+                    <label>WhatsApp Number</label>
+                    <input type="text" name="whatsapp" maxlength="40" placeholder="07xx xxx xxx">
+                </div>
+                <div class="field">
+                    <label>Delivery Location</label>
+                    <input type="text" name="deliveryLocation" maxlength="200" placeholder="Estate / town / pickup point">
+                </div>
+            </div>
+            <div class="grid2">
+                <div class="field">
                     <label>Payment Method</label>
                     <select name="paymentMethod">
                         <option value="cod">Cash on Delivery</option>
@@ -132,6 +142,11 @@ function renderReceiptBuilderPage(mode = 'guest') {
             <div class="field" style="margin-top:18px;max-width:200px;">
                 <label>Delivery Fee (KES)</label>
                 <input type="number" name="delivery" min="0" step="1" value="0" oninput="recalc()">
+            </div>
+
+            <div class="field">
+                <label>Order Notes <span style="text-transform:none;font-weight:400;">(optional)</span></label>
+                <input type="text" name="notes" maxlength="200" placeholder="e.g. landmark, delivery instructions">
             </div>
 
             <div class="totals">

@@ -155,9 +155,26 @@ app.get('/admin/receipt/new', requireAdmin, (req, res) => {
     res.send(renderReceiptBuilderPage('admin'));
 });
 
+// Public receipt by unguessable token — the link shared with the customer over
+// WhatsApp. Renders the same branded receipt (viewable + Save as PDF).
+const { renderReceiptPage } = require('./utils/renderReceipt');
+const { fetchReceiptDataByToken } = require('./utils/orderReceipt');
+app.get('/r/:token', async (req, res) => {
+    try {
+        const token = String(req.params.token || '');
+        if (!/^[a-f0-9]{16,40}$/.test(token)) return res.status(404).send('Not found');
+        const data = await fetchReceiptDataByToken(db, token);
+        if (!data) return res.status(404).send('Receipt not found');
+        res.set('Cache-Control', 'no-store');
+        res.send(renderReceiptPage(data.order, data.items, data.settings, { theme: req.query.theme }));
+    } catch (error) {
+        logger.error('Public receipt error', { error: error.message });
+        res.status(404).send('Receipt not found');
+    }
+});
+
 // Admin-only branded receipt for an order, rendered print-ready (Save as PDF
 // from the browser). Append ?print=1 to auto-open the print dialog.
-const { renderReceiptPage } = require('./utils/renderReceipt');
 app.get('/admin/receipt/:id', requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id, 10);

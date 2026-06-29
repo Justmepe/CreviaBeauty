@@ -1482,6 +1482,7 @@
                 const response = await fetch('/api/admin/orders');
                 const result = await response.json();
                 let orders = result.data || result || [];
+                currentOrders = orders; // keep full list for WhatsApp lookups
 
                 if (filter) {
                     orders = orders.filter(o => o.status === filter);
@@ -1526,12 +1527,42 @@
                         <td>
                             <button class="action-btn view" onclick="viewOrderDetails(${o.id})" title="View">&#128065;</button>
                             <button class="action-btn" onclick="window.open('/admin/receipt/${o.id}', '_blank')" title="Receipt">&#129534;</button>
+                            ${(o.whatsapp || o.phone) && o.receipt_token ? `<button class="action-btn" onclick="sendWhatsApp(${o.id})" title="Send receipt on WhatsApp" style="color:#25D366;">&#128241;</button>` : ''}
                         </td>
                     </tr>
                 `).join('');
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load orders</td></tr>';
             }
+        }
+
+        // Orders currently loaded, kept so WhatsApp actions can look up details.
+        let currentOrders = [];
+
+        // Normalise a Kenyan number to international msisdn for wa.me.
+        function normalizeMsisdn(n) {
+            let d = String(n || '').replace(/[^0-9]/g, '');
+            if (d.startsWith('254')) return d;
+            if (d.startsWith('0')) return '254' + d.slice(1);
+            if (d.startsWith('7') || d.startsWith('1')) return '254' + d;
+            return d;
+        }
+
+        // Build a click-to-send WhatsApp link with the secure receipt URL.
+        function buildWaLink(o) {
+            const num = normalizeMsisdn(o.whatsapp || o.phone);
+            const link = location.origin + '/r/' + o.receipt_token;
+            const doc = o.payment_status === 'paid' ? 'receipt' : 'invoice';
+            const total = 'KES ' + Number(o.total || 0).toLocaleString();
+            const msg = 'Hello ' + (o.user_name || '') + ', thank you for shopping with Crevia Beauty. '
+                + 'Your ' + doc + ' (' + total + ') is ready here: ' + link + '. We appreciate you.';
+            return 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
+        }
+
+        function sendWhatsApp(orderId) {
+            const o = currentOrders.find(x => x.id === orderId);
+            if (!o || !o.receipt_token) { showAlert('No receipt link for this order', 'error'); return; }
+            window.open(buildWaLink(o), '_blank');
         }
 
         function getPaymentLabel(method) {
@@ -1559,7 +1590,14 @@
         }
 
         async function markPaymentReceived(orderId) {
-            if (!confirm('Mark this order as paid?')) return;
+            if (!confirm('Mark this order as paid? This opens WhatsApp to send the receipt.')) return;
+
+            const o = currentOrders.find(x => x.id === orderId);
+            const willSend = o && o.receipt_token && (o.whatsapp || o.phone);
+            // Open the tab now (inside the click) so the browser doesn't block it,
+            // then point it at the WhatsApp link once the server confirms.
+            const win = willSend ? window.open('', '_blank') : null;
+
             try {
                 const response = await fetch(`/api/admin/orders/${orderId}/payment`, {
                     method: 'PUT',
@@ -1568,12 +1606,19 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showAlert('Payment marked as received', 'success');
+                    if (win) {
+                        win.location = buildWaLink({ ...o, payment_status: 'paid' });
+                        showAlert('Marked paid. WhatsApp opened to send the receipt.', 'success');
+                    } else {
+                        showAlert('Payment marked as received', 'success');
+                    }
                     loadOrders();
                 } else {
+                    if (win) win.close();
                     showAlert(getErrorMessage(data, 'Failed to update'), 'error');
                 }
             } catch (error) {
+                if (win) win.close();
                 showAlert('Failed to update payment status', 'error');
             }
         }
