@@ -159,11 +159,42 @@ function renderReceiptBuilderPage(mode = 'guest') {
             ${isAdmin ? '' : '<p class="hint">Your receipt opens on the next screen, ready to save or print.</p>'}
         </form>
     </div>
+    <datalist id="product-options"></datalist>
     <script>
         function fmt(n){ return 'KES ' + (Math.round(n)||0).toLocaleString('en-US'); }
+
+        // Catalog from the database — name -> price. Lets admins pick a product
+        // instead of typing it; choosing one auto-fills the unit price.
+        const PRODUCT_PRICE = {};
+        fetch('/api/products/options')
+            .then(r => r.ok ? r.json() : [])
+            .then(list => {
+                const dl = document.getElementById('product-options');
+                (list || []).forEach(p => {
+                    PRODUCT_PRICE[p.name] = Number(p.price) || 0;
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.label = fmt(p.price);
+                    dl.appendChild(opt);
+                });
+            })
+            .catch(() => {});
+
+        // When a row's description matches a catalog product, fill its price.
+        function onProductPick(input){
+            const price = PRODUCT_PRICE[input.value.trim()];
+            if (price !== undefined) {
+                const priceInput = input.parentNode.querySelector('[name="price[]"]');
+                if (priceInput && (!priceInput.value || Number(priceInput.value) === 0)) {
+                    priceInput.value = price;
+                    recalc();
+                }
+            }
+        }
+
         function rowTemplate(){
             return '<div class="item-row">' +
-                '<input type="text" name="desc[]" placeholder="e.g. Chanel Coco Mademoiselle EDP 100ml" maxlength="120">' +
+                '<input type="text" name="desc[]" list="product-options" placeholder="Pick a product or type a custom item" maxlength="120" onchange="onProductPick(this)">' +
                 '<input type="number" name="qty[]" min="1" step="1" value="1" oninput="recalc()">' +
                 '<input type="number" name="price[]" min="0" step="1" placeholder="0" oninput="recalc()">' +
                 '<button type="button" class="del" onclick="this.parentNode.remove();recalc()">&times;</button>' +

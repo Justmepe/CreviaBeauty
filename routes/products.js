@@ -170,6 +170,15 @@ module.exports = (db) => {
         res.json(result);
     }));
 
+    // Lightweight catalog for the receipt builder's product picker:
+    // every product's name + price, no pagination, ordered by name.
+    router.get('/options', asyncHandler(async (req, res) => {
+        const result = await db.query(
+            'SELECT id, name, price FROM products ORDER BY name ASC'
+        );
+        res.json(result.rows);
+    }));
+
     // Get single product (includes shade variants if any)
     router.get('/:id', productIdRules, asyncHandler(async (req, res) => {
         const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
