@@ -314,7 +314,7 @@
         <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
     </a>
 
-    <script src="/js/main.js?v=6"></script>
+    <script src="/js/main.js?v=7"></script>
     <script>
         // Active filter state
         const state = {
@@ -522,6 +522,12 @@
             wireSidebar();
             loadFacets();
             reloadProducts();
+
+            // Shared product links (/products?product=ID) open that product directly.
+            const productId = urlParams.get('product');
+            if (productId && /^\d+$/.test(productId) && typeof viewProduct === 'function') {
+                viewProduct(parseInt(productId, 10));
+            }
         })();
 
         // Live Chat Toggle

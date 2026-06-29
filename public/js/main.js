@@ -424,6 +424,10 @@ async function viewProduct(productId) {
         // Live "X viewing now" + low-stock urgency (heartbeat while modal open).
         startUrgency(product.id);
 
+        // Remember which product is open, so the image share-nudge can deep-link to it.
+        window._currentProductId = product.id;
+        window._currentProductName = product.name;
+
         // Cursor-follow zoom on the main image (desktop hover only). Moving the
         // mouse pans the magnified view; leaving resets it smoothly.
         const zoomWrap = modal.querySelector('.modal-image-main');
@@ -836,6 +840,8 @@ function stopUrgency() {
 // Close product modal
 function closeProductModal() {
     stopUrgency();
+    window._currentProductId = null;
+    window._currentProductName = null;
     const modal = document.querySelector('.product-modal');
     if (modal) {
         modal.remove();
@@ -1008,3 +1014,133 @@ function sendChatMessage() {
         }
     }
 }
+
+// ===== Product image protection =====
+// Professional product photos take real time and money to shoot, so instead of
+// letting people quietly save or right-click them, we intercept those actions
+// and turn them into a *share* of the product link. A subtle on-image watermark
+// also rides along in any screenshot. This is a friendly speed bump, not DRM:
+// screenshots and direct URL access can't be blocked, so we make sharing the
+// path of least resistance and brand the image either way.
+(function installImageProtection() {
+    // Don't touch the admin dashboard — only the public storefront.
+    if (location.pathname.startsWith('/admin')) return;
+
+    const PROTECTED_SEL = '.product-image, .modal-image-main, .modal-thumb';
+
+    function protectedImage(target) {
+        if (!target || target.tagName !== 'IMG' || !target.closest) return null;
+        return target.closest(PROTECTED_SEL) ? target : null;
+    }
+
+    // Resolve the product (id + name) an image belongs to.
+    function productOf(img) {
+        const card = img.closest('.product-card');
+        if (card && card.dataset.productId) {
+            const nameEl = card.querySelector('.product-name');
+            return { id: card.dataset.productId, name: nameEl ? nameEl.textContent.trim() : '' };
+        }
+        if (window._currentProductId) {
+            return { id: window._currentProductId, name: window._currentProductName || '' };
+        }
+        return null;
+    }
+
+    function shareUrlFor(info) {
+        return (info && info.id)
+            ? `${location.origin}/products?product=${info.id}`
+            : location.href;
+    }
+
+    function nudge(info) {
+        const name = (info && info.name) || 'this piece';
+        const url = shareUrlFor(info);
+        const text = `Found ${name} on CreviaBeauty 💛 Take a look: ${url}`;
+        // Prefer the native share sheet (great on mobile — one tap to any app).
+        if (navigator.share) {
+            navigator.share({ title: 'CreviaBeauty', text, url }).catch(() => {});
+            return;
+        }
+        showShareModal(name, url, text);
+    }
+
+    function showShareModal(name, url, text) {
+        document.querySelector('.share-nudge')?.remove();
+        const modal = document.createElement('div');
+        modal.className = 'share-nudge';
+        modal.innerHTML = `
+            <div class="share-nudge-overlay"></div>
+            <div class="share-nudge-card">
+                <button class="share-nudge-close" aria-label="Close">&times;</button>
+                <div class="share-nudge-title">Love it? Share it 💛</div>
+                <p class="share-nudge-note">Please don't save our photos — instead, send the link so your friend can see it on our site too.</p>
+                <input class="share-nudge-link" type="text" readonly value="${url}">
+                <div class="share-nudge-actions">
+                    <button class="share-nudge-btn primary" data-act="copy">Copy link</button>
+                    <a class="share-nudge-btn wa" target="_blank" rel="noopener"
+                       href="https://wa.me/?text=${encodeURIComponent(text)}">Share on WhatsApp</a>
+                </div>
+            </div>`;
+        const close = () => modal.remove();
+        modal.querySelector('.share-nudge-overlay').onclick = close;
+        modal.querySelector('.share-nudge-close').onclick = close;
+        modal.querySelector('[data-act="copy"]').onclick = () => {
+            navigator.clipboard.writeText(url)
+                .then(() => showAlert('Link copied — paste it anywhere', 'success'))
+                .catch(() => { modal.querySelector('.share-nudge-link').select(); });
+        };
+        document.body.appendChild(modal);
+    }
+
+    // Right-click on a product image -> share instead of the browser save menu.
+    document.addEventListener('contextmenu', (e) => {
+        const img = protectedImage(e.target);
+        if (img) { e.preventDefault(); nudge(productOf(img)); }
+    });
+    // Block drag-to-save.
+    document.addEventListener('dragstart', (e) => {
+        if (protectedImage(e.target)) e.preventDefault();
+    });
+    // Ctrl/Cmd+S anywhere there are product images -> share nudge.
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S') && document.querySelector('.product-image img, .modal-image-main img')) {
+            e.preventDefault();
+            const ctx = window._currentProductId ? { id: window._currentProductId, name: window._currentProductName } : null;
+            nudge(ctx);
+        }
+    });
+
+    // CSS: kill long-press save (mobile) + drag ghost, add a subtle corner
+    // watermark, and style the share modal.
+    const style = document.createElement('style');
+    style.id = 'image-protection-styles';
+    style.textContent = `
+        .product-image img, .modal-image-main img, .modal-thumb img {
+            -webkit-touch-callout: none;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+        .product-image, .modal-image-main { position: relative; }
+        .product-image::after, .modal-image-main::after {
+            content: 'CreviaBeauty';
+            position: absolute; right: 8px; bottom: 8px;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.72rem; letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.55);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            pointer-events: none; user-select: none; z-index: 2;
+        }
+        .share-nudge { position: fixed; inset: 0; z-index: 10001; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+        .share-nudge-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+        .share-nudge-card { position: relative; background: #fff; border-radius: 14px; padding: 1.75rem; width: 90%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+        .share-nudge-close { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: #999; }
+        .share-nudge-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #1a1a2e; margin-bottom: 0.5rem; }
+        .share-nudge-note { color: #6b6b7b; font-size: 0.9rem; margin: 0 0 1rem; }
+        .share-nudge-link { width: 100%; padding: 0.6rem 0.7rem; border: 1px solid #e0e0e6; border-radius: 8px; font-size: 0.82rem; color: #444; margin-bottom: 0.9rem; }
+        .share-nudge-actions { display: flex; gap: 0.6rem; }
+        .share-nudge-btn { flex: 1; padding: 0.7rem; border-radius: 8px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        .share-nudge-btn.primary { background: #1a1a2e; color: #fff; }
+        .share-nudge-btn.wa { background: #25d366; color: #fff; }
+    `;
+    document.head.appendChild(style);
+})();
