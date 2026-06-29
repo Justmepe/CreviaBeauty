@@ -22,17 +22,31 @@ module.exports = (db) => {
             productQuality,
             deliveryRating,
             productId,
-            orderId
+            orderId,
+            reviewToken
         } = req.body;
 
         const userId = req.session?.userId || null;
+
+        // A review arriving via a valid admin request link is pre-trusted (we
+        // solicited it from a real buyer), so it skips the moderation queue.
+        // Organic/anonymous submissions still land unapproved for review.
+        let trustedRequest = null;
+        if (reviewToken) {
+            const lookup = await db.query(
+                "SELECT id FROM review_requests WHERE token = $1 AND status = 'sent'",
+                [String(reviewToken).slice(0, 64)]
+            );
+            trustedRequest = lookup.rows[0] || null;
+        }
+        const autoApprove = !!trustedRequest;
 
         const result = await db.query(`
             INSERT INTO reviews (
                 user_id, order_id, product_id, customer_name, customer_email,
                 rating, review_text, product_quality, delivery_rating, is_approved
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, FALSE)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id
         `, [
             userId,
@@ -43,18 +57,34 @@ module.exports = (db) => {
             rating,
             reviewText || null,
             productQuality || null,
-            deliveryRating || null
+            deliveryRating || null,
+            autoApprove
         ]);
 
+        const reviewId = result.rows[0].id;
+
+        // Close out the request so it shows as completed in the follow-up list.
+        if (trustedRequest) {
+            await db.query(`
+                UPDATE review_requests
+                SET status = 'completed', review_id = $1, completed_at = NOW()
+                WHERE id = $2
+            `, [reviewId, trustedRequest.id]);
+        }
+
         logger.info('Review submitted', {
-            reviewId: result.rows[0].id,
+            reviewId,
             rating,
-            customerName
+            customerName,
+            autoApproved: autoApprove
         });
 
         res.json({
             success: true,
-            message: 'Thank you for your review! It will be visible after approval.'
+            autoApproved: autoApprove,
+            message: autoApprove
+                ? 'Thank you for your review! It is now live on our site.'
+                : 'Thank you for your review! It will be visible after approval.'
         });
     }));
 

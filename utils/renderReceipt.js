@@ -18,17 +18,28 @@
 const fs = require('fs');
 const path = require('path');
 
-// Embed the (small, pre-trimmed) brand logo as a data URI so it renders both
+// Embed the (small, pre-trimmed) brand logos as data URIs so they render both
 // in the browser and in the PDF (Puppeteer has no server origin to fetch from).
-// Falls back to a text wordmark if the asset is missing.
-const LOGO_DATA_URI = (() => {
+// Two variants: the dark logo for the light Ivory header, and an ivory+gold
+// inverted logo for the dark Navy/Black headers. Both are embedded so the live
+// theme switcher swaps them via CSS. Falls back to a text wordmark if missing.
+function loadLogo(file) {
     try {
-        const buf = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'logo-receipt.png'));
+        const buf = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', file));
         return `data:image/png;base64,${buf.toString('base64')}`;
     } catch (e) {
         return null;
     }
-})();
+}
+const LOGO_DARK = loadLogo('logo-receipt.png');        // for Ivory (light) header
+const LOGO_LIGHT = loadLogo('logo-receipt-light.png'); // for Navy/Black (dark) headers
+
+const LOGO_MARKUP = (LOGO_DARK && LOGO_LIGHT)
+    ? `<img class="logo logo-dark" src="${LOGO_DARK}" alt="Crevia Beauty">
+       <img class="logo logo-light" src="${LOGO_LIGHT}" alt="Crevia Beauty">`
+    : (LOGO_DARK || LOGO_LIGHT)
+        ? `<img class="logo" src="${LOGO_DARK || LOGO_LIGHT}" alt="Crevia Beauty" style="display:block">`
+        : `<div class="mark">Crevia Beauty</div>`;
 
 const MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -222,15 +233,12 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
         padding: 30px 22px 22px;
         border-bottom: 1px solid var(--frame);
     }
-    .head .logo-badge {
-        display: inline-block;
-        background: #ffffff;
-        border: 1px solid var(--frame);
-        border-radius: 12px;
-        padding: 14px 20px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-    }
-    .head .logo-badge img { display: block; width: 150px; height: auto; }
+    /* Theme-adaptive logo sits directly on the header gradient (no plate).
+       The switcher toggles data-theme, so CSS picks the right variant live. */
+    .head .logo { display: none; width: 172px; height: auto; margin: 0 auto; }
+    [data-theme="ivory"] .head .logo-dark { display: block; }
+    [data-theme="navy"] .head .logo-light,
+    [data-theme="black"] .head .logo-light { display: block; }
     .head .mark {
         font-family: Cinzel, "Playfair Display", Georgia, serif;
         font-size: 22px;
@@ -317,9 +325,7 @@ function renderReceiptPage(order, items = [], settings = {}, opts = {}) {
 <body data-theme="${theme}">
     <div class="sheet">
         <div class="head">
-            ${LOGO_DATA_URI
-                ? `<div class="logo-badge"><img src="${LOGO_DATA_URI}" alt="Crevia Beauty"></div>`
-                : `<div class="mark">Crevia Beauty</div>`}
+            ${LOGO_MARKUP}
             <div class="tagline">Discover Your Signature Scent</div>
             <div class="contact"><span>www.creviabeauty.com</span><span>support@creviabeauty.com</span></div>
         </div>

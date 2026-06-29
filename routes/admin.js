@@ -3,6 +3,7 @@
  */
 
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -370,6 +371,58 @@ module.exports = (db) => {
         logger.info('Review deleted', { reviewId });
 
         res.json({ success: true });
+    }));
+
+    // ============ REVIEW REQUESTS (post-purchase follow-up) ============
+
+    // List recent review requests with product name + status, for the
+    // follow-up table in admin.
+    router.get('/review-requests', asyncHandler(async (req, res) => {
+        const result = await db.query(`
+            SELECT rr.*, p.name AS product_name
+            FROM review_requests rr
+            LEFT JOIN products p ON rr.product_id = p.id
+            ORDER BY rr.created_at DESC
+            LIMIT 100
+        `);
+        res.json({ data: result.rows });
+    }));
+
+    // Generate a review-request link for a customer. Returns a token + the
+    // relative review path; the client builds the absolute URL + WhatsApp link.
+    router.post('/review-requests', asyncHandler(async (req, res) => {
+        const { orderId, productId, customerName, customerPhone } = req.body;
+
+        const pid = parseInt(productId, 10);
+        if (isNaN(pid)) throw AppError.badRequest('A product is required');
+
+        const prod = await db.query('SELECT id, name FROM products WHERE id = $1', [pid]);
+        if (prod.rows.length === 0) throw AppError.notFound('Product not found');
+
+        const oid = orderId ? parseInt(orderId, 10) : null;
+        const token = crypto.randomBytes(16).toString('hex');
+        const name = (customerName || '').toString().trim().slice(0, 255) || null;
+        const phone = (customerPhone || '').toString().trim().slice(0, 50) || null;
+
+        const result = await db.query(`
+            INSERT INTO review_requests (token, order_id, product_id, customer_name, customer_phone)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id
+        `, [token, oid, pid, name, phone]);
+
+        logger.info('Review request created', { id: result.rows[0].id, productId: pid, orderId: oid });
+
+        // Deep link the customer lands on: product preselected, token tracked,
+        // name prefilled for convenience.
+        const params = new URLSearchParams({ product: String(pid), rt: token });
+        if (name) params.set('name', name);
+
+        res.json({
+            success: true,
+            token,
+            path: `/review?${params.toString()}`,
+            productName: prod.rows[0].name
+        });
     }));
 
     // ============ CONTACT MANAGEMENT ============

@@ -423,6 +423,65 @@
 
                 <!-- Reviews Section -->
                 <section id="section-reviews" class="dashboard-section" style="display: none;">
+                    <!-- Request a Review: build a tracked follow-up link for a customer -->
+                    <div class="content-card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">&#128140; Request a Review</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="color:#7f8c8d; margin-top:0;">Pick the order, choose the product they bought, then send them a one-tap review link on WhatsApp. We track who replies.</p>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+                                <div class="form-group">
+                                    <label for="rr-order">Order</label>
+                                    <select id="rr-order"><option value="">Loading orders...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rr-product">Product bought *</label>
+                                    <select id="rr-product"><option value="">Select an order first...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rr-name">Customer name</label>
+                                    <input type="text" id="rr-name" placeholder="e.g. Wanjiku">
+                                </div>
+                                <div class="form-group">
+                                    <label for="rr-phone">WhatsApp number</label>
+                                    <input type="text" id="rr-phone" placeholder="e.g. 0712345678">
+                                </div>
+                            </div>
+                            <button class="btn-dashboard primary" onclick="generateReviewRequest()">Generate link</button>
+                            <div id="rr-result" style="display:none; margin-top:1rem; padding:1rem; background:#f8f9fb; border-radius:8px;">
+                                <label style="font-weight:600; display:block; margin-bottom:0.4rem;">Review link</label>
+                                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                                    <input type="text" id="rr-link" readonly style="flex:1; min-width:240px;">
+                                    <button class="btn-dashboard outline sm" onclick="copyReviewLink()">Copy</button>
+                                    <a id="rr-whatsapp" class="btn-dashboard success sm" target="_blank" rel="noopener" style="text-decoration:none;">Send on WhatsApp</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follow-up tracking: who was asked, who replied -->
+                    <div class="content-card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Review Requests</h3>
+                        </div>
+                        <div class="card-body no-padding">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Customer</th>
+                                        <th>Sent</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="review-requests-table">
+                                    <tr><td colspan="4" style="text-align:center; padding:1.5rem; color:#7f8c8d;">No requests yet</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="content-card">
                         <div class="card-header">
                             <h3 class="card-title">Customer Reviews</h3>
@@ -1290,7 +1349,7 @@
                 case 'hero-slides': loadHeroSlides(); break;
                 case 'orders': loadOrders(); break;
                 case 'marketers': loadMarketers(); loadMarketerPayouts(); break;
-                case 'reviews': loadReviews(); break;
+                case 'reviews': loadReviews(); loadReviewRequestForm(); loadReviewRequests(); break;
                 case 'messages': loadContacts(); break;
                 case 'content-studio': loadStudioArticles(); loadStudioProducts(); loadPromptInbox(); break;
                 case 'carousel-assets': loadCarouselAssets(); break;
@@ -1735,6 +1794,120 @@
                 }
             } catch (error) {
                 showAlert('Failed to process payout', 'error');
+            }
+        }
+
+        // ===== Request a Review (post-purchase follow-up) =====
+        let _rrProductName = '';
+
+        // Normalize a Kenyan number to WhatsApp's international digits-only form.
+        function waPhone(raw) {
+            let d = (raw || '').replace(/\D/g, '');
+            if (d.startsWith('0')) d = '254' + d.slice(1);
+            else if (d.startsWith('254')) { /* already international */ }
+            else if (d.length === 9) d = '254' + d;        // bare 7XXXXXXXX / 1XXXXXXXX
+            return d;
+        }
+
+        async function loadReviewRequestForm() {
+            const sel = document.getElementById('rr-order');
+            if (!sel) return;
+            try {
+                const res = await fetch('/api/admin/orders?limit=50');
+                const result = await res.json();
+                const orders = result.data || [];
+                sel.innerHTML = '<option value="">Select an order...</option>' + orders.map(o => {
+                    const who = o.user_name || o.phone || 'Guest';
+                    const when = o.created_at ? new Date(o.created_at).toLocaleDateString() : '';
+                    return `<option value="${o.id}">#${o.id} &middot; ${escapeHtml(who)} &middot; ${when}</option>`;
+                }).join('');
+                sel.onchange = onReviewOrderPicked;
+            } catch (e) {
+                sel.innerHTML = '<option value="">Failed to load orders</option>';
+            }
+        }
+
+        async function onReviewOrderPicked() {
+            const orderId = document.getElementById('rr-order').value;
+            const prodSel = document.getElementById('rr-product');
+            if (!orderId) { prodSel.innerHTML = '<option value="">Select an order first...</option>'; return; }
+            try {
+                const res = await fetch(`/api/admin/orders/${orderId}`);
+                const order = await res.json();
+                const items = order.items || [];
+                prodSel.innerHTML = items.length
+                    ? items.map(it => `<option value="${it.product_id}">${escapeHtml(it.name)}</option>`).join('')
+                    : '<option value="">No items on this order</option>';
+                document.getElementById('rr-name').value = order.customer_name || order.user_name || '';
+                document.getElementById('rr-phone').value = order.phone || '';
+            } catch (e) {
+                prodSel.innerHTML = '<option value="">Failed to load items</option>';
+            }
+        }
+
+        async function generateReviewRequest() {
+            const orderId = document.getElementById('rr-order').value || null;
+            const productId = document.getElementById('rr-product').value;
+            const customerName = document.getElementById('rr-name').value.trim();
+            const customerPhone = document.getElementById('rr-phone').value.trim();
+            if (!productId) { showAlert('Pick the product they bought', 'error'); return; }
+            try {
+                const res = await fetch('/api/admin/review-requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, productId, customerName, customerPhone })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) { showAlert(getErrorMessage(data, 'Could not generate link'), 'error'); return; }
+
+                const url = location.origin + data.path;
+                _rrProductName = data.productName || 'your order';
+                document.getElementById('rr-link').value = url;
+
+                const msg = `Hi ${customerName || 'there'}! Thanks for shopping with CreviaBeauty 💛 We'd love your quick review of the ${_rrProductName}. It only takes a minute: ${url}`;
+                const wa = document.getElementById('rr-whatsapp');
+                const phone = waPhone(customerPhone);
+                wa.href = (phone ? `https://wa.me/${phone}` : 'https://wa.me/') + `?text=${encodeURIComponent(msg)}`;
+                wa.style.display = customerPhone ? '' : 'none';
+
+                document.getElementById('rr-result').style.display = 'block';
+                showAlert('Review link ready', 'success');
+                loadReviewRequests();
+            } catch (e) {
+                showAlert('Could not generate link', 'error');
+            }
+        }
+
+        function copyReviewLink() {
+            const input = document.getElementById('rr-link');
+            navigator.clipboard.writeText(input.value)
+                .then(() => showAlert('Link copied', 'success'))
+                .catch(() => { input.select(); showAlert('Press Ctrl+C to copy', 'error'); });
+        }
+
+        async function loadReviewRequests() {
+            const tbody = document.getElementById('review-requests-table');
+            if (!tbody) return;
+            try {
+                const res = await fetch('/api/admin/review-requests');
+                const result = await res.json();
+                const rows = result.data || [];
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:1.5rem; color:#7f8c8d;">No requests yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows.map(r => {
+                    const done = r.status === 'completed';
+                    return `
+                        <tr>
+                            <td>${escapeHtml(r.product_name || '-')}</td>
+                            <td>${escapeHtml(r.customer_name || '-')}${r.customer_phone ? `<br><small style="color:#7f8c8d;">${escapeHtml(r.customer_phone)}</small>` : ''}</td>
+                            <td><small>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</small></td>
+                            <td><span class="status-badge ${done ? 'approved' : 'pending'}">${done ? 'Reviewed' : 'Sent'}</span></td>
+                        </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:1.5rem; color:#e94560;">Failed to load</td></tr>';
             }
         }
 

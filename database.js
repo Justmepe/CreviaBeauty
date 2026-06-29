@@ -198,6 +198,22 @@ async function initializeDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
+            -- Review requests: admin-generated "please review" links sent to
+            -- customers after a purchase, tracked so we can follow up on who
+            -- was asked and who actually left a review.
+            CREATE TABLE IF NOT EXISTS review_requests (
+                id SERIAL PRIMARY KEY,
+                token VARCHAR(64) UNIQUE NOT NULL,
+                order_id INTEGER REFERENCES orders(id),
+                product_id INTEGER NOT NULL REFERENCES products(id),
+                customer_name VARCHAR(255),
+                customer_phone VARCHAR(50),
+                status VARCHAR(20) DEFAULT 'sent',   -- 'sent' | 'completed'
+                review_id INTEGER REFERENCES reviews(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP
+            );
+
             -- Sessions table
             CREATE TABLE IF NOT EXISTS sessions (
                 sid VARCHAR(255) PRIMARY KEY NOT NULL,
@@ -608,6 +624,8 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
             CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(is_approved);
             CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at);
+            CREATE INDEX IF NOT EXISTS idx_review_requests_token ON review_requests(token);
+            CREATE INDEX IF NOT EXISTS idx_review_requests_status ON review_requests(status);
             CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
             CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at);
             CREATE INDEX IF NOT EXISTS idx_sessions_expired ON sessions(expired);
