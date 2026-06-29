@@ -1628,6 +1628,7 @@
                             <button class="action-btn view" onclick="viewOrderDetails(${o.id})" title="View">&#128065;</button>
                             <button class="action-btn" onclick="window.open('/admin/receipt/${o.id}', '_blank')" title="Receipt">&#129534;</button>
                             ${(o.whatsapp || o.phone) && o.receipt_token ? `<button class="action-btn" onclick="sendWhatsApp(${o.id})" title="Send receipt on WhatsApp" style="color:#25D366;">&#128241;</button>` : ''}
+                            ${(o.status === 'delivered' || o.status === 'complete') && o.payment_status === 'paid' ? `<button class="action-btn" onclick="sendReviewRequest(${o.id})" title="Send review request on WhatsApp" style="color:#f39c12;">&#11088;</button>` : ''}
                             <button class="action-btn" onclick="deleteOrder(${o.id})" title="Delete order" style="color:#e94560;">&#128465;</button>
                         </td>
                     </tr>
@@ -1664,6 +1665,96 @@
             const o = currentOrders.find(x => x.id === orderId);
             if (!o || !o.receipt_token) { showAlert('No receipt link for this order', 'error'); return; }
             window.open(buildWaLink(o), '_blank');
+        }
+
+        // Warm review-request message. Uses the first name, the product, and
+        // fragrance wording when the item is a scent. No em dashes (brand style).
+        function buildReviewMessage(name, productName, url, category) {
+            const first = (String(name || 'there').trim().split(/\s+/)[0]) || 'there';
+            const isScent = /perfum|fragrance|cologne|scent|edp|edt/i.test((category || '') + ' ' + (productName || ''));
+            const help = isScent
+                ? 'helps other fragrance lovers find their perfect scent'
+                : 'helps other beauty lovers find their perfect match';
+            return [
+                'Hi ' + first + '! 😊',
+                '',
+                'Your receipt for the ' + productName + ' is attached above for your records.',
+                '',
+                'I hope it is everything you wished for! 🌸',
+                '',
+                'When you get a chance, a quick review would mean a lot and ' + help + ':',
+                '👉 ' + url,
+                '',
+                'Thank you so much for choosing CreviaBeauty. 🖤'
+            ].join('\n');
+        }
+
+        // Catalog cache (name -> product) for matching manual/guest line items.
+        let _catalog = null;
+        async function getCatalog() {
+            if (_catalog) return _catalog;
+            try { _catalog = await (await fetch('/api/products/options')).json(); }
+            catch (e) { _catalog = []; }
+            return _catalog;
+        }
+
+        // From a delivered + paid order: create a verified review link for the
+        // order's product and open WhatsApp pre-filled with the review message.
+        // Works for website orders (real order_items) and for manual/guest
+        // orders whose item name matches a catalog product.
+        async function sendReviewRequest(orderId) {
+            const o = currentOrders.find(x => x.id === orderId) || {};
+            // Open the tab in the click gesture so it isn't popup-blocked.
+            const win = window.open('', '_blank');
+            try {
+                const det = await (await fetch(`/api/admin/orders/${orderId}`)).json();
+                let productId = null, productName = null, category = null;
+
+                const item = (det.items || []).find(i => i.product_id);
+                if (item) {
+                    productId = item.product_id; productName = item.name; category = item.category;
+                } else if (o.items_json) {
+                    // Manual/guest order: match the first line item to the catalog.
+                    let arr = [];
+                    try { arr = JSON.parse(o.items_json); } catch (e) { arr = []; }
+                    if (arr.length) {
+                        productName = arr[0].name;
+                        const cat = await getCatalog();
+                        const match = cat.find(p => p.name.toLowerCase() === String(arr[0].name || '').toLowerCase());
+                        if (match) productId = match.id;
+                    }
+                }
+
+                if (!productId) {
+                    if (win) win.close();
+                    showAlert('No catalog product on this order to review. Pick a product from the list when creating it.', 'error');
+                    return;
+                }
+
+                const customerName = det.user_name || det.customer_name || o.user_name || '';
+                const customerPhone = det.whatsapp || det.phone || o.whatsapp || o.phone || '';
+
+                const res = await fetch('/api/admin/review-requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId, productId, customerName, customerPhone })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    if (win) win.close();
+                    showAlert(getErrorMessage(data, 'Could not create review link'), 'error');
+                    return;
+                }
+
+                const url = location.origin + data.path;
+                const msg = buildReviewMessage(customerName, data.productName || productName, url, category);
+                const phone = normalizeMsisdn(customerPhone);
+                if (win) win.location = (phone ? `https://wa.me/${phone}` : 'https://wa.me/') + `?text=${encodeURIComponent(msg)}`;
+                showAlert('Review request created. WhatsApp opened.', 'success');
+            } catch (e) {
+                if (win) win.close();
+                showAlert('Could not create review request', 'error');
+            }
         }
 
         function getPaymentLabel(method) {
