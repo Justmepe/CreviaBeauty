@@ -856,6 +856,12 @@
                                     </div>
                                 </div>
 
+                                <div class="form-group" style="margin-top: 1rem;">
+                                    <label for="receipt_brand_note">Receipt Brand Note</label>
+                                    <textarea id="receipt_brand_note" rows="2" placeholder="Shown on every receipt under Notes when no custom note is added." style="width:100%; padding:0.6rem; border:1px solid #ddd; border-radius:6px; font-family:inherit; resize:vertical;"></textarea>
+                                    <small style="color:#7f8c8d;">A payment/delivery line is added automatically based on the order; this is your fixed message. Leave blank for none.</small>
+                                </div>
+
                                 <button type="submit" class="btn-dashboard primary" style="width: 100%;">Save Payment Settings</button>
                             </form>
                         </div>
@@ -1028,14 +1034,28 @@
                 </div>
                 <div class="form-group" id="attr-scent" style="display:none;">
                     <label for="product-scent-family">Scent Family</label>
-                    <select id="product-scent-family">
-                        <option value="">Unspecified</option>
-                        <option>Fresh / Aromatic</option>
-                        <option>Fresh / Woody</option>
-                        <option>Floral</option>
-                        <option>Floral Aldehyde</option>
-                        <option>Oriental / Woody</option>
-                    </select>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <select id="product-scent-family" style="flex:1;">
+                            <option value="">Unspecified</option>
+                            <option>Floral</option>
+                            <option>Fruity Floral</option>
+                            <option>Oriental / Amber</option>
+                            <option>Woody</option>
+                            <option>Woody Aromatic</option>
+                            <option>Fresh / Citrus</option>
+                            <option>Aquatic / Marine</option>
+                            <option>Aromatic / Fougère</option>
+                            <option>Gourmand</option>
+                            <option>Chypre</option>
+                            <option>Oud / Smoky</option>
+                            <option>Green</option>
+                            <option>Powdery / Aldehydic</option>
+                            <option>Leather</option>
+                            <option>Musky</option>
+                        </select>
+                        <button type="button" class="btn-dashboard outline sm" onclick="suggestScentFamily()" title="Guess the scent family from the product name and brand">&#10024; Suggest</button>
+                    </div>
+                    <small id="scent-suggest-hint" style="color:#7f8c8d; display:none; margin-top:0.35rem;"></small>
                 </div>
                 <div class="form-group" id="attr-skin" style="display:none;">
                     <label for="product-skin-type">Skin Type</label>
@@ -2202,6 +2222,8 @@
                 document.getElementById('bank_account_name').value = settings.bank_account_name || '';
                 document.getElementById('bank_account_number').value = settings.bank_account_number || '';
                 document.getElementById('bank_branch').value = settings.bank_branch || '';
+                document.getElementById('receipt_brand_note').value =
+                    settings.receipt_brand_note !== undefined ? settings.receipt_brand_note : '';
 
                 toggleMpesaFields();
             } catch (error) {
@@ -2223,7 +2245,8 @@
                 bank_name: document.getElementById('bank_name').value,
                 bank_account_name: document.getElementById('bank_account_name').value,
                 bank_account_number: document.getElementById('bank_account_number').value,
-                bank_branch: document.getElementById('bank_branch').value
+                bank_branch: document.getElementById('bank_branch').value,
+                receipt_brand_note: document.getElementById('receipt_brand_note').value
             };
 
             try {
@@ -2278,7 +2301,7 @@
                 document.getElementById('product-cost-price').value = product.cost_price || '';
                 document.getElementById('product-brand').value = product.brand || '';
                 document.getElementById('product-is-local').checked = !!product.is_local_brand;
-                document.getElementById('product-scent-family').value = product.scent_family || '';
+                setScentFamily(product.scent_family || '');
                 document.getElementById('product-skin-type').value = product.skin_type || '';
                 document.getElementById('product-hair-texture').value = product.hair_texture || '';
                 document.getElementById('product-ingredients').value = product.ingredients || '';
@@ -2367,6 +2390,74 @@
             document.getElementById('attr-scent').style.display = (cat === 'Perfumes' || cat === 'Candles') ? 'block' : 'none';
             document.getElementById('attr-skin').style.display = (cat === 'Skincare') ? 'block' : 'none';
             document.getElementById('attr-hair').style.display = (cat === 'Hair') ? 'block' : 'none';
+        }
+
+        // Set the scent-family select. If the saved value predates the current
+        // taxonomy (e.g. older "Fresh", "Oriental"), inject it as an option so
+        // editing a product never silently wipes its existing family.
+        function setScentFamily(val) {
+            const sel = document.getElementById('product-scent-family');
+            if (!sel) return;
+            if (val && ![...sel.options].some(o => o.value === val)) {
+                const o = document.createElement('option');
+                o.value = val; o.textContent = val + ' (existing)';
+                sel.appendChild(o);
+            }
+            sel.value = val || '';
+        }
+
+        // Heuristic scent-family detection from brand + product name. Free,
+        // instant, offline. Returns a family string matching a dropdown option,
+        // or null if nothing is confident enough. Rules run most-distinctive
+        // first so e.g. "oud" wins over a generic woody match.
+        const SCENT_RULES = [
+            // Known fragrances people search for here, by distinctive name fragment.
+            { family: 'Aromatic / Fougère', any: ['sauvage', 'bleu de chanel', 'allure homme', 'boss bottled', 'invictus'] },
+            { family: 'Gourmand',           any: ['la vie est belle', 'black opium', 'angel', 'mon paris'] },
+            { family: 'Oriental / Amber',   any: ['good girl', 'olympea', 'opium', 'coco noir', 'spicebomb'] },
+            { family: 'Aquatic / Marine',   any: ['acqua di gio', 'aqua di gio', 'cool water', 'light blue', 'davidoff cool'] },
+            { family: 'Chypre',             any: ['coco mademoiselle', 'aventus', 'miss dior', 'chance'] },
+            { family: 'Floral',             any: ["j'adore", 'jadore', 'flowerbomb', 'gabrielle', 'daisy', 'idole', 'libre'] },
+            // Note / keyword families.
+            { family: 'Oud / Smoky',        any: ['oud', 'oudh', 'agarwood', 'smoky', 'smoke', 'incense'] },
+            { family: 'Gourmand',           any: ['vanilla', 'vanille', 'caramel', 'chocolate', 'coffee', 'praline', 'honey', 'sugar', 'toffee', 'gourmand', 'cocoa'] },
+            { family: 'Leather',            any: ['leather', 'suede', 'cuir'] },
+            { family: 'Aquatic / Marine',   any: ['aqua', 'aquatic', 'marine', 'ocean', 'sea ', 'water', 'wave', 'breeze'] },
+            { family: 'Fresh / Citrus',     any: ['citrus', 'lemon', 'bergamot', 'orange', 'lime', 'grapefruit', 'mandarin', 'neroli', 'lemongrass', 'verbena'] },
+            { family: 'Fruity Floral',      any: ['fruity', 'berry', 'peach', 'apple', 'pear', 'plum', 'raspberry', 'blackcurrant', 'litchi', 'lychee', 'mango'] },
+            { family: 'Floral',             any: ['floral', 'flower', 'rose', 'jasmine', 'peony', 'lily', 'tuberose', 'gardenia', 'ylang', 'freesia', 'iris', 'violet', 'blossom', 'orchid'] },
+            { family: 'Aromatic / Fougère', any: ['lavender', 'fougere', 'fougère', 'aromatic', 'sage', 'rosemary', 'mint', 'basil'] },
+            { family: 'Powdery / Aldehydic',any: ['powder', 'powdery', 'aldehyd', 'musk powder'] },
+            { family: 'Musky',              any: ['musk', 'musc'] },
+            { family: 'Green',              any: ['green', 'grass', 'fig leaf', 'herbal', 'tea ', 'bamboo'] },
+            { family: 'Oriental / Amber',   any: ['amber', 'oriental', 'spice', 'spicy', 'cinnamon', 'cardamom', 'myrrh', 'tonka', 'benzoin', 'saffron'] },
+            { family: 'Woody Aromatic',     any: ['woody aromatic', 'vetiver'] },
+            { family: 'Woody',              any: ['wood', 'sandalwood', 'cedar', 'patchouli', 'oakmoss', 'guaiac'] },
+        ];
+
+        function detectScentFamily(name, brand) {
+            const hay = ((brand || '') + ' ' + (name || '')).toLowerCase();
+            if (!hay.trim()) return null;
+            for (const rule of SCENT_RULES) {
+                if (rule.any.some(k => hay.includes(k))) return rule.family;
+            }
+            return null;
+        }
+
+        function suggestScentFamily() {
+            const name = document.getElementById('product-name').value;
+            const brand = document.getElementById('product-brand').value;
+            const hint = document.getElementById('scent-suggest-hint');
+            const match = detectScentFamily(name, brand);
+            hint.style.display = 'block';
+            if (match) {
+                setScentFamily(match);
+                hint.innerHTML = `&#10003; Suggested <strong>${match}</strong> from the name. Change it if that's not right.`;
+                hint.style.color = '#27ae60';
+            } else {
+                hint.textContent = "Couldn't detect a scent family from the name. Please pick one.";
+                hint.style.color = '#7f8c8d';
+            }
         }
 
         // Fill the subcategory dropdown from the chosen category; keep `selected` if valid.

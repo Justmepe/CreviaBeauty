@@ -385,6 +385,9 @@ module.exports = (db) => {
             throw AppError.notFound('Review not found');
         }
 
+        // A review from a tracked request is referenced by review_requests.review_id.
+        // Unlink it first so the delete doesn't hit that foreign key.
+        await db.query('UPDATE review_requests SET review_id = NULL WHERE review_id = $1', [reviewId]);
         await db.query('DELETE FROM reviews WHERE id = $1', [reviewId]);
 
         logger.info('Review deleted', { reviewId });
