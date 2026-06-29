@@ -17,11 +17,12 @@
 function renderReceiptBuilderPage(mode = 'guest') {
     const isAdmin = mode === 'admin';
     const action = isAdmin ? '/api/receipts/manual' : '/api/receipts/guest';
-    const title = isAdmin ? 'New Receipt' : 'Request Your Receipt';
+    const title = isAdmin ? 'New Invoice / Receipt' : 'Request Your Receipt';
     const intro = isAdmin
-        ? 'Issue a branded receipt for a sale. It is saved to Orders and a receipt is generated to print or save as PDF.'
+        ? 'Issue a branded document for a sale. Leave the status unpaid for an INVOICE, or set it to Paid for a RECEIPT. It is saved to Orders and a PDF is generated to print or save.'
         : 'Enter your order details below and we will generate your Crevia Beauty receipt instantly.';
-    const submitLabel = isAdmin ? 'Generate Receipt' : 'Get My Receipt';
+    // Default status is unpaid (Payment on Delivery), so the default output is an invoice.
+    const submitLabel = isAdmin ? 'Generate Invoice' : 'Get My Receipt';
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -115,8 +116,8 @@ function renderReceiptBuilderPage(mode = 'guest') {
             ${isAdmin ? `
             <div class="grid2">
                 <div class="field">
-                    <label>Status</label>
-                    <select name="status">
+                    <label>Status <span id="doctype-hint" style="text-transform:none;font-weight:400;color:var(--gold);">(Invoice)</span></label>
+                    <select name="status" id="status-select" onchange="updateDocType()">
                         <option value="cod">Payment on Delivery</option>
                         <option value="paid">Paid</option>
                         <option value="awaiting">Awaiting Payment</option>
@@ -163,7 +164,7 @@ function renderReceiptBuilderPage(mode = 'guest') {
                 <div class="row grand"><span>Total</span><span id="t-grand">KES 0</span></div>
             </div>
 
-            <button type="submit" class="submit">${submitLabel}</button>
+            <button type="submit" class="submit" id="submit-btn">${submitLabel}</button>
             ${isAdmin ? '' : '<p class="hint">Your receipt opens on the next screen, ready to save or print.</p>'}
         </form>
     </div>
@@ -221,7 +222,21 @@ function renderReceiptBuilderPage(mode = 'guest') {
             document.getElementById('t-del').textContent = fmt(del);
             document.getElementById('t-grand').textContent = fmt(sub + del);
         }
+
+        // Reflect the chosen status: "Paid" makes a Receipt, anything else an Invoice.
+        function updateDocType(){
+            const sel = document.getElementById('status-select');
+            if (!sel) return;
+            const isReceipt = sel.value === 'paid';
+            const doc = isReceipt ? 'Receipt' : 'Invoice';
+            const hint = document.getElementById('doctype-hint');
+            const btn = document.getElementById('submit-btn');
+            if (hint) hint.textContent = '(' + doc + ')';
+            if (btn) btn.textContent = 'Generate ' + doc;
+        }
+
         addRow();
+        updateDocType();
     </script>
 </body>
 </html>`;
