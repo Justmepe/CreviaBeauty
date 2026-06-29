@@ -909,6 +909,113 @@ function showAlert(message, type = 'success') {
     }, 3000);
 }
 
+// Branded confirmation dialog (replaces the native confirm()).
+// Returns a Promise<boolean>. Pass { title, message, confirmText, cancelText,
+// danger, onConfirm }. onConfirm runs synchronously on the confirm click, so
+// callers can open a window inside the user gesture (e.g. WhatsApp).
+function confirmDialog(opts = {}) {
+    const o = typeof opts === 'string' ? { message: opts } : opts;
+    const {
+        title = 'Are you sure?',
+        message = '',
+        confirmText = 'Confirm',
+        cancelText = 'Cancel',
+        danger = false,
+        onConfirm = null
+    } = o;
+
+    if (!document.getElementById('cb-confirm-styles')) {
+        const s = document.createElement('style');
+        s.id = 'cb-confirm-styles';
+        s.textContent = `
+            .cb-confirm-overlay{position:fixed;inset:0;background:rgba(16,18,39,.55);
+                display:flex;align-items:center;justify-content:center;z-index:10050;
+                animation:cbFade .15s ease}
+            .cb-confirm{background:#fff;width:min(430px,92vw);border-radius:14px;overflow:hidden;
+                box-shadow:0 24px 70px rgba(16,18,39,.45);animation:cbPop .18s ease}
+            .cb-confirm-head{background:linear-gradient(160deg,#101227,#15173a 70%,#222c57);padding:18px 22px}
+            .cb-confirm-title{font-family:'Playfair Display',Georgia,serif;color:#f5f3ee;font-size:18px;font-weight:700;margin:0}
+            .cb-confirm-body{padding:18px 22px 2px}
+            .cb-confirm-msg{color:#4a4a55;font-size:14px;line-height:1.55;margin:0}
+            .cb-confirm-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 22px 22px}
+            .cb-confirm-btn{padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;
+                border:1px solid transparent;font-family:inherit}
+            .cb-confirm-cancel{background:#f0f0f3;color:#333;border-color:#e2e2e8}
+            .cb-confirm-cancel:hover{background:#e6e6ea}
+            .cb-confirm-ok{background:#15173a;color:#f3ede2;border-color:#d4af6a}
+            .cb-confirm-ok:hover{background:#d4af6a;color:#15173a}
+            .cb-confirm-ok.danger{background:#c0392b;color:#fff;border-color:#c0392b}
+            .cb-confirm-ok.danger:hover{background:#a93226;border-color:#a93226}
+            .cb-confirm-overlay.closing{opacity:0;transition:opacity .15s}
+            @keyframes cbFade{from{opacity:0}to{opacity:1}}
+            @keyframes cbPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}`;
+        document.head.appendChild(s);
+    }
+
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'cb-confirm-overlay';
+
+        const card = document.createElement('div');
+        card.className = 'cb-confirm';
+        card.setAttribute('role', 'dialog');
+        card.setAttribute('aria-modal', 'true');
+
+        const head = document.createElement('div');
+        head.className = 'cb-confirm-head';
+        const h = document.createElement('h3');
+        h.className = 'cb-confirm-title';
+        h.textContent = title;
+        head.appendChild(h);
+
+        const body = document.createElement('div');
+        body.className = 'cb-confirm-body';
+        const msg = document.createElement('p');
+        msg.className = 'cb-confirm-msg';
+        msg.textContent = message;
+        body.appendChild(msg);
+
+        const actions = document.createElement('div');
+        actions.className = 'cb-confirm-actions';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'cb-confirm-btn cb-confirm-cancel';
+        cancelBtn.textContent = cancelText;
+        const okBtn = document.createElement('button');
+        okBtn.type = 'button';
+        okBtn.className = 'cb-confirm-btn cb-confirm-ok' + (danger ? ' danger' : '');
+        okBtn.textContent = confirmText;
+        actions.appendChild(cancelBtn);
+        actions.appendChild(okBtn);
+
+        card.appendChild(head);
+        card.appendChild(body);
+        card.appendChild(actions);
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        let done = false;
+        const close = (val) => {
+            if (done) return;
+            done = true;
+            document.removeEventListener('keydown', onKey);
+            overlay.classList.add('closing');
+            setTimeout(() => overlay.remove(), 150);
+            resolve(val);
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') close(false);
+            else if (e.key === 'Enter') { if (typeof onConfirm === 'function') onConfirm(); close(true); }
+        };
+
+        cancelBtn.onclick = () => close(false);
+        okBtn.onclick = () => { if (typeof onConfirm === 'function') onConfirm(); close(true); };
+        overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(false); });
+        document.addEventListener('keydown', onKey);
+        setTimeout(() => okBtn.focus(), 30);
+    });
+}
+
 // Add CSS animations and styles
 const style = document.createElement('style');
 style.textContent = `

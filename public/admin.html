@@ -1349,7 +1349,7 @@
         </div>
     </div>
 
-    <script src="/js/main.js?v=7"></script>
+    <script src="/js/main.js?v=8"></script>
     <!-- Analytics charts: vendored React + Recharts (served from 'self', CSP-safe) -->
     <script src="/js/vendor/react.production.min.js"></script>
     <script src="/js/vendor/react-dom.production.min.js"></script>
@@ -1693,7 +1693,14 @@
         async function deleteOrder(orderId) {
             const o = currentOrders.find(x => x.id === orderId);
             const who = o ? (o.user_name || 'this order') : 'this order';
-            if (!confirm(`Permanently delete order #${orderId} (${who})? This cannot be undone.`)) return;
+            const ok = await confirmDialog({
+                title: 'Delete this order?',
+                message: `Order #${orderId} for ${who} will be permanently deleted. This cannot be undone.`,
+                confirmText: 'Delete',
+                cancelText: 'Keep',
+                danger: true
+            });
+            if (!ok) return;
             try {
                 const response = await fetch(`/api/admin/orders/${orderId}`, { method: 'DELETE' });
                 const data = await response.json();
@@ -1709,13 +1716,22 @@
         }
 
         async function markPaymentReceived(orderId) {
-            if (!confirm('Mark this order as paid? This opens WhatsApp to send the receipt.')) return;
-
             const o = currentOrders.find(x => x.id === orderId);
             const willSend = o && o.receipt_token && (o.whatsapp || o.phone);
-            // Open the tab now (inside the click) so the browser doesn't block it,
-            // then point it at the WhatsApp link once the server confirms.
-            const win = willSend ? window.open('', '_blank') : null;
+
+            // Open the WhatsApp tab inside the confirm click (a user gesture) so
+            // the browser doesn't block it; we point it at the link after the
+            // server confirms the order is paid.
+            let win = null;
+            const ok = await confirmDialog({
+                title: 'Mark as paid?',
+                message: willSend
+                    ? 'This marks the order paid and opens WhatsApp to send the receipt.'
+                    : 'This marks the order as paid.',
+                confirmText: 'Mark Paid',
+                onConfirm: () => { if (willSend) win = window.open('', '_blank'); }
+            });
+            if (!ok) { if (win) win.close(); return; }
 
             try {
                 const response = await fetch(`/api/admin/orders/${orderId}/payment`, {
