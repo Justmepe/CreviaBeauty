@@ -25,9 +25,20 @@ const liveProducts = name => {
 const CATEGORIES = [{
   n: '01',
   name: 'Perfumes',
-  headline: 'Smell unforgettable. Pay like it’s nothing.',
   tag: 'Batch-code verified authentic',
-  stack: ['Designer & luxury houses', 'Women’s, Men’s & Unisex', 'Refund if it’s ever a fake'],
+  offers: [{
+    headline: 'Smell unforgettable. Pay like it’s nothing.',
+    stack: ['Designer & luxury houses', 'Women’s, Men’s & Unisex', 'Refund if it’s ever a fake']
+  }, {
+    headline: 'The compliment magnet, bottled.',
+    stack: ['Dior, Chanel, Tom Ford & more', 'Lasts from morning to midnight', 'Batch-code checked before it ships']
+  }, {
+    headline: 'Your signature scent, finally found.',
+    stack: ['Take the 5-question scent quiz', 'Matched to how you want to feel', 'Free delivery across Nairobi']
+  }, {
+    headline: 'Real designer. Real price. Real proof.',
+    stack: ['Sourced direct, never grey-market', 'Every batch code is verifiable', 'Money back if it’s ever fake']
+  }],
   products: [{
     name: 'Velvet Oud',
     price: 3200,
@@ -52,9 +63,20 @@ const CATEGORIES = [{
 }, {
   n: '02',
   name: 'Skincare',
-  headline: 'The glow that makes people ask what you’re doing.',
   tag: 'Visible results in 14 days',
-  stack: ['Dermatologist-loved formulas', 'For women & men', 'Free delivery in Nairobi'],
+  offers: [{
+    headline: 'The glow that makes people ask what you’re doing.',
+    stack: ['Dermatologist-loved formulas', 'For women & men', 'Free delivery in Nairobi']
+  }, {
+    headline: 'Visible results in 14 days, or it’s on us.',
+    stack: ['Ingredient-led, not hype-led', 'Built for Kenyan skin & climate', 'Refund if you don’t see a change']
+  }, {
+    headline: 'Skincare that matches your skin, not the trend.',
+    stack: ['Full ingredient list on every product', 'From CeraVe to La Mer', 'Free delivery in Nairobi']
+  }, {
+    headline: 'Fewer steps. Better skin. No guessing.',
+    stack: ['A routine picked for your skin type', 'Genuine stock, sealed & dated', 'Love it or your money back']
+  }],
   products: [{
     name: 'Vitamin C Serum',
     price: 1900,
@@ -79,9 +101,20 @@ const CATEGORIES = [{
 }, {
   n: '03',
   name: 'Hair',
-  headline: 'Red-carpet hair, salon-soft strands.',
   tag: 'HD lace wigs & pro care',
-  stack: ['Human hair & premium synthetic', 'Wigs + treatments & oils', 'Refund if it’s not as shown'],
+  offers: [{
+    headline: 'Red-carpet hair, salon-soft strands.',
+    stack: ['Human hair & premium synthetic', 'Wigs + treatments & oils', 'Refund if it’s not as shown']
+  }, {
+    headline: 'Salon hair, zero salon hours.',
+    stack: ['Glueless, beginner-friendly wigs', 'From everyday to luxury HD lace', 'Free delivery in Nairobi']
+  }, {
+    headline: 'Wash day without the guesswork.',
+    stack: ['Shop by your texture: 4A, 4B, 4C', 'Cantu, Shea Moisture & Marini', 'Real results, real reviews']
+  }, {
+    headline: 'Length, body and shine that lasts.',
+    stack: ['Hand-checked before it ships', 'Care kits to keep it looking new', 'Money back if it’s not as shown']
+  }],
   products: [{
     name: 'HD Lace Frontal 20"',
     price: 8500,
@@ -149,6 +182,98 @@ function Reveal({
       ...style
     }
   }, children);
+}
+function useOfferRotation(cat) {
+  const {
+    localTime
+  } = useSprite();
+  const offers = cat.offers && cat.offers.length ? cat.offers : [{
+    headline: cat.headline,
+    stack: cat.stack
+  }];
+  if (offers.length <= 1) return {
+    offer: offers[0],
+    fade: 1
+  };
+  const hold = SEG / offers.length;
+  const idx = clamp(Math.floor(localTime / hold), 0, offers.length - 1);
+  const slotT = localTime - idx * hold;
+  const inDur = 0.55,
+    outDur = 0.45;
+  let fade = 1;
+  if (slotT < inDur) fade = Easing.easeOutCubic(clamp(slotT / inDur, 0, 1));
+  if (idx < offers.length - 1 && slotT > hold - outDur) fade = Math.min(fade, 1 - Easing.easeInCubic(clamp((slotT - (hold - outDur)) / outDur, 0, 1)));
+  return {
+    offer: offers[idx],
+    fade
+  };
+}
+function OfferBlock({
+  cat,
+  s
+}) {
+  const {
+    offer,
+    fade
+  } = useOfferRotation(cat);
+  const swap = {
+    opacity: clamp(fade, 0, 1),
+    transform: `translateY(${(1 - fade) * 14}px)`,
+    willChange: 'transform,opacity'
+  };
+  return React.createElement(React.Fragment, null, React.createElement(Reveal, {
+    delay: 0.16,
+    dy: 28
+  }, React.createElement("div", {
+    style: {
+      ...swap,
+      fontFamily: DISPLAY,
+      fontSize: s.h,
+      fontWeight: 500,
+      color: INK,
+      lineHeight: s.hLine,
+      letterSpacing: '0.004em',
+      textWrap: 'balance',
+      maxWidth: s.maxW
+    }
+  }, offer.headline)), React.createElement(Reveal, {
+    delay: 0.3,
+    dy: 16
+  }, React.createElement("div", {
+    style: {
+      width: 64,
+      height: 1,
+      background: GOLD,
+      margin: s.rule
+    }
+  }), React.createElement("div", {
+    style: {
+      ...swap,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: s.gap
+    }
+  }, offer.stack.map((line, k) => React.createElement("div", {
+    key: k,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: s.gap
+    }
+  }, React.createElement("span", {
+    style: {
+      color: GOLD,
+      fontSize: s.tick
+    }
+  }, "\u2713"), React.createElement("span", {
+    style: {
+      fontFamily: SANS,
+      fontSize: s.body,
+      fontWeight: 400,
+      color: 'rgba(244,238,226,0.72)',
+      letterSpacing: '0.01em'
+    }
+  }, line))))));
 }
 function Backdrop() {
   const t = useTime();
@@ -789,57 +914,18 @@ function CategoryScene({
       color: MUT,
       textTransform: 'uppercase'
     }
-  }, cat.name))), React.createElement(Reveal, {
-    delay: 0.16,
-    dy: 28
-  }, React.createElement("div", {
-    style: {
-      fontFamily: DISPLAY,
-      fontSize: 72,
-      fontWeight: 500,
-      color: INK,
-      lineHeight: 1.07,
-      letterSpacing: '0.004em',
-      textWrap: 'balance',
-      maxWidth: 640
+  }, cat.name))), React.createElement(OfferBlock, {
+    cat: cat,
+    s: {
+      h: 72,
+      hLine: 1.07,
+      maxW: 640,
+      rule: '42px 0 24px',
+      gap: 13,
+      tick: 14,
+      body: 19
     }
-  }, cat.headline)), React.createElement(Reveal, {
-    delay: 0.3,
-    dy: 16
-  }, React.createElement("div", {
-    style: {
-      width: 64,
-      height: 1,
-      background: GOLD,
-      margin: '42px 0 24px'
-    }
-  }), React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 13
-    }
-  }, cat.stack.map((s, k) => React.createElement("div", {
-    key: k,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 13
-    }
-  }, React.createElement("span", {
-    style: {
-      color: GOLD,
-      fontSize: 14
-    }
-  }, "\u2713"), React.createElement("span", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 19,
-      fontWeight: 400,
-      color: 'rgba(244,238,226,0.72)',
-      letterSpacing: '0.01em'
-    }
-  }, s))))), React.createElement(Reveal, {
+  }), React.createElement(Reveal, {
     delay: 0.44,
     dy: 14
   }, React.createElement("div", {
@@ -1208,55 +1294,18 @@ function MobileCategoryScene({
       color: MUT,
       textTransform: 'uppercase'
     }
-  }, cat.name))), React.createElement(Reveal, {
-    delay: 0.16,
-    dy: 24
-  }, React.createElement("div", {
-    style: {
-      fontFamily: DISPLAY,
-      fontSize: 60,
-      fontWeight: 500,
-      color: INK,
-      lineHeight: 1.06,
-      letterSpacing: '0.004em',
-      textWrap: 'balance'
+  }, cat.name))), React.createElement(OfferBlock, {
+    cat: cat,
+    s: {
+      h: 60,
+      hLine: 1.06,
+      maxW: 780,
+      rule: '30px 0 20px',
+      gap: 12,
+      tick: 16,
+      body: 22
     }
-  }, cat.headline)), React.createElement(Reveal, {
-    delay: 0.3,
-    dy: 14
-  }, React.createElement("div", {
-    style: {
-      width: 64,
-      height: 1,
-      background: GOLD,
-      margin: '30px 0 20px'
-    }
-  }), React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12
-    }
-  }, cat.stack.map((s, k) => React.createElement("div", {
-    key: k,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12
-    }
-  }, React.createElement("span", {
-    style: {
-      color: GOLD,
-      fontSize: 16
-    }
-  }, "\u2713"), React.createElement("span", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 22,
-      fontWeight: 400,
-      color: 'rgba(244,238,226,0.72)'
-    }
-  }, s))))), React.createElement(Reveal, {
+  }), React.createElement(Reveal, {
     delay: 0.44,
     dy: 12
   }, React.createElement("div", {

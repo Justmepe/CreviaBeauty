@@ -44,12 +44,26 @@ const liveProducts = (name) => {
   return (Array.isArray(list) && list.length) ? list : null;
 };
 
-// ── categories — each holds 10s, one product per second ────────────────────
+// ── OFFER LIBRARY ($100M Offers, Alex Hormozi) ─────────────────────────────
+//  Each category holds ~60s and rotates through several offer variants instead
+//  of one static line. Every offer = a big DREAM-OUTCOME headline + a 3-line
+//  value stack that hits the four Hormozi levers: perceived likelihood (proof),
+//  time delay (speed), effort & sacrifice (ease), and risk reversal (guarantee).
+//  Add or reorder offers freely — the scene splits the hold evenly across them.
+//  (House style: no em dashes anywhere in customer-facing copy.)
 const CATEGORIES = [
   { n: '01', name: 'Perfumes',
-    headline: 'Smell unforgettable. Pay like it’s nothing.',
     tag: 'Batch-code verified authentic',
-    stack: ['Designer & luxury houses', 'Women’s, Men’s & Unisex', 'Refund if it’s ever a fake'],
+    offers: [
+      { headline: 'Smell unforgettable. Pay like it’s nothing.',
+        stack: ['Designer & luxury houses', 'Women’s, Men’s & Unisex', 'Refund if it’s ever a fake'] },
+      { headline: 'The compliment magnet, bottled.',
+        stack: ['Dior, Chanel, Tom Ford & more', 'Lasts from morning to midnight', 'Batch-code checked before it ships'] },
+      { headline: 'Your signature scent, finally found.',
+        stack: ['Take the 5-question scent quiz', 'Matched to how you want to feel', 'Free delivery across Nairobi'] },
+      { headline: 'Real designer. Real price. Real proof.',
+        stack: ['Sourced direct, never grey-market', 'Every batch code is verifiable', 'Money back if it’s ever fake'] },
+    ],
     products: [
       { name: 'Velvet Oud',    price: 3200, was: 4800, img: '' },
       { name: 'Noir Intense',  price: 3600, was: 5200, img: '' },
@@ -57,9 +71,17 @@ const CATEGORIES = [
       { name: 'Amber Nuit',    price: 4100, was: 5900, img: '' },
     ] },
   { n: '02', name: 'Skincare',
-    headline: 'The glow that makes people ask what you’re doing.',
     tag: 'Visible results in 14 days',
-    stack: ['Dermatologist-loved formulas', 'For women & men', 'Free delivery in Nairobi'],
+    offers: [
+      { headline: 'The glow that makes people ask what you’re doing.',
+        stack: ['Dermatologist-loved formulas', 'For women & men', 'Free delivery in Nairobi'] },
+      { headline: 'Visible results in 14 days, or it’s on us.',
+        stack: ['Ingredient-led, not hype-led', 'Built for Kenyan skin & climate', 'Refund if you don’t see a change'] },
+      { headline: 'Skincare that matches your skin, not the trend.',
+        stack: ['Full ingredient list on every product', 'From CeraVe to La Mer', 'Free delivery in Nairobi'] },
+      { headline: 'Fewer steps. Better skin. No guessing.',
+        stack: ['A routine picked for your skin type', 'Genuine stock, sealed & dated', 'Love it or your money back'] },
+    ],
     products: [
       { name: 'Vitamin C Serum',        price: 1900, was: 2800, img: '' },
       { name: 'Hyaluronic Moisturizer', price: 1700, was: 2500, img: '' },
@@ -67,9 +89,17 @@ const CATEGORIES = [
       { name: 'SPF 50 Daily Fluid',     price: 1600, was: 2300, img: '' },
     ] },
   { n: '03', name: 'Hair',
-    headline: 'Red-carpet hair, salon-soft strands.',
     tag: 'HD lace wigs & pro care',
-    stack: ['Human hair & premium synthetic', 'Wigs + treatments & oils', 'Refund if it’s not as shown'],
+    offers: [
+      { headline: 'Red-carpet hair, salon-soft strands.',
+        stack: ['Human hair & premium synthetic', 'Wigs + treatments & oils', 'Refund if it’s not as shown'] },
+      { headline: 'Salon hair, zero salon hours.',
+        stack: ['Glueless, beginner-friendly wigs', 'From everyday to luxury HD lace', 'Free delivery in Nairobi'] },
+      { headline: 'Wash day without the guesswork.',
+        stack: ['Shop by your texture: 4A, 4B, 4C', 'Cantu, Shea Moisture & Marini', 'Real results, real reviews'] },
+      { headline: 'Length, body and shine that lasts.',
+        stack: ['Hand-checked before it ships', 'Care kits to keep it looking new', 'Money back if it’s not as shown'] },
+    ],
     products: [
       { name: 'HD Lace Frontal 20"', price: 8500, was: 12000, img: '' },
       { name: 'Body Wave 24"',       price: 9500, was: 13500, img: '' },
@@ -101,6 +131,52 @@ function Reveal({ children, delay = 0, dy = 26, inDur = 0.7, outDur = 0.55, styl
   if (t < inDur) { const e = Easing.easeOutCubic(clamp(t / inDur, 0, 1)); o = e; ty = (1 - e) * dy; }
   if (localTime > outStart) { const e = Easing.easeInCubic(clamp((localTime - outStart) / outDur, 0, 1)); o = Math.min(o, 1 - e); ty -= e * 16; }
   return <div style={{ opacity: clamp(o, 0, 1), transform: `translateY(${ty}px)`, willChange: 'transform,opacity', ...style }}>{children}</div>;
+}
+
+// ── offer rotation: split a category's hold evenly across its offers ────────
+//  Returns the active offer plus an intra-offer crossfade so each one fades in
+//  and out as it swaps. The category-level enter/exit stays on the parent
+//  <Reveal>; this only handles offer-to-offer transitions within the hold.
+function useOfferRotation(cat) {
+  const { localTime } = useSprite();
+  const offers = (cat.offers && cat.offers.length)
+    ? cat.offers
+    : [{ headline: cat.headline, stack: cat.stack }];
+  if (offers.length <= 1) return { offer: offers[0], fade: 1 };
+  const hold = SEG / offers.length;
+  const idx = clamp(Math.floor(localTime / hold), 0, offers.length - 1);
+  const slotT = localTime - idx * hold;
+  const inDur = 0.55, outDur = 0.45;
+  let fade = 1;
+  if (slotT < inDur) fade = Easing.easeOutCubic(clamp(slotT / inDur, 0, 1));
+  if (idx < offers.length - 1 && slotT > hold - outDur)
+    fade = Math.min(fade, 1 - Easing.easeInCubic(clamp((slotT - (hold - outDur)) / outDur, 0, 1)));
+  return { offer: offers[idx], fade };
+}
+
+// ── headline + value stack, rotating through the offer library ─────────────
+//  `s` carries the per-layout sizing so desktop and mobile share one body.
+function OfferBlock({ cat, s }) {
+  const { offer, fade } = useOfferRotation(cat);
+  const swap = { opacity: clamp(fade, 0, 1), transform: `translateY(${(1 - fade) * 14}px)`, willChange: 'transform,opacity' };
+  return (
+    <>
+      <Reveal delay={0.16} dy={28}>
+        <div style={{ ...swap, fontFamily: DISPLAY, fontSize: s.h, fontWeight: 500, color: INK, lineHeight: s.hLine, letterSpacing: '0.004em', textWrap: 'balance', maxWidth: s.maxW }}>{offer.headline}</div>
+      </Reveal>
+      <Reveal delay={0.3} dy={16}>
+        <div style={{ width: 64, height: 1, background: GOLD, margin: s.rule }} />
+        <div style={{ ...swap, display: 'flex', flexDirection: 'column', gap: s.gap }}>
+          {offer.stack.map((line, k) => (
+            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: s.gap }}>
+              <span style={{ color: GOLD, fontSize: s.tick }}>✓</span>
+              <span style={{ fontFamily: SANS, fontSize: s.body, fontWeight: 400, color: 'rgba(244,238,226,0.72)', letterSpacing: '0.01em' }}>{line}</span>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </>
+  );
 }
 
 // ── persistent background ──────────────────────────────────────────────────
@@ -357,20 +433,7 @@ function CategoryScene({ cat, i }) {
             <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.22em', color: MUT, textTransform: 'uppercase' }}>{cat.name}</span>
           </div>
         </Reveal>
-        <Reveal delay={0.16} dy={28}>
-          <div style={{ fontFamily: DISPLAY, fontSize: 72, fontWeight: 500, color: INK, lineHeight: 1.07, letterSpacing: '0.004em', textWrap: 'balance', maxWidth: 640 }}>{cat.headline}</div>
-        </Reveal>
-        <Reveal delay={0.3} dy={16}>
-          <div style={{ width: 64, height: 1, background: GOLD, margin: '42px 0 24px' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
-            {cat.stack.map((s, k) => (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-                <span style={{ color: GOLD, fontSize: 14 }}>✓</span>
-                <span style={{ fontFamily: SANS, fontSize: 19, fontWeight: 400, color: 'rgba(244,238,226,0.72)', letterSpacing: '0.01em' }}>{s}</span>
-              </div>
-            ))}
-          </div>
-        </Reveal>
+        <OfferBlock cat={cat} s={{ h: 72, hLine: 1.07, maxW: 640, rule: '42px 0 24px', gap: 13, tick: 14, body: 19 }} />
         <Reveal delay={0.44} dy={14}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginTop: 38, padding: '15px 28px', background: GOLD, borderRadius: 2, alignSelf: 'flex-start' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', color: '#1a1208', textTransform: 'uppercase' }}>Shop {cat.name}</span>
@@ -523,20 +586,7 @@ function MobileCategoryScene({ cat, i }) {
             <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.22em', color: MUT, textTransform: 'uppercase' }}>{cat.name}</span>
           </div>
         </Reveal>
-        <Reveal delay={0.16} dy={24}>
-          <div style={{ fontFamily: DISPLAY, fontSize: 60, fontWeight: 500, color: INK, lineHeight: 1.06, letterSpacing: '0.004em', textWrap: 'balance' }}>{cat.headline}</div>
-        </Reveal>
-        <Reveal delay={0.3} dy={14}>
-          <div style={{ width: 64, height: 1, background: GOLD, margin: '30px 0 20px' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {cat.stack.map((s, k) => (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ color: GOLD, fontSize: 16 }}>✓</span>
-                <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 400, color: 'rgba(244,238,226,0.72)' }}>{s}</span>
-              </div>
-            ))}
-          </div>
-        </Reveal>
+        <OfferBlock cat={cat} s={{ h: 60, hLine: 1.06, maxW: 780, rule: '30px 0 20px', gap: 12, tick: 16, body: 22 }} />
         <Reveal delay={0.44} dy={12}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginTop: 30, padding: '18px 34px', background: GOLD, borderRadius: 3 }}>
             <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: '0.18em', color: '#1a1208', textTransform: 'uppercase' }}>Shop {cat.name}</span>
