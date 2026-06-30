@@ -1562,19 +1562,42 @@
         }
 
         // Products
-        async function loadProducts() {
-            const tbody = document.getElementById('products-table');
-            try {
-                const response = await fetch('/api/products');
-                const result = await response.json();
-                const products = result.data || result || [];
+        let allProducts = [];
 
-                if (products.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No products yet. Add your first product!</td></tr>';
+        // Loads the product grid. When `term` is set we hit the server's search
+        // param so it scans the WHOLE products table (the API is paginated, so a
+        // client-side filter would only ever see the first page). limit=100 is the
+        // validator's max, enough to surface every match for a real search term.
+        async function loadProducts(term = '') {
+            const tbody = document.getElementById('products-table');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">Loading...</td></tr>';
+            try {
+                const params = new URLSearchParams({ limit: '100' });
+                if (term) params.set('search', term);
+                const response = await fetch(`/api/products?${params.toString()}`);
+                const result = await response.json();
+                allProducts = result.data || result || [];
+
+                if (allProducts.length === 0) {
+                    tbody.innerHTML = term
+                        ? `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No products match "${escapeHtml(term)}".</td></tr>`
+                        : '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No products yet. Add your first product!</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = products.map(p => `
+                renderProducts(allProducts);
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load products</td></tr>';
+            }
+        }
+
+        function renderProducts(products) {
+            const tbody = document.getElementById('products-table');
+            if (!products.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">No products match your search.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = products.map(p => `
                     <tr>
                         <td>
                             <div class="table-product">
@@ -1594,9 +1617,6 @@
                         </td>
                     </tr>
                 `).join('');
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #e94560;">Failed to load products</td></tr>';
-            }
         }
 
         // Orders
@@ -4542,6 +4562,22 @@ NEVER use em dashes. Return ONLY the JSON.`;
             } catch (error) {
                 window.location.href = '/login';
             }
+        }
+
+        // Header search: filter the products table live (loads products first if needed)
+        const globalSearchInput = document.getElementById('global-search');
+        if (globalSearchInput) {
+            let searchTimer = null;
+            globalSearchInput.addEventListener('input', (e) => {
+                const term = e.target.value.trim();
+                // If the user starts searching while not on Products, jump there.
+                if (currentSection !== 'products') {
+                    if (term) showSection('products');
+                    else return;
+                }
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => loadProducts(term), 250);
+            });
         }
 
         // Initialize
