@@ -501,6 +501,21 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants(product_id);
         `);
 
+        // Fragrance notes pyramid (top / heart / base). Each note is a name + a
+        // little ingredient image shown on the product page. Per-product rows.
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS product_notes (
+                id SERIAL PRIMARY KEY,
+                product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+                tier VARCHAR(10) NOT NULL,          -- 'top' | 'heart' | 'base'
+                note_name VARCHAR(80) NOT NULL,
+                image_url TEXT,
+                sort_order INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_product_notes_product ON product_notes(product_id, sort_order);
+        `);
+
         // Additional product images (gallery — same product, different angles).
         // products.image_url remains the cover; these are the extra shots.
         await client.query(`

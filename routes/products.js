@@ -200,6 +200,13 @@ module.exports = (db) => {
         product.gallery = gallery.rows;
         product.images = [product.image_url, ...gallery.rows.map(r => r.image_url)].filter(Boolean);
 
+        // Fragrance notes (top/heart/base), ordered within each tier.
+        const notes = await db.query(
+            'SELECT id, tier, note_name, image_url FROM product_notes WHERE product_id = $1 ORDER BY sort_order, id',
+            [req.params.id]
+        );
+        product.notes = notes.rows;
+
         res.json(product);
     }));
 
@@ -225,6 +232,39 @@ module.exports = (db) => {
     ]);
     const coverFile = (req) => (req.files && req.files.image && req.files.image[0]) || null;
     const galleryFiles = (req) => (req.files && req.files.images) || [];
+
+    // Persist a product's fragrance notes. `raw` is the JSON string the admin
+    // form sends: [{tier, name, imageUrl}]. Replaces any existing notes for the
+    // product. Silently ignores malformed rows so a bad note can't 500 a save.
+    const VALID_TIERS = new Set(['top', 'heart', 'base']);
+    async function saveNotes(productId, raw) {
+        if (raw === undefined || raw === null) return; // field absent -> leave notes untouched
+        let list;
+        try { list = JSON.parse(raw); } catch { return; }
+        if (!Array.isArray(list)) return;
+
+        await db.query('DELETE FROM product_notes WHERE product_id = $1', [productId]);
+        let order = 0;
+        for (const n of list) {
+            const tier = String(n && n.tier || '').toLowerCase();
+            const name = String(n && n.name || '').trim().slice(0, 80);
+            if (!VALID_TIERS.has(tier) || !name) continue;
+            const imageUrl = n.imageUrl ? String(n.imageUrl).slice(0, 500) : null;
+            await db.query(
+                'INSERT INTO product_notes (product_id, tier, note_name, image_url, sort_order) VALUES ($1,$2,$3,$4,$5)',
+                [productId, tier, name, imageUrl, order++]
+            );
+        }
+    }
+
+    // Upload a single ingredient/note image and return its URL. The admin form
+    // uploads note images as they're picked, then references the returned URL in
+    // the product's notes JSON on save (keeps the product save free of per-note
+    // multipart matching).
+    router.post('/note-image', requireAdmin, upload.single('image'), asyncHandler(async (req, res) => {
+        if (!req.file) throw AppError.badRequest('No image uploaded');
+        res.json({ url: `/uploads/${req.file.filename}` });
+    }));
 
     // Add product (admin only)
     router.post('/', requireAdmin, productUpload, invalidateCache('products'), productRules, asyncHandler(async (req, res) => {
@@ -267,6 +307,8 @@ module.exports = (db) => {
                 [newId, `/uploads/${extras[i].filename}`, i]
             );
         }
+
+        await saveNotes(newId, req.body.notes);
 
         logger.info('Product created', { productId: newId, name, category, gallery: Math.max(0, extras.length - galleryStart) });
 
@@ -331,6 +373,8 @@ module.exports = (db) => {
                 );
             }
         }
+
+        await saveNotes(productId, req.body.notes);
 
         logger.info('Product updated', { productId, name, addedImages: extras.length });
 

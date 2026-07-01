@@ -364,6 +364,31 @@ async function viewProduct(productId) {
             </div>
         ` : '';
 
+        // Fragrance notes pyramid (top / heart / base). Each note is a name plus a
+        // little ingredient image that enlarges on hover/tap — like the reference site.
+        const notesByTier = { top: [], heart: [], base: [] };
+        (product.notes || []).forEach(n => { if (notesByTier[n.tier]) notesByTier[n.tier].push(n); });
+        const noteRow = (label, arr) => arr.length ? `
+            <div class="notes-row">
+                <span class="notes-label">${label} notes</span>
+                <div class="notes-chips">
+                    ${arr.map(n => `
+                        <span class="note-chip" tabindex="0">
+                            <span class="note-thumb">${n.image_url
+                                ? `<img src="${escapeHtml(n.image_url)}" alt="${escapeHtml(n.note_name)}" loading="lazy">`
+                                : '<span class="note-thumb-empty">✿</span>'}</span>
+                            <span class="note-name">${escapeHtml(n.note_name)}</span>
+                        </span>`).join('')}
+                </div>
+            </div>` : '';
+        const notesBlock = (product.notes && product.notes.length) ? `
+            <div class="modal-section modal-notes">
+                <div class="modal-section-title">Fragrance notes</div>
+                ${noteRow('Top', notesByTier.top)}
+                ${noteRow('Heart', notesByTier.heart)}
+                ${noteRow('Base', notesByTier.base)}
+            </div>` : '';
+
         // Scent / skin / hair filter chips
         const chips = [];
         if (product.scent_family) chips.push(`Scent: ${escapeHtml(product.scent_family)}`);
@@ -405,6 +430,7 @@ async function viewProduct(productId) {
                             ${product.stock > 0 ? '<span class="in-stock">✓ In Stock</span>' : '<span class="out-stock">✗ Out of Stock</span>'}
                         </div>
                         ${variantsBlock}
+                        ${notesBlock}
                         ${wigBlock}
                         ${ingredientsBlock}
                         ${allergensBlock}
@@ -432,19 +458,37 @@ async function viewProduct(productId) {
         // mouse pans the magnified view; leaving resets it smoothly.
         const zoomWrap = modal.querySelector('.modal-image-main');
         const zoomImg = modal.querySelector('#modal-main-img');
-        if (zoomWrap && zoomImg && window.matchMedia && window.matchMedia('(hover: hover)').matches) {
+        const zoomCol = modal.querySelector('.modal-image');
+        // Amazon-style side panel: hovering the photo shows a magnified view in a
+        // panel beside it (desktop only). The lens position tracks the cursor.
+        if (zoomWrap && zoomImg && zoomCol && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 769px)').matches) {
+            const panel = document.createElement('div');
+            panel.className = 'modal-zoom-panel';
+            zoomCol.appendChild(panel);
+            const ZOOM = 2.4;
+            zoomWrap.addEventListener('mouseenter', () => {
+                panel.style.backgroundImage = `url("${zoomImg.currentSrc || zoomImg.src}")`;
+                panel.style.display = 'block';
+            });
             zoomWrap.addEventListener('mousemove', (e) => {
-                const r = zoomWrap.getBoundingClientRect();
-                const x = ((e.clientX - r.left) / r.width) * 100;
-                const y = ((e.clientY - r.top) / r.height) * 100;
-                zoomImg.style.transformOrigin = `${x}% ${y}%`;
-                zoomImg.style.transform = 'scale(2.2)';
+                const r = zoomImg.getBoundingClientRect();
+                const cx = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
+                const cy = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1);
+                panel.style.backgroundSize = `${r.width * ZOOM}px ${r.height * ZOOM}px`;
+                panel.style.backgroundPosition = `${cx * 100}% ${cy * 100}%`;
             });
-            zoomWrap.addEventListener('mouseleave', () => {
-                zoomImg.style.transform = '';
-                zoomImg.style.transformOrigin = 'center center';
-            });
+            zoomWrap.addEventListener('mouseleave', () => { panel.style.display = 'none'; });
         }
+
+        // Note thumbnails enlarge on hover (desktop, via CSS). On touch, a tap
+        // toggles the enlarged state so mobile shoppers get the same reveal.
+        modal.querySelectorAll('.note-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const wasOpen = chip.classList.contains('zoomed');
+                modal.querySelectorAll('.note-chip.zoomed').forEach(c => c.classList.remove('zoomed'));
+                if (!wasOpen) chip.classList.add('zoomed');
+            });
+        });
 
         // Add modal styles if not already added
         if (!document.getElementById('modal-styles')) {
@@ -515,6 +559,21 @@ async function viewProduct(productId) {
                     background: #f8f9fa;
                     display: flex;
                     flex-direction: column;
+                }
+                /* Magnifier panel: sits directly to the right of the photo column */
+                .modal-zoom-panel {
+                    position: absolute;
+                    top: 0;
+                    left: 100%;
+                    width: 100%;
+                    height: 100%;
+                    background-color: #fff;
+                    background-repeat: no-repeat;
+                    box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+                    border-radius: 0 15px 15px 0;
+                    display: none;
+                    z-index: 30;
+                    pointer-events: none;
                 }
                 .modal-image-main {
                     position: relative;
@@ -696,6 +755,20 @@ async function viewProduct(productId) {
                 .wig-specs > div { display:contents; }
                 .wig-specs dt { color:#666; font-weight:600; }
                 .wig-specs dd { margin:0; color:#222; }
+                /* Fragrance notes: labelled rows of ingredient chips that enlarge on hover/tap */
+                .modal-notes .notes-row { display:flex; align-items:center; gap:0.75rem; margin:0.55rem 0; }
+                .notes-label { flex:0 0 82px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#666; }
+                .notes-chips { display:flex; flex-wrap:wrap; gap:0.5rem; }
+                .note-chip { display:inline-flex; align-items:center; gap:0.4rem; background:#f7f7f8; border:1px solid #ececef; border-radius:999px; padding:0.2rem 0.7rem 0.2rem 0.2rem; cursor:pointer; position:relative; outline:none; }
+                .note-thumb { width:34px; height:34px; border-radius:50%; overflow:hidden; flex:0 0 auto; background:#efe7d8; display:flex; align-items:center; justify-content:center; position:relative; z-index:1; transition:transform 0.22s ease, box-shadow 0.22s ease; transform-origin:center; }
+                .note-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+                .note-thumb-empty { font-size:0.9rem; color:#c9a24b; }
+                .note-name { font-size:0.82rem; color:#333; }
+                /* the reveal — thumbnail grows over its neighbours */
+                .note-chip:hover .note-thumb, .note-chip:focus-visible .note-thumb, .note-chip.zoomed .note-thumb {
+                    transform:scale(2.5); z-index:6; box-shadow:0 6px 18px rgba(0,0,0,0.22); border:2px solid #fff;
+                }
+                .note-chip:hover, .note-chip:focus-visible, .note-chip.zoomed { z-index:6; }
                 .modal-details-section { margin:0.5rem 0; border-top:1px solid #f1f1f1; padding-top:0.5rem; }
                 .modal-details-section summary { font-weight:600; cursor:pointer; font-size:0.85rem; color:#444; padding:0.3rem 0; }
                 .modal-details-section p { margin:0.5rem 0 0 0; font-size:0.85rem; color:#555; line-height:1.5; }
