@@ -471,6 +471,12 @@ async function viewProduct(productId) {
         // photo is not stretched to fill the column; you get a clean magnified crop.
         if (zoomWrap && zoomImg && zoomColEl && panel && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 1025px)').matches) {
             const ZOOM = 2.6;   // magnification vs the displayed photo
+            let side = 0, lensSize = 0;
+            // The lens: a square drawn over the photo showing which region is
+            // magnified in the side panel (follows the cursor, like the reference).
+            const lens = document.createElement('div');
+            lens.className = 'modal-zoom-lens';
+            zoomWrap.appendChild(lens);
             const place = () => {
                 const ir = zoomImg.getBoundingClientRect();
                 const zr = zoomColEl.getBoundingClientRect();
@@ -478,30 +484,39 @@ async function viewProduct(productId) {
                 // Square viewport (Instagram-style 1:1), as large as the column
                 // allows. It's a window onto the magnified photo — the source
                 // keeps its own aspect (no stretch); the square just crops it.
-                const side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 420));
+                side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 420));
+                lensSize = Math.round(side / ZOOM); // region of the photo shown in the panel
                 panel.style.width = side + 'px';
                 panel.style.height = side + 'px';
                 panel.style.left = Math.round((zr.width - side) / 2) + 'px';
                 const imgCenterY = (ir.top + ir.height / 2) - zr.top;
                 panel.style.top = Math.round(Math.max(pad, imgCenterY - side / 2)) + 'px';
-                // Zoom is relative to the displayed photo, so detail stays sharp
-                // and un-stretched regardless of the square box.
                 panel.style.backgroundSize = `${Math.round(ir.width * ZOOM)}px ${Math.round(ir.height * ZOOM)}px`;
             };
             zoomWrap.addEventListener('mouseenter', () => {
                 panel.style.backgroundImage = `url("${zoomImg.currentSrc || zoomImg.src}")`;
                 place();
+                lens.style.width = lensSize + 'px';
+                lens.style.height = lensSize + 'px';
                 panel.style.display = 'block';
+                lens.style.display = 'block';
                 if (hint) hint.style.visibility = 'hidden';
             });
             zoomWrap.addEventListener('mousemove', (e) => {
                 const r = zoomImg.getBoundingClientRect();
-                const cx = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
-                const cy = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1);
+                const wr = zoomWrap.getBoundingClientRect();
+                // Lens clamped inside the photo; panel pans to match.
+                let lx = Math.min(Math.max(e.clientX - r.left - lensSize / 2, 0), Math.max(0, r.width - lensSize));
+                let ly = Math.min(Math.max(e.clientY - r.top - lensSize / 2, 0), Math.max(0, r.height - lensSize));
+                lens.style.left = (r.left - wr.left + lx) + 'px';
+                lens.style.top = (r.top - wr.top + ly) + 'px';
+                const cx = (lx + lensSize / 2) / r.width;
+                const cy = (ly + lensSize / 2) / r.height;
                 panel.style.backgroundPosition = `${cx * 100}% ${cy * 100}%`;
             });
             zoomWrap.addEventListener('mouseleave', () => {
                 panel.style.display = 'none';
+                lens.style.display = 'none';
                 if (hint) hint.style.visibility = 'visible';
             });
         }
@@ -595,6 +610,15 @@ async function viewProduct(productId) {
                 /* Dedicated zoom column (wide desktop) — photo + details both stay visible */
                 .modal-zoom-col { position: relative; background: #fff; border-left: 1px solid #f3f3f3; }
                 .modal-zoom-hint { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; color: #c4c4c4; font-size: 0.8rem; padding: 0 1rem; }
+                /* Lens: square drawn over the photo marking the magnified region */
+                .modal-zoom-lens {
+                    position: absolute;
+                    display: none;
+                    border: 1.5px solid rgba(120,80,30,0.55);
+                    background: rgba(201,162,75,0.18);
+                    pointer-events: none;
+                    z-index: 5;
+                }
                 /* Contained, aspect-correct magnifier box (position/size set in JS) */
                 .modal-zoom-panel {
                     position: absolute;
