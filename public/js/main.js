@@ -416,6 +416,10 @@ async function viewProduct(productId) {
                         </div>
                         ${thumbsBlock}
                     </div>
+                    <div class="modal-zoom-col">
+                        <div class="modal-zoom-hint">🔍 Hover the photo to zoom</div>
+                        <div class="modal-zoom-panel"></div>
+                    </div>
                     <div class="modal-details">
                         <div class="modal-category">${safeCategory}${safeBrand ? ' · ' + safeBrand : ''}</div>
                         <h2 class="modal-title">${safeName}</h2>
@@ -458,30 +462,35 @@ async function viewProduct(productId) {
         // mouse pans the magnified view; leaving resets it smoothly.
         const zoomWrap = modal.querySelector('.modal-image-main');
         const zoomImg = modal.querySelector('#modal-main-img');
-        const zoomCol = modal.querySelector('.modal-image');
-        // Hover-to-zoom (desktop): the magnified view appears in the empty space
-        // to the RIGHT of the photo, so the original product image stays fully
-        // visible. The lens pans with the cursor.
-        if (zoomWrap && zoomImg && zoomCol && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 769px)').matches) {
-            const panel = document.createElement('div');
-            panel.className = 'modal-zoom-panel';
-            zoomCol.appendChild(panel);
-            const ZOOM = 2.6;
+        const zoomColEl = modal.querySelector('.modal-zoom-col');
+        const panel = modal.querySelector('.modal-zoom-panel');
+        const hint = modal.querySelector('.modal-zoom-hint');
+        // Hover-to-zoom (wide desktop only): the magnified view renders in its own
+        // dedicated middle column, so the photo AND the details both stay visible.
+        // The panel is a CONTAINED, aspect-correct box (capped size) — the whole
+        // photo is not stretched to fill the column; you get a clean magnified crop.
+        if (zoomWrap && zoomImg && zoomColEl && panel && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 1025px)').matches) {
+            const ZOOM = 2.6;   // magnification vs the displayed photo
+            const CAP = 400;    // max panel edge (keeps the box contained)
             const place = () => {
                 const ir = zoomImg.getBoundingClientRect();
-                const cr = zoomCol.getBoundingClientRect();
-                // Same vertical band as the photo, parked just to its right in
-                // the whitespace — never on top of the image.
-                panel.style.top = (ir.top - cr.top) + 'px';
-                panel.style.left = (ir.right - cr.left + 16) + 'px';
-                panel.style.width = ir.width + 'px';
-                panel.style.height = ir.height + 'px';
-                panel.style.backgroundSize = `${ir.width * ZOOM}px ${ir.height * ZOOM}px`;
+                const zr = zoomColEl.getBoundingClientRect();
+                const s = Math.min(CAP / ir.width, CAP / ir.height, 1); // shrink, keep aspect
+                const pw = Math.round(ir.width * s), ph = Math.round(ir.height * s);
+                panel.style.width = pw + 'px';
+                panel.style.height = ph + 'px';
+                panel.style.left = Math.max(0, (zr.width - pw) / 2) + 'px';
+                const imgCenterY = (ir.top + ir.height / 2) - zr.top;
+                panel.style.top = Math.max(16, imgCenterY - ph / 2) + 'px';
+                // Zoom is relative to the displayed photo, so detail stays sharp
+                // and un-stretched regardless of the (smaller) panel box.
+                panel.style.backgroundSize = `${Math.round(ir.width * ZOOM)}px ${Math.round(ir.height * ZOOM)}px`;
             };
             zoomWrap.addEventListener('mouseenter', () => {
                 panel.style.backgroundImage = `url("${zoomImg.currentSrc || zoomImg.src}")`;
                 place();
                 panel.style.display = 'block';
+                if (hint) hint.style.visibility = 'hidden';
             });
             zoomWrap.addEventListener('mousemove', (e) => {
                 const r = zoomImg.getBoundingClientRect();
@@ -489,7 +498,10 @@ async function viewProduct(productId) {
                 const cy = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1);
                 panel.style.backgroundPosition = `${cx * 100}% ${cy * 100}%`;
             });
-            zoomWrap.addEventListener('mouseleave', () => { panel.style.display = 'none'; });
+            zoomWrap.addEventListener('mouseleave', () => {
+                panel.style.display = 'none';
+                if (hint) hint.style.visibility = 'visible';
+            });
         }
 
         // Note thumbnails enlarge on hover (desktop, via CSS). On touch, a tap
@@ -561,6 +573,12 @@ async function viewProduct(productId) {
                     grid-template-columns: 1fr 1fr;
                     gap: 0;
                 }
+                .modal-zoom-col { display: none; }
+                @media (min-width: 1025px) {
+                    .product-modal-content { max-width: 1240px; }
+                    .modal-body { grid-template-columns: 0.9fr 0.9fr 1.1fr; }
+                    .modal-zoom-col { display: block; }
+                }
                 @media (max-width: 768px) {
                     .modal-body {
                         grid-template-columns: 1fr;
@@ -572,7 +590,10 @@ async function viewProduct(productId) {
                     display: flex;
                     flex-direction: column;
                 }
-                /* Magnifier: floats in the whitespace beside the photo (position/size set in JS) */
+                /* Dedicated zoom column (wide desktop) — photo + details both stay visible */
+                .modal-zoom-col { position: relative; background: #fff; border-left: 1px solid #f3f3f3; }
+                .modal-zoom-hint { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; color: #c4c4c4; font-size: 0.8rem; padding: 0 1rem; }
+                /* Contained, aspect-correct magnifier box (position/size set in JS) */
                 .modal-zoom-panel {
                     position: absolute;
                     background-color: #fff;
@@ -581,7 +602,7 @@ async function viewProduct(productId) {
                     border-radius: 10px;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.18);
                     display: none;
-                    z-index: 30;
+                    z-index: 6;
                     pointer-events: none;
                 }
                 .modal-image-main {
