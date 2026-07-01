@@ -475,21 +475,17 @@ async function viewProduct(productId) {
                 const ir = zoomImg.getBoundingClientRect();
                 const zr = zoomColEl.getBoundingClientRect();
                 const pad = 20;
-                // Fill the column: width first, then let the aspect set height,
-                // capping height to the column so it never overflows. Keeps the
-                // box aspect-correct (no stretch) but as large as the space allows.
-                let pw = Math.min(zr.width - pad * 2, 380);
-                let ph = pw * (ir.height / ir.width);
-                const maxH = Math.min(zr.height - pad * 2, 640);
-                if (ph > maxH) { ph = maxH; pw = ph * (ir.width / ir.height); }
-                pw = Math.round(pw); ph = Math.round(ph);
-                panel.style.width = pw + 'px';
-                panel.style.height = ph + 'px';
-                panel.style.left = Math.round((zr.width - pw) / 2) + 'px';
+                // Square viewport (Instagram-style 1:1), as large as the column
+                // allows. It's a window onto the magnified photo — the source
+                // keeps its own aspect (no stretch); the square just crops it.
+                const side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 420));
+                panel.style.width = side + 'px';
+                panel.style.height = side + 'px';
+                panel.style.left = Math.round((zr.width - side) / 2) + 'px';
                 const imgCenterY = (ir.top + ir.height / 2) - zr.top;
-                panel.style.top = Math.round(Math.max(pad, imgCenterY - ph / 2)) + 'px';
+                panel.style.top = Math.round(Math.max(pad, imgCenterY - side / 2)) + 'px';
                 // Zoom is relative to the displayed photo, so detail stays sharp
-                // and un-stretched regardless of the panel box size.
+                // and un-stretched regardless of the square box.
                 panel.style.backgroundSize = `${Math.round(ir.width * ZOOM)}px ${Math.round(ir.height * ZOOM)}px`;
             };
             zoomWrap.addEventListener('mouseenter', () => {
