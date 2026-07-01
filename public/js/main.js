@@ -472,6 +472,9 @@ async function viewProduct(productId) {
         if (zoomWrap && zoomImg && zoomColEl && panel && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 1025px)').matches) {
             const ZOOM = 2.6;   // magnification vs the displayed photo
             let side = 0, lensSize = 0;
+            // Displayed (object-fit:contain) photo box — the ACTUAL visible image
+            // inside the element, so the zoom keeps the real aspect (no stretch).
+            let dispW = 0, dispH = 0, dispLeft = 0, dispTop = 0;
             // The lens: a square drawn over the photo showing which region is
             // magnified in the side panel (follows the cursor, like the reference).
             const lens = document.createElement('div');
@@ -481,9 +484,15 @@ async function viewProduct(productId) {
                 const ir = zoomImg.getBoundingClientRect();
                 const zr = zoomColEl.getBoundingClientRect();
                 const pad = 20;
-                // Square viewport (Instagram-style 1:1), as large as the column
-                // allows. It's a window onto the magnified photo — the source
-                // keeps its own aspect (no stretch); the square just crops it.
+                // Resolve the real displayed photo rect from its natural aspect.
+                const natW = zoomImg.naturalWidth || ir.width;
+                const natH = zoomImg.naturalHeight || ir.height;
+                const cscale = Math.min(ir.width / natW, ir.height / natH);
+                dispW = natW * cscale;
+                dispH = natH * cscale;
+                dispLeft = ir.left + (ir.width - dispW) / 2;
+                dispTop = ir.top + (ir.height - dispH) / 2;
+                // Square viewport (Instagram-style 1:1), as large as the column allows.
                 side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 520));
                 lensSize = Math.round(side / ZOOM); // region of the photo shown in the panel
                 panel.style.width = side + 'px';
@@ -491,7 +500,9 @@ async function viewProduct(productId) {
                 panel.style.left = Math.round((zr.width - side) / 2) + 'px';
                 const imgCenterY = (ir.top + ir.height / 2) - zr.top;
                 panel.style.top = Math.round(Math.max(pad, imgCenterY - side / 2)) + 'px';
-                panel.style.backgroundSize = `${Math.round(ir.width * ZOOM)}px ${Math.round(ir.height * ZOOM)}px`;
+                // Background sized to the DISPLAYED photo (its true aspect) so the
+                // magnified crop is never stretched/elongated.
+                panel.style.backgroundSize = `${Math.round(dispW * ZOOM)}px ${Math.round(dispH * ZOOM)}px`;
             };
             zoomWrap.addEventListener('mouseenter', () => {
                 panel.style.backgroundImage = `url("${zoomImg.currentSrc || zoomImg.src}")`;
@@ -503,15 +514,14 @@ async function viewProduct(productId) {
                 if (hint) hint.style.visibility = 'hidden';
             });
             zoomWrap.addEventListener('mousemove', (e) => {
-                const r = zoomImg.getBoundingClientRect();
                 const wr = zoomWrap.getBoundingClientRect();
-                // Lens clamped inside the photo; panel pans to match.
-                let lx = Math.min(Math.max(e.clientX - r.left - lensSize / 2, 0), Math.max(0, r.width - lensSize));
-                let ly = Math.min(Math.max(e.clientY - r.top - lensSize / 2, 0), Math.max(0, r.height - lensSize));
-                lens.style.left = (r.left - wr.left + lx) + 'px';
-                lens.style.top = (r.top - wr.top + ly) + 'px';
-                const cx = (lx + lensSize / 2) / r.width;
-                const cy = (ly + lensSize / 2) / r.height;
+                // Lens clamped inside the DISPLAYED photo; panel pans to match.
+                const lx = Math.min(Math.max(e.clientX - dispLeft - lensSize / 2, 0), Math.max(0, dispW - lensSize));
+                const ly = Math.min(Math.max(e.clientY - dispTop - lensSize / 2, 0), Math.max(0, dispH - lensSize));
+                lens.style.left = (dispLeft - wr.left + lx) + 'px';
+                lens.style.top = (dispTop - wr.top + ly) + 'px';
+                const cx = (lx + lensSize / 2) / dispW;
+                const cy = (ly + lensSize / 2) / dispH;
                 panel.style.backgroundPosition = `${cx * 100}% ${cy * 100}%`;
             });
             zoomWrap.addEventListener('mouseleave', () => {
