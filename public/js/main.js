@@ -484,7 +484,7 @@ async function viewProduct(productId) {
                 // Square viewport (Instagram-style 1:1), as large as the column
                 // allows. It's a window onto the magnified photo — the source
                 // keeps its own aspect (no stretch); the square just crops it.
-                side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 420));
+                side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 520));
                 lensSize = Math.round(side / ZOOM); // region of the photo shown in the panel
                 panel.style.width = side + 'px';
                 panel.style.height = side + 'px';
@@ -592,8 +592,8 @@ async function viewProduct(productId) {
                 }
                 .modal-zoom-col { display: none; }
                 @media (min-width: 1025px) {
-                    .product-modal-content { max-width: 1240px; }
-                    .modal-body { grid-template-columns: 1fr 0.75fr 1.15fr; }
+                    .product-modal-content { max-width: 1360px; }
+                    .modal-body { grid-template-columns: 0.85fr 1.05fr 1.1fr; }
                     .modal-zoom-col { display: block; }
                 }
                 @media (max-width: 768px) {
