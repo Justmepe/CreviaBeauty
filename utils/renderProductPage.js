@@ -3,6 +3,10 @@
  * The dedicated product page: full details, image zoom + lens, fragrance notes.
  * Server-rendered so Google + social sharing get real meta + content; the zoom
  * and gallery are wired by a small inline script.
+ *
+ * Layout (matches fragrancenet): a compact TOP row [ image | buy box ] with the
+ * hover-zoom, then the long content (description, notes, details) FULL-WIDTH
+ * below — so there's no giant empty gap beside a tall description.
  */
 
 const { escapeHtml } = require('../middleware/sanitizer');
@@ -32,7 +36,6 @@ function renderDescription(desc) {
         const lines = b.split(/\n/).map(l => l.trim()).filter(Boolean);
         const allBullets = lines.length && lines.every(l => /^[-•*]\s+/.test(l));
         if (allBullets) {
-            // Coalesce consecutive bullet blocks into a single list.
             for (const l of lines) li.push(`<li>${escapeHtml(l.replace(/^[-•*]\s+/, ''))}</li>`);
         } else {
             flush();
@@ -87,7 +90,7 @@ function renderProductPage(product) {
             </div>
         </div>` : '';
     const notesBlock = (product.notes && product.notes.length) ? `
-        <section class="pd-section pd-notes">
+        <section class="pd-block pd-notes">
             <h2>Fragrance notes</h2>
             ${noteRow('Top', byTier.top)}
             ${noteRow('Heart', byTier.heart)}
@@ -117,6 +120,8 @@ function renderProductPage(product) {
             ${product.original_price && hasDiscount ? `<span class="pd-price-was">${money(product.original_price)}</span>` : ''}
             ${hasDiscount ? `<span class="pd-price-off">-${product.discount}%</span>` : ''}
         </div>`;
+
+    const descHtml = renderDescription(product.description);
 
     const jsonLd = JSON.stringify({
         '@context': 'https://schema.org',
@@ -166,7 +171,7 @@ function renderProductPage(product) {
     body { margin:0; font-family:'Inter',-apple-system,sans-serif; color:var(--ink); background:#fff; }
     a { color:inherit; }
     .navbar { position:sticky; top:0; z-index:100; background:var(--navy); box-shadow:0 2px 15px rgba(0,0,0,0.3); }
-    .nav-content { max-width:1240px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
+    .nav-content { max-width:1200px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
     .logo { display:inline-flex; align-items:center; font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
     .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
     .logo b { color:var(--gold); }
@@ -175,27 +180,25 @@ function renderProductPage(product) {
     .nav-links a:hover { color:var(--gold); }
     @media (max-width:640px){ .nav-links{ display:none; } }
 
-    .pd-wrap { max-width:1240px; margin:0 auto; padding:1.4rem 1.5rem 3rem; }
+    .pd-wrap { max-width:1200px; margin:0 auto; padding:1.4rem 1.5rem 3rem; }
     .pd-crumbs { font-size:0.82rem; color:#8a8a94; margin-bottom:1rem; }
     .pd-crumbs a { color:var(--gold-ink); text-decoration:none; }
 
-    .pd-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
-    .pd-zoom-col { display:none; }
-    @media (min-width:1025px){ .pd-grid { grid-template-columns:0.95fr 0.95fr 1.1fr; } .pd-zoom-col{ display:block; } }
-    @media (max-width:768px){ .pd-grid { grid-template-columns:1fr; } }
+    /* Top row: image + buy box, kept compact so nothing stretches into whitespace */
+    .pd-top { position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:2.2rem; align-items:start; }
+    @media (max-width:820px){ .pd-top { grid-template-columns:1fr; } }
 
     .pd-media { position:relative; }
-    .pd-image-main { position:relative; background:#f8f9fa; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:14px; min-height:340px; cursor:zoom-in; }
-    .pd-image-main img { width:100%; height:100%; max-height:70vh; object-fit:contain; min-height:300px; display:block; }
+    .pd-image-main { position:relative; background:#f8f9fa; border-radius:16px; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:16px; cursor:zoom-in; }
+    .pd-image-main img { width:100%; height:auto; max-height:62vh; object-fit:contain; display:block; }
     .pd-zoom-lens { position:absolute; display:none; border:1.5px solid rgba(120,80,30,0.55); background:rgba(201,162,75,0.18); pointer-events:none; z-index:5; }
     .pd-thumbs { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-    .pd-thumb { width:64px; height:64px; padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; cursor:pointer; background:#fff; }
+    .pd-thumb { width:66px; height:66px; padding:0; border:2px solid transparent; border-radius:8px; overflow:hidden; cursor:pointer; background:#fff; }
     .pd-thumb.active { border-color:var(--gold); }
     .pd-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
 
-    .pd-zoom-col { position:relative; }
-    .pd-zoom-hint { position:absolute; top:50%; left:0; right:0; transform:translateY(-50%); text-align:center; color:#c4c4c4; font-size:0.82rem; }
-    .pd-zoom-panel { position:absolute; background:#fff no-repeat; border:1px solid #ececef; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,0.2); display:none; z-index:6; pointer-events:none; }
+    /* Hover magnifier: floats to the RIGHT of the image, over the buy box (transient) */
+    .pd-zoom-panel { position:absolute; background:#fff no-repeat; border:1px solid #ececef; border-radius:12px; box-shadow:0 14px 40px rgba(0,0,0,0.22); display:none; z-index:20; pointer-events:none; }
 
     .pd-cat { color:var(--gold-ink); font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; }
     .pd-title { font-family:'Playfair Display',serif; font-size:2rem; line-height:1.15; color:var(--navy); margin:0.4rem 0 0.8rem; }
@@ -207,36 +210,40 @@ function renderProductPage(product) {
     .pd-badge-size { background:#f3f4f6; color:#374151; }
     .pd-chips { display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.8rem; }
     .pd-chip { font-size:0.72rem; background:#f3e8ff; color:#6b21a8; padding:0.2rem 0.5rem; border-radius:6px; }
-    .pd-price { display:flex; align-items:baseline; gap:0.6rem; margin:0.8rem 0; }
-    .pd-price-now { font-size:1.7rem; font-weight:700; color:var(--navy); }
+    .pd-price { display:flex; align-items:baseline; gap:0.6rem; margin:0.9rem 0 0.4rem; }
+    .pd-price-now { font-size:1.8rem; font-weight:700; color:var(--navy); }
     .pd-price-was { color:#9ca3af; text-decoration:line-through; }
     .pd-price-off { background:#e94560; color:#fff; font-size:0.75rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:5px; }
-    .pd-stock { font-size:0.9rem; font-weight:600; margin-bottom:1rem; }
+    .pd-stock { font-size:0.9rem; font-weight:600; margin:0.4rem 0 1rem; }
     .pd-in { color:#16a34a; } .pd-out { color:#dc2626; }
-    .pd-desc { color:#3a3a44; line-height:1.75; }
-    .pd-desc ul { padding-left:1.1rem; } .pd-desc li { margin:0.25rem 0; }
-    .pd-actions { display:flex; gap:0.8rem; margin:1.4rem 0; flex-wrap:wrap; }
-    .pd-btn { border:none; border-radius:999px; padding:0.85rem 1.8rem; font-weight:700; cursor:pointer; font-size:0.95rem; }
+    .pd-actions { display:flex; gap:0.8rem; margin:0.4rem 0 1rem; flex-wrap:wrap; }
+    .pd-btn { border:none; border-radius:999px; padding:0.9rem 2rem; font-weight:700; cursor:pointer; font-size:0.95rem; }
     .pd-btn-cart { background:var(--gold); color:var(--navy); }
     .pd-btn-cart:hover { filter:brightness(1.06); }
     .pd-btn-out { background:transparent; border:1.5px solid var(--gold); color:var(--gold-ink); text-decoration:none; display:inline-flex; align-items:center; }
+    .pd-ship { font-size:0.85rem; color:#555; border-top:1px solid #f0f0f0; padding-top:0.9rem; }
 
-    .pd-section { margin:1.2rem 0; padding-top:1rem; border-top:1px solid #f1f1f1; }
-    .pd-section h2 { font-family:'Playfair Display',serif; font-size:1.2rem; color:var(--navy); margin:0 0 0.7rem; }
-    .pd-note-row { display:flex; align-items:center; gap:0.75rem; margin:0.55rem 0; }
-    .pd-note-label { flex:0 0 84px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#666; }
+    /* Full-width content below the fold */
+    .pd-below { max-width:840px; margin:2.4rem 0 0; }
+    .pd-block { margin:1.6rem 0; }
+    .pd-block h2, .pd-below h2 { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--navy); margin:0 0 0.9rem; }
+    .pd-block h2::before, .pd-desc-wrap h2::before { content:''; display:block; width:44px; height:3px; border-radius:2px; background:var(--gold); margin-bottom:0.7rem; }
+    .pd-desc { color:#3a3a44; line-height:1.8; font-size:1.02rem; }
+    .pd-desc ul { padding-left:1.1rem; } .pd-desc li { margin:0.3rem 0; }
+    .pd-note-row { display:flex; align-items:center; gap:0.75rem; margin:0.6rem 0; }
+    .pd-note-label { flex:0 0 90px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#666; }
     .pd-note-chips { display:flex; flex-wrap:wrap; gap:0.5rem; }
-    .pd-note-chip { display:inline-flex; align-items:center; gap:0.4rem; background:#f7f7f8; border:1px solid #ececef; border-radius:999px; padding:0.2rem 0.7rem 0.2rem 0.2rem; cursor:pointer; }
-    .pd-note-thumb { width:34px; height:34px; border-radius:50%; overflow:hidden; flex:0 0 auto; background:#efe7d8; display:flex; align-items:center; justify-content:center; transition:transform 0.22s, box-shadow 0.22s; }
+    .pd-note-chip { display:inline-flex; align-items:center; gap:0.4rem; background:#f7f7f8; border:1px solid #ececef; border-radius:999px; padding:0.2rem 0.8rem 0.2rem 0.2rem; cursor:pointer; }
+    .pd-note-thumb { width:36px; height:36px; border-radius:50%; overflow:hidden; flex:0 0 auto; background:#efe7d8; display:flex; align-items:center; justify-content:center; transition:transform 0.22s, box-shadow 0.22s; }
     .pd-note-thumb img { width:100%; height:100%; object-fit:cover; }
     .pd-note-empty { color:var(--gold-ink); }
     .pd-note-chip:hover .pd-note-thumb, .pd-note-chip:focus-visible .pd-note-thumb, .pd-note-chip.zoomed .pd-note-thumb { transform:scale(2.4); box-shadow:0 6px 18px rgba(0,0,0,0.22); border:2px solid #fff; position:relative; z-index:6; }
-    .pd-details-sec { margin:0.5rem 0; border-top:1px solid #f1f1f1; padding-top:0.5rem; }
+    .pd-details-sec { margin:0.6rem 0; border-top:1px solid #f1f1f1; padding-top:0.6rem; }
     .pd-details-sec summary { font-weight:600; cursor:pointer; font-size:0.9rem; color:#444; }
     .pd-details-sec p { font-size:0.9rem; color:#555; line-height:1.6; }
 
-    footer { background:var(--navy); color:rgba(255,255,255,0.85); margin-top:2rem; }
-    .footer-inner { max-width:1240px; margin:0 auto; padding:2rem 1.5rem 1.2rem; }
+    footer { background:var(--navy); color:rgba(255,255,255,0.85); margin-top:2.5rem; }
+    .footer-inner { max-width:1200px; margin:0 auto; padding:2rem 1.5rem 1.2rem; }
     .footer-bottom { text-align:center; border-top:1px solid rgba(255,255,255,0.12); padding:1rem; font-size:0.85rem; color:rgba(255,255,255,0.6); }
 </style>
 </head>
@@ -255,7 +262,8 @@ function renderProductPage(product) {
 
 <div class="pd-wrap">
     <div class="pd-crumbs"><a href="/">Home</a> / <a href="/products?category=${encodeURIComponent(product.category || '')}">${category}</a> / ${title}</div>
-    <div class="pd-grid">
+
+    <div class="pd-top">
         <div class="pd-media">
             <div class="pd-image-main">
                 <img id="pd-main-img" src="${escapeHtml(cover)}" alt="${title}">
@@ -263,11 +271,7 @@ function renderProductPage(product) {
             </div>
             ${thumbs}
         </div>
-        <div class="pd-zoom-col">
-            <div class="pd-zoom-hint">🔍 Hover the photo to zoom</div>
-            <div class="pd-zoom-panel"></div>
-        </div>
-        <div class="pd-info">
+        <div class="pd-buy">
             <div class="pd-cat">${category}${brand ? ' · ' + brand : ''}</div>
             <h1 class="pd-title">${title}</h1>
             ${badges.length ? `<div class="pd-badges">${badges.join('')}</div>` : ''}
@@ -278,12 +282,15 @@ function renderProductPage(product) {
                 <button class="pd-btn pd-btn-cart" onclick="addToCart(${product.id})">Add to Cart</button>
                 <a class="pd-btn pd-btn-out" href="/products">Continue Shopping</a>
             </div>
-            <div class="pd-desc">${renderDescription(product.description) || '<p>No description available.</p>'}</div>
-            ${notesBlock}
-            ${ingredients}
-            ${allergens}
-            ${product.is_authentic_verified ? '<p style="margin-top:1rem;font-size:0.85rem;"><a href="/authenticity" style="color:var(--gold-ink);font-weight:600;">Read about our authenticity guarantee →</a></p>' : ''}
+            <div class="pd-ship">🚚 Free delivery in Nairobi · Countrywide shipping${product.is_authentic_verified ? ' · <a href="/authenticity" style="color:var(--gold-ink);font-weight:600;">Authenticity guarantee →</a>' : ''}</div>
         </div>
+        <div class="pd-zoom-panel"></div>
+    </div>
+
+    <div class="pd-below">
+        ${descHtml ? `<div class="pd-desc-wrap"><h2>Product Description</h2><div class="pd-desc">${descHtml}</div></div>` : ''}
+        ${notesBlock}
+        ${(ingredients || allergens) ? `<section class="pd-block">${ingredients}${allergens}</section>` : ''}
     </div>
 </div>
 
@@ -295,7 +302,6 @@ function renderProductPage(product) {
 <script src="/js/main.js?v=17"></script>
 <script>
 (function () {
-    // Gallery thumbnail switching
     var mainImg = document.getElementById('pd-main-img');
     document.querySelectorAll('.pd-thumb').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -304,8 +310,6 @@ function renderProductPage(product) {
             mainImg.src = b.getAttribute('data-src');
         });
     });
-
-    // Fragrance-note tap-to-enlarge (mobile)
     document.querySelectorAll('.pd-note-chip').forEach(function (chip) {
         chip.addEventListener('click', function () {
             var open = chip.classList.contains('zoomed');
@@ -314,26 +318,26 @@ function renderProductPage(product) {
         });
     });
 
-    // Hover-to-zoom with a square lens + dedicated square magnifier column
+    // Hover-to-zoom: square lens on the photo, magnifier floats to the right.
     var wrap = document.querySelector('.pd-image-main');
     var img = document.getElementById('pd-main-img');
-    var col = document.querySelector('.pd-zoom-col');
+    var top = document.querySelector('.pd-top');
     var panel = document.querySelector('.pd-zoom-panel');
-    var hint = document.querySelector('.pd-zoom-hint');
     var lens = document.querySelector('.pd-zoom-lens');
-    if (wrap && img && col && panel && lens && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 1025px)').matches) {
-        var ZOOM = 2.6, side = 0, lensSize = 0, dW = 0, dH = 0, dL = 0, dT = 0;
+    if (wrap && img && top && panel && lens && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 821px)').matches) {
+        var ZOOM = 2.6, lensSize = 0, dW = 0, dH = 0, dL = 0, dT = 0;
         function place() {
-            var ir = img.getBoundingClientRect(), zr = col.getBoundingClientRect(), pad = 20;
+            var ir = img.getBoundingClientRect(), tr = top.getBoundingClientRect(), pad = 8;
             var nW = img.naturalWidth || ir.width, nH = img.naturalHeight || ir.height;
             var cs = Math.min(ir.width / nW, ir.height / nH);
             dW = nW * cs; dH = nH * cs; dL = ir.left + (ir.width - dW) / 2; dT = ir.top + (ir.height - dH) / 2;
-            side = Math.round(Math.min(zr.width - pad * 2, zr.height - pad * 2, 520));
-            lensSize = Math.round(side / ZOOM);
-            panel.style.width = side + 'px'; panel.style.height = side + 'px';
-            panel.style.left = Math.round((zr.width - side) / 2) + 'px';
-            var cy = (ir.top + ir.height / 2) - zr.top;
-            panel.style.top = Math.round(Math.max(pad, cy - side / 2)) + 'px';
+            var size = Math.round(Math.min(dH, tr.width * 0.46, 480));
+            lensSize = Math.round(size / ZOOM);
+            panel.style.width = size + 'px'; panel.style.height = size + 'px';
+            var left = (ir.right - tr.left) + 24;
+            if (left + size > tr.width) left = Math.max(0, tr.width - size);
+            panel.style.left = Math.round(left) + 'px';
+            panel.style.top = Math.round(Math.max(pad, (dT - tr.top))) + 'px';
             panel.style.backgroundSize = Math.round(dW * ZOOM) + 'px ' + Math.round(dH * ZOOM) + 'px';
         }
         wrap.addEventListener('mouseenter', function () {
@@ -341,7 +345,6 @@ function renderProductPage(product) {
             place();
             lens.style.width = lensSize + 'px'; lens.style.height = lensSize + 'px';
             panel.style.display = 'block'; lens.style.display = 'block';
-            if (hint) hint.style.visibility = 'hidden';
         });
         wrap.addEventListener('mousemove', function (e) {
             var wr = wrap.getBoundingClientRect();
@@ -353,7 +356,6 @@ function renderProductPage(product) {
         });
         wrap.addEventListener('mouseleave', function () {
             panel.style.display = 'none'; lens.style.display = 'none';
-            if (hint) hint.style.visibility = 'visible';
         });
     }
 })();
