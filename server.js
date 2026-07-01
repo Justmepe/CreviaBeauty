@@ -122,6 +122,7 @@ app.get('/blog', (req, res) => res.sendFile(path.join(publicDir, 'blog.html')));
 
 // Article pages are server-rendered so each gets its own meta tags / OG / JSON-LD
 const { renderArticlePage } = require('./utils/renderArticle');
+const { renderProductPage, slugify: productSlug } = require('./utils/renderProductPage');
 const { requireAdmin } = require('./middleware/auth');
 
 // Admin-only preview of a draft (or any) article, rendered with the exact
@@ -231,6 +232,33 @@ app.get('/blog/:slug', async (req, res) => {
     }
 });
 
+// Dedicated product page (SEO-rendered): /product/:id/:slug?
+app.get('/product/:id/:slug?', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.redirect(302, '/products');
+        const r = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+        const product = r.rows[0];
+        if (!product) return res.redirect(302, '/products');
+
+        const [variants, gallery, notes] = await Promise.all([
+            db.query('SELECT * FROM product_variants WHERE product_id = $1 ORDER BY id', [id]),
+            db.query('SELECT id, image_url FROM product_images WHERE product_id = $1 ORDER BY sort_order, id', [id]),
+            db.query('SELECT id, tier, note_name, image_url FROM product_notes WHERE product_id = $1 ORDER BY sort_order, id', [id])
+        ]);
+        product.variants = variants.rows;
+        product.gallery = gallery.rows;
+        product.images = [product.image_url, ...gallery.rows.map(x => x.image_url)].filter(Boolean);
+        product.notes = notes.rows;
+
+        res.set('Cache-Control', 'public, max-age=120');
+        res.send(renderProductPage(product));
+    } catch (error) {
+        logger.error('Product page render error', { id: req.params.id, error: error.message });
+        res.redirect(302, '/products');
+    }
+});
+
 // Static files with cache headers.
 // HTML documents are served no-cache so the browser always re-fetches the
 // markup (and therefore picks up any bumped ?v= asset URLs immediately).
@@ -321,7 +349,7 @@ app.get('/sitemap.xml', async (req, res) => {
                 : today;
             xml += `
     <url>
-        <loc>${baseUrl}/products?search=${encodeURIComponent(product.name)}</loc>
+        <loc>${baseUrl}/product/${product.id}/${productSlug(product.name)}</loc>
         <lastmod>${lastmod}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>

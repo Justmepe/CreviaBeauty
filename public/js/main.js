@@ -185,6 +185,14 @@ function formatPrice(price) {
 }
 
 // Create product card with enhanced discount display (XSS-safe)
+// SEO-friendly URL for a product's dedicated page (must match server slugify).
+function slugify(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'product';
+}
+function productUrl(product) {
+    return `/product/${product.id}/${slugify(product.name)}`;
+}
+
 function createProductCard(product) {
     const hasDiscount = product.discount > 0;
     const discountBadge = hasDiscount
@@ -235,7 +243,7 @@ function createProductCard(product) {
             </div>
             <div class="product-info">
                 <div class="product-category">${safeCategory}${authPill}${localPill}${samplePill}</div>
-                <div class="product-name">${safeName}</div>
+                <a class="product-name" href="${productUrl(product)}">${safeName}</a>
                 <div class="product-description">${safeDescription}</div>
                 <div class="product-footer">
                     <div class="product-price ${hasDiscount ? 'discounted' : ''}">
@@ -262,6 +270,8 @@ function createProductCard(product) {
         .card-pill-local { background:#fef3c7; color:#92400e; }
         .card-pill-sample { background:#e0e7ff; color:#3730a3; }
         .product-card { position: relative; }
+        a.product-name { text-decoration:none; color:inherit; display:block; cursor:pointer; transition:color 0.15s; }
+        a.product-name:hover { color:#a8853f; }
         .product-card .wishlist-heart { position:absolute; top:10px; left:10px; width:36px; height:36px; border-radius:50%; border:none; background:rgba(255,255,255,0.92); cursor:pointer; font-size:1.15rem; color:#c7c7c7; box-shadow:0 2px 6px rgba(0,0,0,0.1); z-index:3; transition:all 0.15s; }
         .product-card .wishlist-heart:hover { transform:scale(1.08); color:#e11d48; }
         .product-card .wishlist-heart.active { color:#e11d48; }
