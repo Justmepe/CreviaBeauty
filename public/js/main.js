@@ -471,19 +471,25 @@ async function viewProduct(productId) {
         // photo is not stretched to fill the column; you get a clean magnified crop.
         if (zoomWrap && zoomImg && zoomColEl && panel && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 1025px)').matches) {
             const ZOOM = 2.6;   // magnification vs the displayed photo
-            const CAP = 400;    // max panel edge (keeps the box contained)
             const place = () => {
                 const ir = zoomImg.getBoundingClientRect();
                 const zr = zoomColEl.getBoundingClientRect();
-                const s = Math.min(CAP / ir.width, CAP / ir.height, 1); // shrink, keep aspect
-                const pw = Math.round(ir.width * s), ph = Math.round(ir.height * s);
+                const pad = 20;
+                // Fill the column: width first, then let the aspect set height,
+                // capping height to the column so it never overflows. Keeps the
+                // box aspect-correct (no stretch) but as large as the space allows.
+                let pw = Math.min(zr.width - pad * 2, 380);
+                let ph = pw * (ir.height / ir.width);
+                const maxH = Math.min(zr.height - pad * 2, 640);
+                if (ph > maxH) { ph = maxH; pw = ph * (ir.width / ir.height); }
+                pw = Math.round(pw); ph = Math.round(ph);
                 panel.style.width = pw + 'px';
                 panel.style.height = ph + 'px';
-                panel.style.left = Math.max(0, (zr.width - pw) / 2) + 'px';
+                panel.style.left = Math.round((zr.width - pw) / 2) + 'px';
                 const imgCenterY = (ir.top + ir.height / 2) - zr.top;
-                panel.style.top = Math.max(16, imgCenterY - ph / 2) + 'px';
+                panel.style.top = Math.round(Math.max(pad, imgCenterY - ph / 2)) + 'px';
                 // Zoom is relative to the displayed photo, so detail stays sharp
-                // and un-stretched regardless of the (smaller) panel box.
+                // and un-stretched regardless of the panel box size.
                 panel.style.backgroundSize = `${Math.round(ir.width * ZOOM)}px ${Math.round(ir.height * ZOOM)}px`;
             };
             zoomWrap.addEventListener('mouseenter', () => {
@@ -576,7 +582,7 @@ async function viewProduct(productId) {
                 .modal-zoom-col { display: none; }
                 @media (min-width: 1025px) {
                     .product-modal-content { max-width: 1240px; }
-                    .modal-body { grid-template-columns: 0.9fr 0.9fr 1.1fr; }
+                    .modal-body { grid-template-columns: 1fr 0.75fr 1.15fr; }
                     .modal-zoom-col { display: block; }
                 }
                 @media (max-width: 768px) {
