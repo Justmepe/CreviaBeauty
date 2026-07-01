@@ -458,23 +458,31 @@ async function viewProduct(productId) {
         // mouse pans the magnified view; leaving resets it smoothly.
         const zoomWrap = modal.querySelector('.modal-image-main');
         const zoomImg = modal.querySelector('#modal-main-img');
-        const zoomCol = modal.querySelector('.modal-image');
-        // Amazon-style side panel: hovering the photo shows a magnified view in a
-        // panel beside it (desktop only). The lens position tracks the cursor.
-        if (zoomWrap && zoomImg && zoomCol && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 769px)').matches) {
+        // Hover-to-zoom: a magnifier that sits exactly over the photo (desktop
+        // only) and pans with the cursor. Confined to the image so it never
+        // covers the product details / price / buttons.
+        if (zoomWrap && zoomImg && window.matchMedia && window.matchMedia('(hover: hover) and (min-width: 769px)').matches) {
             const panel = document.createElement('div');
             panel.className = 'modal-zoom-panel';
-            zoomCol.appendChild(panel);
+            zoomWrap.appendChild(panel);
             const ZOOM = 2.4;
             zoomWrap.addEventListener('mouseenter', () => {
+                // Snap the panel onto the visible image box (accounts for the
+                // letterbox around an object-fit:contain photo).
+                const ir = zoomImg.getBoundingClientRect();
+                const wr = zoomWrap.getBoundingClientRect();
+                panel.style.top = (ir.top - wr.top) + 'px';
+                panel.style.left = (ir.left - wr.left) + 'px';
+                panel.style.width = ir.width + 'px';
+                panel.style.height = ir.height + 'px';
                 panel.style.backgroundImage = `url("${zoomImg.currentSrc || zoomImg.src}")`;
+                panel.style.backgroundSize = `${ir.width * ZOOM}px ${ir.height * ZOOM}px`;
                 panel.style.display = 'block';
             });
             zoomWrap.addEventListener('mousemove', (e) => {
                 const r = zoomImg.getBoundingClientRect();
                 const cx = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
                 const cy = Math.min(Math.max((e.clientY - r.top) / r.height, 0), 1);
-                panel.style.backgroundSize = `${r.width * ZOOM}px ${r.height * ZOOM}px`;
                 panel.style.backgroundPosition = `${cx * 100}% ${cy * 100}%`;
             });
             zoomWrap.addEventListener('mouseleave', () => { panel.style.display = 'none'; });
@@ -560,19 +568,15 @@ async function viewProduct(productId) {
                     display: flex;
                     flex-direction: column;
                 }
-                /* Magnifier panel: sits directly to the right of the photo column */
+                /* Magnifier: overlays the photo itself (position/size set in JS) */
                 .modal-zoom-panel {
                     position: absolute;
-                    top: 0;
-                    left: 100%;
-                    width: 100%;
-                    height: 100%;
-                    background-color: #fff;
+                    background-color: #f8f9fa;
                     background-repeat: no-repeat;
-                    box-shadow: 0 12px 40px rgba(0,0,0,0.28);
-                    border-radius: 0 15px 15px 0;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 18px rgba(0,0,0,0.15);
                     display: none;
-                    z-index: 30;
+                    z-index: 4;
                     pointer-events: none;
                 }
                 .modal-image-main {
