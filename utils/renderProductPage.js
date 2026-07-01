@@ -26,14 +26,20 @@ function renderDescription(desc) {
     const blocks = String(desc || '').split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
     if (!blocks.length) return '';
     let html = '';
+    let li = [];
+    const flush = () => { if (li.length) { html += '<ul>' + li.join('') + '</ul>'; li = []; } };
     for (const b of blocks) {
         const lines = b.split(/\n/).map(l => l.trim()).filter(Boolean);
-        if (lines.length && lines.every(l => /^[-•]\s+/.test(l))) {
-            html += '<ul>' + lines.map(l => `<li>${escapeHtml(l.replace(/^[-•]\s+/, ''))}</li>`).join('') + '</ul>';
+        const allBullets = lines.length && lines.every(l => /^[-•*]\s+/.test(l));
+        if (allBullets) {
+            // Coalesce consecutive bullet blocks into a single list.
+            for (const l of lines) li.push(`<li>${escapeHtml(l.replace(/^[-•*]\s+/, ''))}</li>`);
         } else {
+            flush();
             html += lines.map(l => `<p>${escapeHtml(l)}</p>`).join('');
         }
     }
+    flush();
     return html;
 }
 
