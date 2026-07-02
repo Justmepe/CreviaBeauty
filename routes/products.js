@@ -14,6 +14,7 @@ const { cacheMiddleware, invalidateCache, TTL } = require('../middleware/cache')
 const liveViewers = require('../middleware/liveViewers');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
+const { normalizeDescription } = require('../utils/formatDescription');
 const config = require('../config');
 
 module.exports = (db) => {
@@ -290,7 +291,7 @@ module.exports = (db) => {
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
             RETURNING id
         `, [
-            name, description, price, originalPrice || null, discount || 0, category, image_url, stock || 0, costPrice || 0,
+            name, normalizeDescription(description), price, originalPrice || null, discount || 0, category, image_url, stock || 0, costPrice || 0,
             wigTexture || null, wigCapType || null, wigOrigin || null, wigDensity || null,
             brand || null, !!isLocalBrand, scentFamily || null, skinType || null, hairTexture || null, ingredients || null, allergens || null,
             !!isAuthenticVerified, !!isSample, size || null, subcategory || null
@@ -340,7 +341,7 @@ module.exports = (db) => {
             is_authentic_verified = $20, is_sample = $21, size = $22, subcategory = $23
         `;
         const baseParams = [
-            name, description, price, originalPrice || null, discount || 0, category, stock || 0, costPrice || 0,
+            name, normalizeDescription(description), price, originalPrice || null, discount || 0, category, stock || 0, costPrice || 0,
             wigTexture || null, wigCapType || null, wigOrigin || null, wigDensity || null,
             brand || null, !!isLocalBrand, scentFamily || null, skinType || null,
             hairTexture || null, ingredients || null, allergens || null,
