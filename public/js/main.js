@@ -428,7 +428,7 @@ async function viewProduct(productId) {
                     </div>
                     <div class="modal-details">
                         <div class="modal-category">${safeCategory}${safeBrand ? ' · ' + safeBrand : ''}</div>
-                        <h2 class="modal-title">${safeName}</h2>
+                        <h2 class="modal-title"><a href="${productUrl(product)}">${safeName}</a></h2>
                         ${badgesBlock}
                         ${chipsBlock}
                         <div class="modal-description modal-teaser">${escapeHtml(truncateText((product.description || '').replace(/\s+/g, ' ').trim(), 170))}</div>
@@ -711,6 +711,8 @@ async function viewProduct(productId) {
                     color: #1a1a2e;
                     margin-bottom: 1rem;
                 }
+                .modal-title a { color: inherit; text-decoration: none; transition: color 0.15s; }
+                .modal-title a:hover { color: #a8853f; }
                 .modal-description {
                     color: #666;
                     line-height: 1.7;
