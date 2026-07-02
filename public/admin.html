@@ -2620,27 +2620,64 @@
                     ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" style="width:100%;height:100%;object-fit:cover;">` : '<span style="font-size:0.7rem;color:#bbb;">img</span>'}
                 </span>
                 <input type="hidden" class="note-image-url" value="${escapeHtml(imageUrl)}">
-                <input type="text" class="note-name" placeholder="e.g. Vanilla" value="${escapeHtml((data && data.note_name) || '')}" style="flex:1;">
-                <label class="btn-dashboard outline sm" style="cursor:pointer;margin:0;">
+                <input type="text" class="note-name" list="note-name-list" placeholder="e.g. Vanilla" value="${escapeHtml((data && data.note_name) || '')}" style="flex:1;" oninput="onNoteNameChange(this)" onchange="onNoteNameChange(this)">
+                <label class="btn-dashboard outline sm" style="cursor:pointer;margin:0;" title="Upload / update this note's library image">
                     Image <input type="file" accept="image/*" style="display:none;" onchange="uploadNoteImage(this)">
                 </label>
                 <button type="button" class="btn-dashboard outline sm" title="Remove" onclick="this.closest('.note-row').remove()">&times;</button>`;
             box.appendChild(row);
         }
 
-        // Upload a picked note image immediately; store the returned URL on the row.
+        // Shared note-image library (name -> image), loaded on modal open.
+        async function loadNoteLibrary() {
+            try {
+                const res = await fetch('/api/products/note-library');
+                const data = await res.json();
+                window.noteLibrary = data.notes || [];
+            } catch { window.noteLibrary = window.noteLibrary || []; }
+            refreshNoteDatalist();
+        }
+        function refreshNoteDatalist() {
+            let dl = document.getElementById('note-name-list');
+            if (!dl) { dl = document.createElement('datalist'); dl.id = 'note-name-list'; document.body.appendChild(dl); }
+            dl.innerHTML = (window.noteLibrary || []).map(n => `<option value="${escapeHtml(n.note_name)}">`).join('');
+        }
+        // When a note name matches a library entry, auto-fill its image.
+        function onNoteNameChange(input) {
+            const row = input.closest('.note-row');
+            const name = input.value.trim().toLowerCase();
+            const lib = (window.noteLibrary || []).find(n => n.note_name.toLowerCase() === name);
+            if (lib) {
+                row.querySelector('.note-image-url').value = lib.image_url;
+                row.querySelector('.note-thumb').innerHTML = `<img src="${escapeHtml(lib.image_url)}" style="width:100%;height:100%;object-fit:cover;">`;
+            }
+        }
+
+        // Upload an image for this note. If the note has a name, save it to the
+        // shared library (upsert) so it auto-fills next time; otherwise attach to
+        // this row only.
         async function uploadNoteImage(input) {
             const file = input.files && input.files[0];
             if (!file) return;
             const row = input.closest('.note-row');
+            const name = row.querySelector('.note-name').value.trim();
             const fd = new FormData();
             fd.append('image', file);
+            const endpoint = name ? '/api/products/note-library' : '/api/products/note-image';
+            if (name) fd.append('noteName', name);
             try {
-                const res = await fetch('/api/products/note-image', { method: 'POST', body: fd });
+                const res = await fetch(endpoint, { method: 'POST', body: fd });
                 const data = await res.json();
-                if (data.url) {
-                    row.querySelector('.note-image-url').value = data.url;
-                    row.querySelector('.note-thumb').innerHTML = `<img src="${data.url}" style="width:100%;height:100%;object-fit:cover;">`;
+                const url = data.image_url || data.url;
+                if (url) {
+                    row.querySelector('.note-image-url').value = url;
+                    row.querySelector('.note-thumb').innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+                    if (name) {
+                        const lib = window.noteLibrary || (window.noteLibrary = []);
+                        const ex = lib.find(n => n.note_name.toLowerCase() === name.toLowerCase());
+                        if (ex) ex.image_url = url; else lib.push({ note_name: name, image_url: url });
+                        refreshNoteDatalist();
+                    }
                 } else {
                     showAlert(getErrorMessage(data, 'Image upload failed'), 'error');
                 }
@@ -2683,6 +2720,7 @@
             document.getElementById('images-preview').innerHTML = '';
             document.getElementById('existing-gallery').innerHTML = '';
             clearNotesEditor();
+            loadNoteLibrary();
             populateSubcategories(); // reset subcategory options for the chosen (empty) category
             toggleWigFields();       // hide wig fields for a fresh product
             updateAttrFields();      // hide category-specific attribute fields
@@ -2714,6 +2752,7 @@
                 document.getElementById('product-hair-texture').value = product.hair_texture || '';
                 document.getElementById('product-ingredients').value = product.ingredients || '';
                 document.getElementById('product-allergens').value = product.allergens || '';
+                loadNoteLibrary();
                 populateNotesEditor(product.notes);
                 updateAttrFields();
                 document.getElementById('product-wig-texture').value = product.wig_texture || '';

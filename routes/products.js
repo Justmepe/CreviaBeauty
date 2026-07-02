@@ -203,7 +203,9 @@ module.exports = (db) => {
 
         // Fragrance notes (top/heart/base), ordered within each tier.
         const notes = await db.query(
-            'SELECT id, tier, note_name, image_url FROM product_notes WHERE product_id = $1 ORDER BY sort_order, id',
+            `SELECT n.id, n.tier, n.note_name, COALESCE(NULLIF(n.image_url, ''), l.image_url) AS image_url
+             FROM product_notes n LEFT JOIN note_library l ON LOWER(l.note_name) = LOWER(n.note_name)
+             WHERE n.product_id = $1 ORDER BY n.sort_order, n.id`,
             [req.params.id]
         );
         product.notes = notes.rows;
@@ -265,6 +267,28 @@ module.exports = (db) => {
     router.post('/note-image', requireAdmin, upload.single('image'), asyncHandler(async (req, res) => {
         if (!req.file) throw AppError.badRequest('No image uploaded');
         res.json({ url: `/uploads/${req.file.filename}` });
+    }));
+
+    // Shared note-image library. GET lists every saved note (name + image) so the
+    // admin can pick one and auto-fill its image. POST uploads/updates the image
+    // for a note name (upsert), so you only ever upload each ingredient once.
+    router.get('/note-library', asyncHandler(async (req, res) => {
+        const r = await db.query('SELECT note_name, image_url FROM note_library ORDER BY note_name');
+        res.set('Cache-Control', 'no-store');
+        res.json({ notes: r.rows });
+    }));
+
+    router.post('/note-library', requireAdmin, upload.single('image'), asyncHandler(async (req, res) => {
+        const name = String(req.body.noteName || '').trim().slice(0, 80);
+        if (!name) throw AppError.badRequest('Note name is required');
+        if (!req.file) throw AppError.badRequest('No image uploaded');
+        const imageUrl = `/uploads/${req.file.filename}`;
+        await db.query(
+            `INSERT INTO note_library (note_name, image_url) VALUES ($1, $2)
+             ON CONFLICT (note_name) DO UPDATE SET image_url = EXCLUDED.image_url`,
+            [name, imageUrl]
+        );
+        res.json({ note_name: name, image_url: imageUrl });
     }));
 
     // Add product (admin only)

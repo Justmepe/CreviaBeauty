@@ -244,7 +244,9 @@ app.get('/product/:id/:slug?', async (req, res) => {
         const [variants, gallery, notes, reviews, reviewStats] = await Promise.all([
             db.query('SELECT * FROM product_variants WHERE product_id = $1 ORDER BY id', [id]),
             db.query('SELECT id, image_url FROM product_images WHERE product_id = $1 ORDER BY sort_order, id', [id]),
-            db.query('SELECT id, tier, note_name, image_url FROM product_notes WHERE product_id = $1 ORDER BY sort_order, id', [id]),
+            db.query(`SELECT n.id, n.tier, n.note_name, COALESCE(NULLIF(n.image_url, ''), l.image_url) AS image_url
+                      FROM product_notes n LEFT JOIN note_library l ON LOWER(l.note_name) = LOWER(n.note_name)
+                      WHERE n.product_id = $1 ORDER BY n.sort_order, n.id`, [id]),
             db.query('SELECT customer_name, rating, review_text, created_at FROM reviews WHERE product_id = $1 AND is_approved = TRUE ORDER BY created_at DESC LIMIT 20', [id]),
             db.query('SELECT COALESCE(AVG(rating), 0) AS avg, COUNT(*) AS cnt FROM reviews WHERE product_id = $1 AND is_approved = TRUE', [id])
         ]);

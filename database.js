@@ -516,6 +516,17 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_product_notes_product ON product_notes(product_id, sort_order);
         `);
 
+        // Shared note-image library: upload one image per ingredient/note name and
+        // reuse it across products. Product notes auto-fill their image from here.
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS note_library (
+                id SERIAL PRIMARY KEY,
+                note_name VARCHAR(80) UNIQUE NOT NULL,
+                image_url TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
         // Additional product images (gallery — same product, different angles).
         // products.image_url remains the cover; these are the extra shots.
         await client.query(`
