@@ -247,7 +247,7 @@ function createProductCard(product) {
                 <div class="product-description">${safeDescription}</div>
                 <div class="product-footer">
                     <div class="product-price ${hasDiscount ? 'discounted' : ''}">
-                        ${formatPrice(product.price)}
+                        <span data-kes="${Number(product.price) || 0}">${formatPrice(product.price)}</span>
                         ${originalPrice}
                     </div>
                     <button class="add-to-cart" onclick="addToCart(${product.id})">
@@ -433,7 +433,7 @@ async function viewProduct(productId) {
                         ${chipsBlock}
                         <div class="modal-description modal-teaser">${escapeHtml(truncateText((product.description || '').replace(/\s+/g, ' ').trim(), 170))}</div>
                         <div class="modal-price">
-                            <span class="current-price">${formatPrice(product.price)}</span>
+                            <span class="current-price" data-kes="${Number(product.price) || 0}">${formatPrice(product.price)}</span>
                             ${product.original_price ? `<span class="old-price">${formatPrice(product.original_price)}</span>` : ''}
                         </div>
                         <div class="modal-urgency" id="modal-urgency">
@@ -1385,4 +1385,99 @@ function sendChatMessage() {
         .share-nudge-btn.wa { background: #25d366; color: #fff; }
     `;
     document.head.appendChild(style);
+})();
+
+// ---- Indicative multi-currency display ------------------------------------
+// Shows "≈ <local>" next to KES prices for overseas visitors. Detection is by
+// IP (cached), FX rates come from the server (cached). Orders are ALWAYS billed
+// in KES — this is display-only. A small switcher lets visitors change/clear it.
+(function initCurrency() {
+    const SYM = {
+        USD: '$', EUR: '€', GBP: '£', AED: 'AED ', SAR: 'SAR ', QAR: 'QAR ', NGN: '₦',
+        ZAR: 'R', GHS: 'GH₵', TZS: 'TSh ', UGX: 'USh ', RWF: 'RF ', INR: '₹', CAD: 'C$',
+        AUD: 'A$', CHF: 'CHF ', CNY: '¥', JPY: '¥', SEK: 'kr ', NOK: 'kr ', DKK: 'kr '
+    };
+    const OFFER = ['USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD', 'ZAR', 'NGN', 'INR'];
+    const GEO_TTL = 7 * 24 * 3600 * 1000;
+    let target = 'KES', rate = null;
+
+    const fmt = (cur, amt) => {
+        const s = SYM[cur] || (cur + ' ');
+        return s + Math.round(amt).toLocaleString('en-US');
+    };
+
+    function decorate() {
+        if (target === 'KES' || !rate) return;
+        document.querySelectorAll('[data-kes]:not([data-fx-done])').forEach(el => {
+            el.setAttribute('data-fx-done', '1');
+            const kes = parseFloat(el.getAttribute('data-kes'));
+            if (!kes) return;
+            const span = document.createElement('span');
+            span.className = 'fx-approx';
+            span.title = 'Indicative price — orders are billed in KES';
+            span.textContent = ' ≈ ' + fmt(target, kes * rate);
+            el.insertAdjacentElement('afterend', span);
+        });
+    }
+
+    async function detectCurrency() {
+        const override = localStorage.getItem('crevia_ccy');
+        if (override) return override;
+        try {
+            const cached = JSON.parse(localStorage.getItem('crevia_geo') || 'null');
+            if (cached && (Date.now() - cached.ts) < GEO_TTL) return cached.ccy;
+        } catch (e) { /* ignore */ }
+        try {
+            const r = await fetch('https://ipwho.is/?fields=currency');
+            const j = await r.json();
+            const ccy = (j && j.currency && j.currency.code) || 'KES';
+            localStorage.setItem('crevia_geo', JSON.stringify({ ccy, ts: Date.now() }));
+            return ccy;
+        } catch (e) { return 'KES'; }
+    }
+
+    function injectSwitcher() {
+        const host = document.querySelector('.nav-links') || document.querySelector('.nav-content') || document.querySelector('.nav-container');
+        if (!host || document.getElementById('fx-switcher')) return;
+        const sel = document.createElement('select');
+        sel.id = 'fx-switcher';
+        sel.title = 'Display currency (billing stays in KES)';
+        const opts = ['KES', ...OFFER.filter(c => c !== 'KES')];
+        if (!opts.includes(target)) opts.splice(1, 0, target);
+        sel.innerHTML = opts.map(c => `<option value="${c}"${c === target ? ' selected' : ''}>${c === 'KES' ? 'KES (default)' : c}</option>`).join('');
+        sel.addEventListener('change', () => {
+            if (sel.value === 'KES') localStorage.removeItem('crevia_ccy');
+            else localStorage.setItem('crevia_ccy', sel.value);
+            location.reload();
+        });
+        host.appendChild(sel);
+        if (!document.getElementById('fx-style')) {
+            const st = document.createElement('style');
+            st.id = 'fx-style';
+            st.textContent = `
+                .fx-approx { color:#16a34a; font-size:0.82em; font-weight:600; white-space:nowrap; margin-left:0.15em; }
+                #fx-switcher { margin-left:0.6rem; background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:6px; padding:2px 6px; font-size:0.8rem; cursor:pointer; }
+                #fx-switcher option { color:#1a1a2e; }
+            `;
+            document.head.appendChild(st);
+        }
+    }
+
+    async function init() {
+        target = (await detectCurrency()) || 'KES';
+        injectSwitcher();
+        if (target === 'KES') return;
+        try {
+            const r = await fetch('/api/fx-rates');
+            const j = await r.json();
+            rate = j && j.rates && j.rates[target];
+        } catch (e) { /* leave KES */ }
+        if (!rate) return;
+        decorate();
+        // Prices for cards/modal are added after load — decorate them as they appear.
+        new MutationObserver(decorate).observe(document.body, { childList: true, subtree: true });
+    }
+
+    if (document.readyState !== 'loading') init();
+    else document.addEventListener('DOMContentLoaded', init);
 })();

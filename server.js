@@ -263,6 +263,27 @@ app.get('/product/:id/:slug?', async (req, res) => {
     }
 });
 
+// Live FX rates (KES base) for indicative multi-currency display. Cached in
+// memory ~6h so we barely hit the upstream. Payment is always in KES — this is
+// display-only. Source: open.er-api.com (free, no key).
+let fxCache = null; // { ts, rates }
+app.get('/api/fx-rates', async (req, res) => {
+    try {
+        const SIX_HOURS = 6 * 3600 * 1000;
+        if (!fxCache || (Date.now() - fxCache.ts) > SIX_HOURS) {
+            const r = await fetch('https://open.er-api.com/v6/latest/KES');
+            const j = await r.json();
+            if (j && j.result === 'success' && j.rates) fxCache = { ts: Date.now(), rates: j.rates };
+        }
+        if (!fxCache) return res.status(503).json({ error: 'fx_unavailable' });
+        res.set('Cache-Control', 'public, max-age=21600');
+        res.json({ base: 'KES', rates: fxCache.rates, updated: fxCache.ts });
+    } catch (error) {
+        logger.error('FX rates error', { error: error.message });
+        res.status(503).json({ error: 'fx_unavailable' });
+    }
+});
+
 // Static files with cache headers.
 // HTML documents are served no-cache so the browser always re-fetches the
 // markup (and therefore picks up any bumped ?v= asset URLs immediately).
