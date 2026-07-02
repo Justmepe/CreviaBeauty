@@ -1408,7 +1408,7 @@ function sendChatMessage() {
         AT: 'EUR', BE: 'EUR', CY: 'EUR', DE: 'EUR', EE: 'EUR', ES: 'EUR', FI: 'EUR', FR: 'EUR', GR: 'EUR',
         IE: 'EUR', IT: 'EUR', LT: 'EUR', LU: 'EUR', LV: 'EUR', MT: 'EUR', NL: 'EUR', PT: 'EUR', SI: 'EUR', SK: 'EUR', HR: 'EUR'
     };
-    const GEO_TTL = 7 * 24 * 3600 * 1000;
+    const GEO_TTL = 60 * 60 * 1000; // 1h — re-detect fairly often (travel/VPN)
     let target = 'KES', rate = null;
 
     const fmt = (cur, amt) => {
@@ -1452,10 +1452,10 @@ function sendChatMessage() {
     }
 
     async function detectCurrency() {
-        const override = localStorage.getItem('crevia_ccy');
+        const override = localStorage.getItem('crevia_ccy2');
         if (override) return override;
         try {
-            const cached = JSON.parse(localStorage.getItem('crevia_geo2') || 'null');
+            const cached = JSON.parse(localStorage.getItem('crevia_geo3') || 'null');
             if (cached && (Date.now() - cached.ts) < GEO_TTL) return cached.ccy;
         } catch (e) { /* ignore */ }
         try {
@@ -1463,7 +1463,7 @@ function sendChatMessage() {
             const j = await r.json();
             const cc = j && (j.country_code || j.country_code_iso3);
             const ccy = (cc && CCY_BY_COUNTRY[cc]) || 'KES';
-            localStorage.setItem('crevia_geo2', JSON.stringify({ ccy, ts: Date.now() }));
+            localStorage.setItem('crevia_geo3', JSON.stringify({ ccy, ts: Date.now() }));
             return ccy;
         } catch (e) { return 'KES'; }
     }
@@ -1478,8 +1478,8 @@ function sendChatMessage() {
         if (!opts.includes(target)) opts.splice(1, 0, target);
         sel.innerHTML = opts.map(c => `<option value="${c}"${c === target ? ' selected' : ''}>${c === 'KES' ? 'KES (default)' : c}</option>`).join('');
         sel.addEventListener('change', () => {
-            if (sel.value === 'KES') localStorage.removeItem('crevia_ccy');
-            else localStorage.setItem('crevia_ccy', sel.value);
+            if (sel.value === 'KES') localStorage.removeItem('crevia_ccy2');
+            else localStorage.setItem('crevia_ccy2', sel.value);
             location.reload();
         });
         host.appendChild(sel);
