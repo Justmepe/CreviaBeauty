@@ -36,24 +36,40 @@ function reviewDate(d) {
     catch { return ''; }
 }
 
-// Light description formatter: blank-line paragraphs, and "- " / "•" bullet groups.
-function renderDescription(desc) {
-    const blocks = String(desc || '').split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
-    if (!blocks.length) return '';
-    let html = '';
-    let li = [];
-    const flush = () => { if (li.length) { html += '<ul>' + li.join('') + '</ul>'; li = []; } };
-    for (const b of blocks) {
-        const lines = b.split(/\n/).map(l => l.trim()).filter(Boolean);
-        const allBullets = lines.length && lines.every(l => /^[-•*]\s+/.test(l));
-        if (allBullets) {
-            for (const l of lines) li.push(`<li>${escapeHtml(l.replace(/^[-•*]\s+/, ''))}</li>`);
+// Rich-text formatter (ported from the storefront's renderRichText so the page
+// matches the modal): **bold**, *italic*, _italic_, "- "/"* " bullet lists,
+// numbered lists, blank-line paragraphs.
+function renderDescription(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    const esc = escapeHtml(raw);
+    const inline = (s) => s
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+        .replace(/_([^_\n]+)_/g, '<em>$1</em>');
+    const lines = esc.split(/\r?\n/);
+    let html = '', listType = null, para = [];
+    const flushPara = () => { if (para.length) { html += '<p>' + para.join('<br>') + '</p>'; para = []; } };
+    const closeList = () => { if (listType) { html += '</' + listType + '>'; listType = null; } };
+    for (const line of lines) {
+        const t = line.trim();
+        const bullet = t.match(/^[-*]\s+(.*)/);
+        const numbered = t.match(/^\d+[.)]\s+(.*)/);
+        if (bullet) {
+            flushPara();
+            if (listType !== 'ul') { closeList(); html += '<ul>'; listType = 'ul'; }
+            html += '<li>' + inline(bullet[1]) + '</li>';
+        } else if (numbered) {
+            flushPara();
+            if (listType !== 'ol') { closeList(); html += '<ol>'; listType = 'ol'; }
+            html += '<li>' + inline(numbered[1]) + '</li>';
+        } else if (t === '') {
+            flushPara(); closeList();
         } else {
-            flush();
-            html += lines.map(l => `<p>${escapeHtml(l)}</p>`).join('');
+            closeList();
+            para.push(inline(t));
         }
     }
-    flush();
+    flushPara(); closeList();
     return html;
 }
 
@@ -269,7 +285,8 @@ function renderProductPage(product) {
     .pd-block h2, .pd-below h2 { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--navy); margin:0 0 0.9rem; }
     .pd-block h2::before, .pd-desc-wrap h2::before { content:''; display:block; width:44px; height:3px; border-radius:2px; background:var(--gold); margin-bottom:0.7rem; }
     .pd-desc { color:#3a3a44; line-height:1.8; font-size:1.02rem; }
-    .pd-desc ul { padding-left:1.1rem; } .pd-desc li { margin:0.3rem 0; }
+    .pd-desc ul, .pd-desc ol { padding-left:1.2rem; margin:0.6rem 0; } .pd-desc li { margin:0.3rem 0; }
+    .pd-desc strong { color:var(--navy); font-weight:700; }
     .pd-note-row { display:flex; align-items:center; gap:0.75rem; margin:0.6rem 0; }
     .pd-note-label { flex:0 0 90px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#666; }
     .pd-note-chips { display:flex; flex-wrap:wrap; gap:0.5rem; }
