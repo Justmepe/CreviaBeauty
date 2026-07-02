@@ -39,9 +39,18 @@ function reviewDate(d) {
 // Rich-text formatter (ported from the storefront's renderRichText so the page
 // matches the modal): **bold**, *italic*, _italic_, "- "/"* " bullet lists,
 // numbered lists, blank-line paragraphs.
+// Some generated descriptions are a single blob with inline " - Item" bullets
+// and no line breaks. If we see 2+ such markers, break them onto their own
+// lines so the list renderer below picks them up.
+function normalizeInlineBullets(raw) {
+    if (/\r?\n/.test(raw)) return raw;                 // already has line breaks
+    if ((raw.match(/ - (?=[A-Z0-9])/g) || []).length < 2) return raw;
+    return raw.replace(/ - (?=[A-Z0-9])/g, '\n- ');
+}
+
 function renderDescription(raw) {
     if (!raw || typeof raw !== 'string') return '';
-    const esc = escapeHtml(raw);
+    const esc = escapeHtml(normalizeInlineBullets(raw));
     const inline = (s) => s
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
