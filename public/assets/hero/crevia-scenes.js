@@ -136,6 +136,44 @@ const CATEGORIES = [{
     was: 2300,
     img: ''
   }]
+}, {
+  n: '04',
+  name: 'Candles',
+  tag: 'Scented & luxury home fragrance',
+  offers: [{
+    headline: 'Set the mood in seconds.',
+    stack: ['Designer & luxury home fragrance', 'Long, clean, even burn', 'Free delivery in Nairobi']
+  }, {
+    headline: 'The scent your home was missing.',
+    stack: ['Soy & premium wax blends', 'Perry Ellis, Yankee & more', 'Sealed, authentic stock']
+  }, {
+    headline: 'A candle worth showing off.',
+    stack: ['Statement jars, gift-ready', 'Warm, sophisticated scents', 'Love it or your money back']
+  }, {
+    headline: 'Luxury you can light.',
+    stack: ['Hours of steady fragrance', 'Perfect for gifting', 'Free delivery across Nairobi']
+  }],
+  products: [{
+    name: 'Amber & Oud Candle',
+    price: 2800,
+    was: 3400,
+    img: ''
+  }, {
+    name: 'Vanilla & Sandalwood',
+    price: 2200,
+    was: 2600,
+    img: ''
+  }, {
+    name: 'Rose & Saffron Candle',
+    price: 3200,
+    was: 3800,
+    img: ''
+  }, {
+    name: 'Fresh Linen & White Tea',
+    price: 1900,
+    was: 2300,
+    img: ''
+  }]
 }];
 const INTRO = 3.4;
 const SEG = 60;
