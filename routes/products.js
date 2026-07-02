@@ -180,6 +180,14 @@ module.exports = (db) => {
         res.json(result.rows);
     }));
 
+    // Shared note-image library list. MUST be before '/:id' or the id matcher
+    // captures "note-library" and 422s.
+    router.get('/note-library', asyncHandler(async (req, res) => {
+        const r = await db.query('SELECT note_name, image_url FROM note_library ORDER BY note_name');
+        res.set('Cache-Control', 'no-store');
+        res.json({ notes: r.rows });
+    }));
+
     // Get single product (includes shade variants if any)
     router.get('/:id', productIdRules, asyncHandler(async (req, res) => {
         const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
@@ -269,15 +277,9 @@ module.exports = (db) => {
         res.json({ url: `/uploads/${req.file.filename}` });
     }));
 
-    // Shared note-image library. GET lists every saved note (name + image) so the
-    // admin can pick one and auto-fill its image. POST uploads/updates the image
-    // for a note name (upsert), so you only ever upload each ingredient once.
-    router.get('/note-library', asyncHandler(async (req, res) => {
-        const r = await db.query('SELECT note_name, image_url FROM note_library ORDER BY note_name');
-        res.set('Cache-Control', 'no-store');
-        res.json({ notes: r.rows });
-    }));
-
+    // Shared note-image library. POST uploads/updates the image for a note name
+    // (upsert), so you only ever upload each ingredient once. (The GET list route
+    // is registered above /:id so it isn't shadowed by the id matcher.)
     router.post('/note-library', requireAdmin, upload.single('image'), asyncHandler(async (req, res) => {
         const name = String(req.body.noteName || '').trim().slice(0, 80);
         if (!name) throw AppError.badRequest('Note name is required');
