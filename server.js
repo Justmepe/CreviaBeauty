@@ -241,15 +241,19 @@ app.get('/product/:id/:slug?', async (req, res) => {
         const product = r.rows[0];
         if (!product) return res.redirect(302, '/products');
 
-        const [variants, gallery, notes] = await Promise.all([
+        const [variants, gallery, notes, reviews, reviewStats] = await Promise.all([
             db.query('SELECT * FROM product_variants WHERE product_id = $1 ORDER BY id', [id]),
             db.query('SELECT id, image_url FROM product_images WHERE product_id = $1 ORDER BY sort_order, id', [id]),
-            db.query('SELECT id, tier, note_name, image_url FROM product_notes WHERE product_id = $1 ORDER BY sort_order, id', [id])
+            db.query('SELECT id, tier, note_name, image_url FROM product_notes WHERE product_id = $1 ORDER BY sort_order, id', [id]),
+            db.query('SELECT customer_name, rating, review_text, created_at FROM reviews WHERE product_id = $1 AND is_approved = TRUE ORDER BY created_at DESC LIMIT 20', [id]),
+            db.query('SELECT COALESCE(AVG(rating), 0) AS avg, COUNT(*) AS cnt FROM reviews WHERE product_id = $1 AND is_approved = TRUE', [id])
         ]);
         product.variants = variants.rows;
         product.gallery = gallery.rows;
         product.images = [product.image_url, ...gallery.rows.map(x => x.image_url)].filter(Boolean);
         product.notes = notes.rows;
+        product.reviews = reviews.rows;
+        product.reviewStats = { avg: Number(reviewStats.rows[0].avg), count: Number(reviewStats.rows[0].cnt) };
 
         res.set('Cache-Control', 'public, max-age=120');
         res.send(renderProductPage(product));

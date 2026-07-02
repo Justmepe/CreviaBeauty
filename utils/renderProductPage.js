@@ -25,6 +25,17 @@ function money(n) {
     return 'KSh ' + Number(n || 0).toLocaleString('en-KE');
 }
 
+// Fractional star rating: a grey 5-star base with a gold overlay clipped to %.
+function starHtml(avg) {
+    const pct = Math.max(0, Math.min(100, (Number(avg) || 0) / 5 * 100));
+    return `<span class="pd-stars"><span class="pd-stars-bg">★★★★★</span><span class="pd-stars-fill" style="width:${pct}%">★★★★★</span></span>`;
+}
+
+function reviewDate(d) {
+    try { return new Date(d).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' }); }
+    catch { return ''; }
+}
+
 // Light description formatter: blank-line paragraphs, and "- " / "•" bullet groups.
 function renderDescription(desc) {
     const blocks = String(desc || '').split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
@@ -123,6 +134,23 @@ function renderProductPage(product) {
 
     const descHtml = renderDescription(product.description);
 
+    // Reviews: star summary (near price) + list (bottom, jump target #reviews).
+    const rs = product.reviewStats || { avg: 0, count: 0 };
+    const ratingBlock = rs.count ? `
+        <a class="pd-rating" href="#reviews">${starHtml(rs.avg)}
+            <span class="pd-rating-meta">${rs.avg.toFixed(1)} · ${rs.count} review${rs.count === 1 ? '' : 's'}</span>
+        </a>` : '';
+    const reviewsBlock = rs.count ? `
+        <section class="pd-block pd-reviews" id="reviews">
+            <h2>Reviews (${rs.count})</h2>
+            <div class="pd-reviews-summary">${starHtml(rs.avg)} <strong>${rs.avg.toFixed(1)}</strong> out of 5 · based on ${rs.count} review${rs.count === 1 ? '' : 's'}</div>
+            ${(product.reviews || []).map(r => `
+                <div class="pd-review">
+                    <div class="pd-review-head">${starHtml(r.rating)} <strong>${escapeHtml(r.customer_name)}</strong> <span class="pd-review-date">${reviewDate(r.created_at)}</span></div>
+                    ${r.review_text ? `<p>${escapeHtml(r.review_text)}</p>` : ''}
+                </div>`).join('')}
+        </section>` : '';
+
     const jsonLd = JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Product',
@@ -202,6 +230,18 @@ function renderProductPage(product) {
 
     .pd-cat { color:var(--gold-ink); font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; }
     .pd-title { font-family:'Playfair Display',serif; font-size:2rem; line-height:1.15; color:var(--navy); margin:0.4rem 0 0.8rem; }
+    /* Star rating */
+    .pd-stars { position:relative; display:inline-block; line-height:1; font-size:1.05rem; letter-spacing:2px; vertical-align:middle; }
+    .pd-stars-bg { color:#dcdcdc; }
+    .pd-stars-fill { position:absolute; left:0; top:0; overflow:hidden; white-space:nowrap; color:#f5a623; }
+    .pd-rating { display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none; margin:0 0 0.7rem; }
+    .pd-rating-meta { font-size:0.85rem; color:#6b21a8; font-weight:600; text-decoration:underline; }
+    .pd-rating:hover .pd-rating-meta { color:var(--navy); }
+    .pd-reviews-summary { display:flex; align-items:center; gap:0.5rem; color:#555; font-size:0.95rem; margin-bottom:1rem; }
+    .pd-review { border-top:1px solid #f1f1f1; padding:0.9rem 0; }
+    .pd-review-head { display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; font-size:0.92rem; }
+    .pd-review-date { color:#9ca3af; font-size:0.82rem; }
+    .pd-review p { margin:0.5rem 0 0; color:#3a3a44; line-height:1.65; }
     .pd-badges { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.6rem; }
     .pd-badge { font-size:0.72rem; padding:0.25rem 0.6rem; border-radius:999px; font-weight:600; }
     .pd-badge-auth { background:#dcfce7; color:#166534; }
@@ -274,6 +314,7 @@ function renderProductPage(product) {
         <div class="pd-buy">
             <div class="pd-cat">${category}${brand ? ' · ' + brand : ''}</div>
             <h1 class="pd-title">${title}</h1>
+            ${ratingBlock}
             ${badges.length ? `<div class="pd-badges">${badges.join('')}</div>` : ''}
             ${chips.length ? `<div class="pd-chips">${chips.map(c => `<span class="pd-chip">${c}</span>`).join('')}</div>` : ''}
             ${priceBlock}
@@ -291,6 +332,7 @@ function renderProductPage(product) {
         ${descHtml ? `<div class="pd-desc-wrap"><h2>Product Description</h2><div class="pd-desc">${descHtml}</div></div>` : ''}
         ${notesBlock}
         ${(ingredients || allergens) ? `<section class="pd-block">${ingredients}${allergens}</section>` : ''}
+        ${reviewsBlock}
     </div>
 </div>
 
