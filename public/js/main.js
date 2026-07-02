@@ -207,7 +207,7 @@ function createProductCard(product) {
     const newBadge = isNew && !hasDiscount ? `<div class="new-badge">NEW</div>` : '';
 
     const originalPrice = product.original_price && hasDiscount
-        ? `<span class="original-price">${formatPrice(product.original_price)}</span>`
+        ? `<span class="original-price" data-kes="${Number(product.original_price) || 0}">${formatPrice(product.original_price)}</span>`
         : '';
 
     // Default placeholder image
@@ -434,7 +434,7 @@ async function viewProduct(productId) {
                         <div class="modal-description modal-teaser">${escapeHtml(truncateText((product.description || '').replace(/\s+/g, ' ').trim(), 170))}</div>
                         <div class="modal-price">
                             <span class="current-price" data-kes="${Number(product.price) || 0}">${formatPrice(product.price)}</span>
-                            ${product.original_price ? `<span class="old-price">${formatPrice(product.original_price)}</span>` : ''}
+                            ${product.original_price ? `<span class="old-price" data-kes="${Number(product.original_price) || 0}">${formatPrice(product.original_price)}</span>` : ''}
                         </div>
                         <div class="modal-urgency" id="modal-urgency">
                             ${product.stock > 0 ? '<span class="in-stock">✓ In Stock</span>' : '<span class="out-stock">✗ Out of Stock</span>'}
@@ -1418,15 +1418,21 @@ function sendChatMessage() {
 
     function decorate() {
         if (target === 'KES' || !rate) return;
+        // Local currency becomes the headline price (Alibaba-style). The KES
+        // value is kept on the element (data-kes) so nothing is lost.
         document.querySelectorAll('[data-kes]:not([data-fx-done])').forEach(el => {
             el.setAttribute('data-fx-done', '1');
             const kes = parseFloat(el.getAttribute('data-kes'));
             if (!kes) return;
-            const span = document.createElement('span');
-            span.className = 'fx-approx';
-            span.title = 'Indicative price — orders are billed in KES';
-            span.textContent = ' ≈ ' + fmt(target, kes * rate);
-            el.insertAdjacentElement('afterend', span);
+            el.textContent = fmt(target, kes * rate);
+        });
+        // One small honest note per price block.
+        document.querySelectorAll('.pd-price:not([data-fx-note]), .modal-price:not([data-fx-note])').forEach(block => {
+            block.setAttribute('data-fx-note', '1');
+            const note = document.createElement('div');
+            note.className = 'fx-note';
+            note.textContent = `Shown in ${target} · orders billed in KES`;
+            block.insertAdjacentElement('afterend', note);
         });
     }
 
@@ -1466,7 +1472,7 @@ function sendChatMessage() {
             const st = document.createElement('style');
             st.id = 'fx-style';
             st.textContent = `
-                .fx-approx { color:#16a34a; font-size:0.82em; font-weight:600; white-space:nowrap; margin-left:0.15em; }
+                .fx-note { color:#9ca3af; font-size:0.75rem; margin-top:0.25rem; }
                 #fx-switcher { margin-left:0.6rem; background:transparent; color:inherit; border:1px solid rgba(255,255,255,0.3); border-radius:6px; padding:2px 6px; font-size:0.8rem; cursor:pointer; }
                 #fx-switcher option { color:#1a1a2e; }
             `;

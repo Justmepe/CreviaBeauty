@@ -153,7 +153,7 @@ function renderProductPage(product) {
     const priceBlock = `
         <div class="pd-price">
             <span class="pd-price-now" data-kes="${Number(product.price) || 0}">${money(product.price)}</span>
-            ${product.original_price && hasDiscount ? `<span class="pd-price-was">${money(product.original_price)}</span>` : ''}
+            ${product.original_price && hasDiscount ? `<span class="pd-price-was" data-kes="${Number(product.original_price) || 0}">${money(product.original_price)}</span>` : ''}
             ${hasDiscount ? `<span class="pd-price-off">-${product.discount}%</span>` : ''}
         </div>`;
 
@@ -367,7 +367,7 @@ function renderProductPage(product) {
     <div class="footer-bottom">&copy; 2026 CreviaBeauty Kenya. All rights reserved.</div>
 </footer>
 
-<script src="/js/main.js?v=21"></script>
+<script src="/js/main.js?v=22"></script>
 <script>
 (function () {
     var mainImg = document.getElementById('pd-main-img');
