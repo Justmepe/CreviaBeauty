@@ -1434,6 +1434,21 @@ function sendChatMessage() {
             note.textContent = `Shown in ${target} · orders billed in KES`;
             block.insertAdjacentElement('afterend', note);
         });
+        // Convert "KSh N" amounts written inside description text too.
+        document.querySelectorAll('.pd-desc:not([data-fx-txt]), .modal-description:not([data-fx-txt])').forEach(root => {
+            root.setAttribute('data-fx-txt', '1');
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            const nodes = [];
+            let n;
+            while ((n = walker.nextNode())) nodes.push(n);
+            nodes.forEach(node => {
+                if (!/ksh|kes\b/i.test(node.nodeValue)) return;
+                node.nodeValue = node.nodeValue.replace(/(?:ksh|kes)\s?([\d][\d,]*)/gi, (m, num) => {
+                    const kes = parseFloat(String(num).replace(/,/g, ''));
+                    return kes ? fmt(target, kes * rate) : m;
+                });
+            });
+        });
     }
 
     async function detectCurrency() {
