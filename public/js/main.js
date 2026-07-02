@@ -1398,6 +1398,16 @@ function sendChatMessage() {
         AUD: 'A$', CHF: 'CHF ', CNY: '¥', JPY: '¥', SEK: 'kr ', NOK: 'kr ', DKK: 'kr '
     };
     const OFFER = ['USD', 'GBP', 'EUR', 'AED', 'CAD', 'AUD', 'ZAR', 'NGN', 'INR'];
+    // Country -> currency (geo API gives a country code, not a currency).
+    const CCY_BY_COUNTRY = {
+        US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', NZ: 'NZD', CH: 'CHF', SE: 'SEK', NO: 'NOK', DK: 'DKK',
+        AE: 'AED', SA: 'SAR', QA: 'QAR', KW: 'KWD', BH: 'BHD', OM: 'OMR', JO: 'JOD', LB: 'LBP',
+        ZA: 'ZAR', NG: 'NGN', GH: 'GHS', KE: 'KES', TZ: 'TZS', UG: 'UGX', RW: 'RWF', ET: 'ETB', EG: 'EGP', MA: 'MAD',
+        IN: 'INR', PK: 'PKR', BD: 'BDT', CN: 'CNY', JP: 'JPY', KR: 'KRW', SG: 'SGD', HK: 'HKD', MY: 'MYR', TH: 'THB', PH: 'PHP', ID: 'IDR',
+        BR: 'BRL', MX: 'MXN', AR: 'ARS', TR: 'TRY', RU: 'RUB',
+        AT: 'EUR', BE: 'EUR', CY: 'EUR', DE: 'EUR', EE: 'EUR', ES: 'EUR', FI: 'EUR', FR: 'EUR', GR: 'EUR',
+        IE: 'EUR', IT: 'EUR', LT: 'EUR', LU: 'EUR', LV: 'EUR', MT: 'EUR', NL: 'EUR', PT: 'EUR', SI: 'EUR', SK: 'EUR', HR: 'EUR'
+    };
     const GEO_TTL = 7 * 24 * 3600 * 1000;
     let target = 'KES', rate = null;
 
@@ -1424,14 +1434,15 @@ function sendChatMessage() {
         const override = localStorage.getItem('crevia_ccy');
         if (override) return override;
         try {
-            const cached = JSON.parse(localStorage.getItem('crevia_geo') || 'null');
+            const cached = JSON.parse(localStorage.getItem('crevia_geo2') || 'null');
             if (cached && (Date.now() - cached.ts) < GEO_TTL) return cached.ccy;
         } catch (e) { /* ignore */ }
         try {
-            const r = await fetch('https://ipwho.is/?fields=currency');
+            const r = await fetch('https://ipwho.is/');
             const j = await r.json();
-            const ccy = (j && j.currency && j.currency.code) || 'KES';
-            localStorage.setItem('crevia_geo', JSON.stringify({ ccy, ts: Date.now() }));
+            const cc = j && (j.country_code || j.country_code_iso3);
+            const ccy = (cc && CCY_BY_COUNTRY[cc]) || 'KES';
+            localStorage.setItem('crevia_geo2', JSON.stringify({ ccy, ts: Date.now() }));
             return ccy;
         } catch (e) { return 'KES'; }
     }
