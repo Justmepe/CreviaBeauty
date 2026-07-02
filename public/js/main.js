@@ -426,16 +426,12 @@ async function viewProduct(productId) {
                         </div>
                         ${thumbsBlock}
                     </div>
-                    <div class="modal-zoom-col">
-                        <div class="modal-zoom-hint">🔍 Hover the photo to zoom</div>
-                        <div class="modal-zoom-panel"></div>
-                    </div>
                     <div class="modal-details">
                         <div class="modal-category">${safeCategory}${safeBrand ? ' · ' + safeBrand : ''}</div>
                         <h2 class="modal-title">${safeName}</h2>
                         ${badgesBlock}
                         ${chipsBlock}
-                        <div class="modal-description">${safeDescription}</div>
+                        <div class="modal-description modal-teaser">${escapeHtml(truncateText((product.description || '').replace(/\s+/g, ' ').trim(), 170))}</div>
                         <div class="modal-price">
                             <span class="current-price">${formatPrice(product.price)}</span>
                             ${product.original_price ? `<span class="old-price">${formatPrice(product.original_price)}</span>` : ''}
@@ -444,15 +440,10 @@ async function viewProduct(productId) {
                             ${product.stock > 0 ? '<span class="in-stock">✓ In Stock</span>' : '<span class="out-stock">✗ Out of Stock</span>'}
                         </div>
                         ${variantsBlock}
-                        ${notesBlock}
-                        ${wigBlock}
-                        ${ingredientsBlock}
-                        ${allergensBlock}
                         <div class="modal-actions">
                             <button class="btn" onclick="addToCart(${product.id}); closeProductModal();">Add to Cart</button>
-                            <button class="btn btn-outline" onclick="closeProductModal()">Continue Shopping</button>
+                            <a class="btn btn-outline" href="${productUrl(product)}">View full details →</a>
                         </div>
-                        ${product.is_authentic_verified ? '<div class="auth-link"><a href="/authenticity">Read about our authenticity guarantee →</a></div>' : ''}
                     </div>
                 </div>
             </div>
@@ -610,12 +601,6 @@ async function viewProduct(productId) {
                     grid-template-columns: 1fr 1fr;
                     gap: 0;
                 }
-                .modal-zoom-col { display: none; }
-                @media (min-width: 1025px) {
-                    .product-modal-content { max-width: 1360px; }
-                    .modal-body { grid-template-columns: 0.85fr 1.05fr 1.1fr; }
-                    .modal-zoom-col { display: block; }
-                }
                 @media (max-width: 768px) {
                     .modal-body {
                         grid-template-columns: 1fr;
@@ -659,8 +644,7 @@ async function viewProduct(productId) {
                     justify-content: center;
                     padding: 16px;
                     min-height: 0;
-                    overflow: hidden;       /* contain the hover zoom */
-                    cursor: zoom-in;
+                    overflow: hidden;
                 }
                 .modal-image-main img {
                     width: 100%;

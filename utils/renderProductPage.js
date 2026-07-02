@@ -341,7 +341,7 @@ function renderProductPage(product) {
     <div class="footer-bottom">&copy; 2026 CreviaBeauty Kenya. All rights reserved.</div>
 </footer>
 
-<script src="/js/main.js?v=17"></script>
+<script src="/js/main.js?v=18"></script>
 <script>
 (function () {
     var mainImg = document.getElementById('pd-main-img');
