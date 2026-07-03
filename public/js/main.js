@@ -81,7 +81,9 @@ function initMobileMenu() {
 
     if (mobileMenuBtn && navLinks) {
         mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
+            const open = navLinks.classList.toggle('active');
+            mobileMenuBtn.setAttribute('aria-expanded', String(open));
+            mobileMenuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
         });
 
         // Close menu when clicking outside
@@ -231,7 +233,7 @@ function createProductCard(product) {
         <div class="product-card fade-in" data-product-id="${product.id}">
             ${discountBadge}
             ${newBadge}
-            <button class="wishlist-heart" data-product-id="${product.id}" onclick="event.stopPropagation(); toggleWishlist(${product.id}, this)" title="Save to wishlist">♡</button>
+            <button class="wishlist-heart" data-product-id="${product.id}" onclick="event.stopPropagation(); toggleWishlist(${product.id}, this)" title="Save to wishlist" aria-label="Save to wishlist">♡</button>
             <div class="product-image">
                 ${product.image_url
                     ? `<img src="${safeImageUrl}" alt="${safeName}" loading="lazy" decoding="async"
@@ -407,7 +409,7 @@ async function viewProduct(productId) {
         const chipsBlock = chips.length ? `<div class="modal-chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>` : '';
 
         // Wishlist heart (if logged in we'll attempt; otherwise it'll prompt)
-        const heartBtn = `<button class="modal-wishlist" onclick="toggleWishlist(${product.id}, this)" data-product-id="${product.id}" title="Save to wishlist">♡</button>`;
+        const heartBtn = `<button class="modal-wishlist" onclick="toggleWishlist(${product.id}, this)" data-product-id="${product.id}" title="Save to wishlist" aria-label="Save to wishlist">♡</button>`;
 
         // Create modal
         const modal = document.createElement('div');
