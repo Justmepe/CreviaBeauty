@@ -9,6 +9,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const fs = require('fs');
 const helmet = require('helmet');
 const compression = require('compression');
 
@@ -119,6 +120,47 @@ app.get('/bundles', (req, res) => res.sendFile(path.join(publicDir, 'bundles.htm
 app.get('/authenticity', (req, res) => res.sendFile(path.join(publicDir, 'authenticity.html')));
 app.get('/quiz', (req, res) => res.sendFile(path.join(publicDir, 'quiz.html')));
 app.get('/blog', (req, res) => res.sendFile(path.join(publicDir, 'blog.html')));
+
+// Homepage: served with a <link rel="preload"> for the hero (LCP) image so the
+// browser starts fetching it during HTML parse, instead of after the hero JS
+// loads and calls /api/products. The mobile hero shows the newest image-bearing
+// product first, so we preload exactly that URL — this is the fix for the LCP
+// "request discovery" delay (hero was appearing 5-20s in on slow connections).
+// Template + newest-image lookup are both cached in memory so this stays as
+// cheap as serving the static file. Falls back to the raw file on any error.
+let _homeTemplate = null;
+function homeTemplate() {
+    if (_homeTemplate === null) _homeTemplate = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
+    return _homeTemplate;
+}
+let _heroPreload = { url: null, at: 0 };
+const HERO_PRELOAD_TTL = 60 * 1000; // 60s — newest product rarely changes
+async function heroPreloadUrl() {
+    if (_heroPreload.url !== null && (Date.now() - _heroPreload.at) < HERO_PRELOAD_TTL) return _heroPreload.url;
+    try {
+        const r = await db.query(
+            "SELECT image_url FROM products WHERE image_url IS NOT NULL AND image_url != '' ORDER BY created_at DESC LIMIT 1"
+        );
+        _heroPreload = { url: (r.rows[0] && r.rows[0].image_url) || '', at: Date.now() };
+    } catch (e) {
+        _heroPreload = { url: '', at: Date.now() };
+    }
+    return _heroPreload.url;
+}
+app.get('/', async (req, res) => {
+    try {
+        let html = homeTemplate();
+        const heroUrl = await heroPreloadUrl();
+        if (heroUrl) {
+            const safe = heroUrl.replace(/"/g, '&quot;');
+            html = html.replace('</head>', `<link rel="preload" as="image" fetchpriority="high" href="${safe}">\n</head>`);
+        }
+        res.set('Cache-Control', 'public, max-age=120');
+        res.type('html').send(html);
+    } catch (e) {
+        res.sendFile(path.join(publicDir, 'index.html'));
+    }
+});
 
 // Article pages are server-rendered so each gets its own meta tags / OG / JSON-LD
 const { renderArticlePage } = require('./utils/renderArticle');
