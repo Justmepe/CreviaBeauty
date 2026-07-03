@@ -7,6 +7,8 @@ const multer = require('multer');
 const path = require('path');
 const router = express.Router();
 
+const { optimizeUploads } = require('../utils/optimizeImage');
+
 const { asyncHandler } = require('../middleware/errorHandler');
 const { requireAdmin } = require('../middleware/auth');
 const { productRules, productIdRules, productQueryRules } = require('../validators/product');
@@ -272,7 +274,7 @@ module.exports = (db) => {
     // uploads note images as they're picked, then references the returned URL in
     // the product's notes JSON on save (keeps the product save free of per-note
     // multipart matching).
-    router.post('/note-image', requireAdmin, upload.single('image'), asyncHandler(async (req, res) => {
+    router.post('/note-image', requireAdmin, upload.single('image'), optimizeUploads, asyncHandler(async (req, res) => {
         if (!req.file) throw AppError.badRequest('No image uploaded');
         res.json({ url: `/uploads/${req.file.filename}` });
     }));
@@ -280,7 +282,7 @@ module.exports = (db) => {
     // Shared note-image library. POST uploads/updates the image for a note name
     // (upsert), so you only ever upload each ingredient once. (The GET list route
     // is registered above /:id so it isn't shadowed by the id matcher.)
-    router.post('/note-library', requireAdmin, upload.single('image'), asyncHandler(async (req, res) => {
+    router.post('/note-library', requireAdmin, upload.single('image'), optimizeUploads, asyncHandler(async (req, res) => {
         const name = String(req.body.noteName || '').trim().slice(0, 80);
         if (!name) throw AppError.badRequest('Note name is required');
         if (!req.file) throw AppError.badRequest('No image uploaded');
@@ -294,7 +296,7 @@ module.exports = (db) => {
     }));
 
     // Add product (admin only)
-    router.post('/', requireAdmin, productUpload, invalidateCache('products'), productRules, asyncHandler(async (req, res) => {
+    router.post('/', requireAdmin, productUpload, optimizeUploads, invalidateCache('products'), productRules, asyncHandler(async (req, res) => {
         const {
             name, description, price, originalPrice, discount, category, subcategory, stock, costPrice,
             wigTexture, wigCapType, wigOrigin, wigDensity,
@@ -343,7 +345,7 @@ module.exports = (db) => {
     }));
 
     // Update product (admin only)
-    router.put('/:id', requireAdmin, productUpload, invalidateCache('products'), productIdRules, productRules, asyncHandler(async (req, res) => {
+    router.put('/:id', requireAdmin, productUpload, optimizeUploads, invalidateCache('products'), productIdRules, productRules, asyncHandler(async (req, res) => {
         const {
             name, description, price, originalPrice, discount, category, subcategory, stock, costPrice,
             wigTexture, wigCapType, wigOrigin, wigDensity,

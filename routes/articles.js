@@ -21,6 +21,7 @@ const mammoth = require('mammoth');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { requireAdmin } = require('../middleware/auth');
 const AppError = require('../utils/AppError');
+const { optimizeUploads } = require('../utils/optimizeImage');
 
 // ============ HELPERS ============
 
@@ -379,7 +380,7 @@ module.exports = (db) => {
     }));
 
     // POST /api/admin/articles/gallery — upload one or more images to the gallery
-    adminRouter.post('/gallery', imageUpload.array('images', 12), asyncHandler(async (req, res) => {
+    adminRouter.post('/gallery', imageUpload.array('images', 12), optimizeUploads, asyncHandler(async (req, res) => {
         const images = (req.files || []).map(f => ({ name: f.filename, url: '/uploads/Gallery/' + encodeURIComponent(f.filename) }));
         res.json({ success: true, images });
     }));

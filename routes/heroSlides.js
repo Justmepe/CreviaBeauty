@@ -11,6 +11,7 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { requireAdmin } = require('../middleware/auth');
 const AppError = require('../utils/AppError');
 const config = require('../config');
+const { optimizeUploads } = require('../utils/optimizeImage');
 
 module.exports = (db) => {
     const publicRouter = express.Router();
@@ -113,7 +114,7 @@ module.exports = (db) => {
     }
 
     // POST /api/admin/hero-slides — create
-    adminRouter.post('/', upload.single('image'), asyncHandler(async (req, res) => {
+    adminRouter.post('/', upload.single('image'), optimizeUploads, asyncHandler(async (req, res) => {
         const s = parseSlideBody(req.body, req.file && req.file.filename, null);
         const result = await db.query(`
             INSERT INTO hero_slides
@@ -127,7 +128,7 @@ module.exports = (db) => {
     }));
 
     // PUT /api/admin/hero-slides/:id — update
-    adminRouter.put('/:id', upload.single('image'), asyncHandler(async (req, res) => {
+    adminRouter.put('/:id', upload.single('image'), optimizeUploads, asyncHandler(async (req, res) => {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id)) throw AppError.badRequest('Invalid slide ID');
 
