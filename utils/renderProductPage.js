@@ -176,21 +176,81 @@ function renderProductPage(product) {
                 </div>`).join('')}
         </section>` : '';
 
+    // priceValidUntil: Google wants a future date on offers. We don't run fixed
+    // sales windows, so quote ~1 year out (rolling) computed from the product's
+    // lastmod-style timestamp — no Date.now() so the output stays deterministic.
+    const priceValidUntil = (() => {
+        const base = product.updated_at || product.created_at;
+        const d = base ? new Date(base) : null;
+        if (!d || isNaN(d)) return undefined;
+        d.setFullYear(d.getFullYear() + 1);
+        return d.toISOString().split('T')[0];
+    })();
+
+    const rs2 = product.reviewStats || { avg: 0, count: 0 };
     const jsonLd = JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.name,
-        image: ogImage,
+        image: images.length ? images.map(absUrl) : ogImage,
         description: (product.description || '').replace(/\s+/g, ' ').trim().slice(0, 300),
-        brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+        sku: String(product.sku || product.id),
+        brand: { '@type': 'Brand', name: product.brand || 'CreviaBeauty' },
         category: product.category || undefined,
+        // Star ratings in search results — only when real reviews exist, else
+        // Google flags "unpopulated" ratings as invalid.
+        aggregateRating: rs2.count > 0 ? {
+            '@type': 'AggregateRating',
+            ratingValue: Number(rs2.avg).toFixed(1),
+            reviewCount: rs2.count
+        } : undefined,
+        review: (product.reviews || []).slice(0, 10).map(r => ({
+            '@type': 'Review',
+            reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+            author: { '@type': 'Person', name: r.customer_name || 'Verified buyer' },
+            reviewBody: r.review_text || undefined
+        })),
         offers: {
             '@type': 'Offer',
             url,
             priceCurrency: 'KES',
             price: Number(product.price || 0),
-            availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+            priceValidUntil,
+            itemCondition: 'https://schema.org/NewCondition',
+            availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            seller: { '@type': 'Organization', name: 'CreviaBeauty' },
+            hasMerchantReturnPolicy: {
+                '@type': 'MerchantReturnPolicy',
+                applicableCountry: 'KE',
+                returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                merchantReturnDays: 7,
+                returnMethod: 'https://schema.org/ReturnByMail',
+                returnFees: 'https://schema.org/FreeReturn'
+            },
+            shippingDetails: {
+                '@type': 'OfferShippingDetails',
+                shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'KES' },
+                shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'KE' },
+                deliveryTime: {
+                    '@type': 'ShippingDeliveryTime',
+                    handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+                    transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 3, unitCode: 'DAY' }
+                }
+            }
         }
+    });
+
+    // Breadcrumb trail (Home › Category › Product) so Google shows a readable
+    // path instead of the raw URL. Mirrors the visual crumbs below.
+    const breadcrumbLd = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL + '/' },
+            { '@type': 'ListItem', position: 2, name: product.category || 'Beauty',
+              item: `${BASE_URL}/products?category=${encodeURIComponent(product.category || '')}` },
+            { '@type': 'ListItem', position: 3, name: product.name, item: url }
+        ]
     });
 
     return `<!DOCTYPE html>
@@ -215,9 +275,11 @@ function renderProductPage(product) {
 <meta name="twitter:description" content="${metaDesc}">
 <meta name="twitter:image" content="${escapeHtml(ogImage)}">
 <script type="application/ld+json">${jsonLd}</script>
+<script type="application/ld+json">${breadcrumbLd}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
 <style>
     :root { --navy:#1a1a2e; --gold:#c9a55a; --gold-ink:#a8853f; --ink:#2b2b35; }
     * { box-sizing:border-box; }

@@ -79,7 +79,8 @@ function renderArticlePage(article, options = {}) {
 <script type="application/ld+json">${jsonLd}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <style>
     :root { --navy: #1a1a2e; --navy-2: #2c2c54; --gold: #c9a55a; --gold-ink: #a8853f; --ink: #2b2b35; }
     * { box-sizing: border-box; }

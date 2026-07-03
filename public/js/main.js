@@ -234,7 +234,7 @@ function createProductCard(product) {
             <button class="wishlist-heart" data-product-id="${product.id}" onclick="event.stopPropagation(); toggleWishlist(${product.id}, this)" title="Save to wishlist">♡</button>
             <div class="product-image">
                 ${product.image_url
-                    ? `<img src="${safeImageUrl}" alt="${safeName}"
+                    ? `<img src="${safeImageUrl}" alt="${safeName}" loading="lazy" decoding="async"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                        <div style="display:none;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#f5f5f5 0%,#e0e0e0 100%);font-size:4rem;">✨</div>`
                     : placeholderBg
