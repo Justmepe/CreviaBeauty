@@ -17,8 +17,11 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const MAX_WIDTH = 1200;     // storefront never displays product images wider than this
-const WEBP_QUALITY = 80;
+// Quality-first cap: 2000px keeps retina displays and the product-page hover-zoom
+// (2.6x lens) crisp, while still trimming 3000-4000px phone originals that only
+// bloat load time. Quality 90 is visually lossless for beauty product photos.
+const MAX_WIDTH = 2000;
+const WEBP_QUALITY = 90;
 
 // Resize + convert a freshly-uploaded file to WebP, replacing the original.
 // Returns the new basename (e.g. "1699...-42.webp") or, on failure, the original.

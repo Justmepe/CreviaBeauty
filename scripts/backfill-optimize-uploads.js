@@ -23,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 
 const UPLOADS = path.resolve(__dirname, '..', 'uploads');
-const MAX_WIDTH = 1200;
+const MAX_WIDTH = 2000;              // quality-first: keep retina + hover-zoom detail
 const MIN_BYTES = 150 * 1024;        // ignore anything already under 150KB
 const APPLY = process.argv.includes('--apply');
 const KB = n => (n / 1024).toFixed(0) + 'KB';
@@ -42,8 +42,8 @@ function walk(dir) {
 
 async function encodeSameFormat(pipeline, ext) {
     if (ext === '.png') return pipeline.png({ compressionLevel: 9 }).toBuffer();       // lossless
-    if (ext === '.webp') return pipeline.webp({ quality: 80 }).toBuffer();
-    return pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer();                    // jpg/jpeg
+    if (ext === '.webp') return pipeline.webp({ quality: 90 }).toBuffer();
+    return pipeline.jpeg({ quality: 90, mozjpeg: true }).toBuffer();                    // jpg/jpeg
 }
 
 async function run() {

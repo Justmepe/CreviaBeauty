@@ -305,21 +305,6 @@
     }).catch(function (e) { console.error('[crevia-hero] data fetch failed', e); });
   }
 
-  // Start the heavy React animation only after the page has fully loaded AND the
-  // main thread goes idle, so it never competes with LCP or first interaction.
-  // The static fallback hero (which rotates on its own) covers the gap, so this
-  // is invisible to users — the cinematic scene just starts a beat later. Big
-  // desktop win: keeps ~13s of animation main-thread work off the critical path
-  // (this was the dominant PageSpeed TBT / Speed Index drag on desktop).
-  function deferAnimation() {
-    function start() {
-      var ric = window.requestIdleCallback || function (cb) { return setTimeout(cb, 200); };
-      ric(function () { loadAnimation(); }, { timeout: 3000 });
-    }
-    if (document.readyState === 'complete') start();
-    else window.addEventListener('load', start, { once: true });
-  }
-
   function init() {
     // Instant paint from cache (if any), then refresh from the network.
     var cached = loadCache();
@@ -328,7 +313,7 @@
       renderFallback(cached);
     }
     refresh().then(function () {
-      if (animationAllowed()) deferAnimation();
+      if (animationAllowed()) loadAnimation();
     });
     // Swap landscape <-> portrait scene on rotation.
     if (PORTRAIT.addEventListener) PORTRAIT.addEventListener('change', onOrientationChange);
