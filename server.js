@@ -152,8 +152,20 @@ app.get('/', async (req, res) => {
         let html = homeTemplate();
         const heroUrl = await heroPreloadUrl();
         if (heroUrl) {
-            const safe = heroUrl.replace(/"/g, '&quot;');
-            html = html.replace('</head>', `<link rel="preload" as="image" fetchpriority="high" href="${safe}">\n</head>`);
+            const safeAttr = heroUrl.replace(/"/g, '&quot;');
+            const safeCss = heroUrl.replace(/'/g, "%27");
+            // 1) Preload hint so the bytes download during HTML parse.
+            html = html.replace('</head>', `<link rel="preload" as="image" fetchpriority="high" href="${safeAttr}">\n</head>`);
+            // 2) Bake the hero image into the first slide so it PAINTS immediately,
+            //    without waiting for the hero JS to fetch /api/products and set the
+            //    background. crevia-hero.js later rebuilds the fallback with the same
+            //    URL (innerHTML replace) — identical, so no reflow or re-download.
+            //    This is what actually fixes the LCP (the preload alone can't, because
+            //    the paint was gated on JS, not on the download).
+            html = html.replace(
+                '<div class="ch-fb-slide active">',
+                `<div class="ch-fb-slide active"><div class="ch-fb-img" style="background-image:url('${safeCss}')"></div>`
+            );
         }
         res.set('Cache-Control', 'public, max-age=120');
         res.type('html').send(html);
