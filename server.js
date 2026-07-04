@@ -37,13 +37,20 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            // Google Ads / gtag.js needs its library + conversion-linker domains
+            // whitelisted here, or the CSP silently blocks the tag from loading.
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'",
+                "https://www.googletagmanager.com",
+                "https://www.googleadservices.com",
+                "https://googleads.g.doubleclick.net",
+                "https://www.google-analytics.com"],
             scriptSrcAttr: ["'unsafe-inline'"], // Allow onclick handlers
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
             imgSrc: ["'self'", "data:", "https:", "blob:"],
             connectSrc: ["'self'", "https:"],
-            frameSrc: ["'none'"],
+            // Conversion tracking / enhanced conversions can inject a DoubleClick iframe.
+            frameSrc: ["https://td.doubleclick.net", "https://www.googletagmanager.com"],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: config.isProduction ? [] : null
         }

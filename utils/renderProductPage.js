@@ -256,6 +256,8 @@ function renderProductPage(product) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google Ads (gtag.js) -->
+<script src="/js/gtag-base.js?v=1" defer></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title}${brand ? ' — ' + brand : ''} | CreviaBeauty Kenya</title>

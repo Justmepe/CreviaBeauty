@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google Ads (gtag.js) -->
+    <script src="/js/gtag-base.js?v=1" defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - CreviaBeauty Kenya</title>
@@ -391,6 +393,8 @@
 
                     if (data.success) {
                         modal.remove();
+                        // Google Ads Purchase conversion — real order value in KES.
+                        if (window.gtagPurchase) gtagPurchase(data.orderId, data.total);
                         showPaymentConfirmation(data);
                         loadCart();
                         updateCartCount();
