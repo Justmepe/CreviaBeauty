@@ -7,26 +7,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Authenticity Guarantee | CreviaBeauty Kenya</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
-<meta name="description" content="Every premium beauty product at CreviaBeauty is sourced from authorised distributors. Read our authenticity guarantee.">
+<meta name="description" content="Every premium beauty product at CreviaBeauty is sourced from authorised distributors. Learn how to verify authenticity yourself, and read our full-refund guarantee.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://creviabeauty.com/authenticity">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://creviabeauty.com/authenticity">
 <meta property="og:title" content="Authenticity Guarantee | CreviaBeauty Kenya">
-<meta property="og:description" content="Every premium beauty product is sourced from authorised distributors. Batch-code verifiable.">
+<meta property="og:description" content="Every premium beauty product is sourced from authorised distributors. Verify it yourself, batch-code verifiable.">
 <meta property="og:image" content="https://creviabeauty.com/images/og-image.jpg">
 <meta property="og:locale" content="en_KE">
 <meta property="og:site_name" content="CreviaBeauty">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Authenticity Guarantee | CreviaBeauty Kenya">
-<meta name="twitter:description" content="Every premium beauty product is sourced from authorised distributors. Batch-code verifiable.">
+<meta name="twitter:description" content="Every premium beauty product is sourced from authorised distributors. Verify it yourself, batch-code verifiable.">
 <meta name="twitter:image" content="https://creviabeauty.com/images/og-image.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="/css/styles.css?v=6">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Why are your prices sometimes lower than the boutique?", "acceptedAnswer": { "@type": "Answer", "text": "We buy through authorised distributor channels and sell online with low overhead, no mall rent and no counter staff. Lower price, same authentic product. A price far below everyone else, though, is the classic sign of a fake, so we price to the real market, not below it." } },
+    { "@type": "Question", "name": "What happens if a batch code will not verify?", "acceptedAnswer": { "@type": "Answer", "text": "You contact us, we refund you in full and cover return shipping, with no restocking fee and no argument. We then investigate and drop the supplier." } },
+    { "@type": "Question", "name": "Do you sell testers or unboxed units?", "acceptedAnswer": { "@type": "Answer", "text": "Only when clearly labelled as such, at a lower price, and always authentic. We never pass a tester off as a sealed retail unit." } },
+    { "@type": "Question", "name": "Is synthetic hair ever sold as human hair?", "acceptedAnswer": { "@type": "Answer", "text": "Never. Synthetic is always labelled synthetic. Human-hair units carry origin documentation, and raw units are single-donor certified by the supplier." } }
+  ]
+}
+</script>
 <style>
-    /* styles.css has no .nav-content rules - style this page's navbar here */
+    /* ===== brand tokens (light-only page, matches the rest of the site) ===== */
+    .auth {
+        --paper:#faf8f4; --paper-2:#f3efe7; --ink:#23202b; --ink-soft:#5a5560;
+        --hairline:#e6dfd2; --navy:#1a1a2e; --navy-deep:#12122a;
+        --gold:#c9a24b; --gold-bright:#d4af6a; --pass:#2f7d5b; --pass-bg:#e7f2ec;
+        --fail:#b4432f; --card:#fff;
+        --card-shadow:0 1px 2px rgba(26,26,46,.04), 0 12px 32px -18px rgba(26,26,46,.22);
+        --maxw:1040px;
+        background:var(--paper); color:var(--ink);
+        font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; line-height:1.6;
+    }
+    .auth h1, .auth h2, .auth h3 { font-family:'Playfair Display', Georgia, serif; line-height:1.12; text-wrap:balance; font-weight:700; }
+    .auth .mono { font-family:'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace; }
+    .auth .wrap { max-width:var(--maxw); margin:0 auto; padding:0 1.5rem; }
+    .auth .eyebrow { font-size:.74rem; letter-spacing:.22em; text-transform:uppercase; font-weight:600; color:var(--gold); margin:0; }
+
+    /* navbar (styles.css has no .nav-content rules) */
     .navbar .nav-content { max-width:1100px; margin:0 auto; padding:0.7rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; }
     .navbar .logo { display:inline-flex; align-items:center; font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:700; color:#fff; text-decoration:none; }
     .navbar .logo img { height:38px; width:38px; border-radius:50%; object-fit:cover; background:#fff; margin-right:10px; }
@@ -34,20 +63,126 @@
     .navbar .nav-links { display:flex; gap:1.1rem; list-style:none; margin:0; padding:0; align-items:center; }
     .navbar .nav-links a { white-space:nowrap; }
     @media (max-width:640px) { .navbar .nav-links { display:none; } }
-    .auth-hero { background: linear-gradient(120deg, #1a1a2e 0%, #2c2c54 70%, #3b2c50 100%); color:#fff; padding: 4rem 2rem; text-align:center; }
-    .auth-hero h1 { font-size:2.6rem; margin:0 0 0.8rem 0; }
-    .auth-hero p { font-size:1.1rem; opacity:0.92; max-width:680px; margin:0 auto; }
-    .auth-wrap { max-width:880px; margin:0 auto; padding:3rem 1.5rem; }
-    .auth-pillar { display:flex; gap:1.25rem; padding:1.5rem; background:#fff; border-radius:14px; box-shadow:0 1px 4px rgba(0,0,0,0.06); margin-bottom:1rem; }
-    .auth-pillar-icon { flex-shrink:0; font-size:2rem; line-height:1; width:54px; height:54px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:#dcfce7; }
-    .auth-pillar h3 { margin:0 0 0.4rem 0; }
-    .auth-pillar p { margin:0; color:#555; line-height:1.55; }
-    .auth-promise { background:#0f172a; color:#fff; border-radius:14px; padding:2rem; margin-top:2rem; text-align:center; }
-    .auth-promise h3 { margin:0 0 0.7rem 0; font-size:1.4rem; }
-    .auth-cta { display:inline-block; margin-top:1rem; padding:0.8rem 1.5rem; background:#fff; color:#0f172a; border-radius:8px; text-decoration:none; font-weight:600; }
-    .auth-cta:hover { background:#f1f5f9; }
-    .auth-badges-row { display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin-top:1rem; }
-    .auth-badges-row .b { background:rgba(255,255,255,0.12); padding:0.35rem 0.8rem; border-radius:999px; font-size:0.85rem; }
+
+    /* hero */
+    .auth-hero { position:relative; overflow:hidden; color:#fff; text-align:center; padding:5rem 1.5rem 4.5rem;
+        background:radial-gradient(120% 90% at 50% -10%, #2a2a4e 0%, var(--navy) 45%, var(--navy-deep) 100%); }
+    .auth-hero::before { content:""; position:absolute; inset:0;
+        background-image:linear-gradient(rgba(212,175,106,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,106,.06) 1px, transparent 1px);
+        background-size:46px 46px; -webkit-mask-image:radial-gradient(70% 60% at 50% 40%, #000 30%, transparent 100%); mask-image:radial-gradient(70% 60% at 50% 40%, #000 30%, transparent 100%); pointer-events:none; }
+    .auth-hero .wrap { position:relative; }
+    .auth-seal { width:104px; height:104px; margin:0 auto 1.5rem; border-radius:50%; display:grid; place-items:center; position:relative;
+        background:radial-gradient(circle at 35% 30%, #e8cd93, var(--gold-bright) 55%, #9c7a34 100%);
+        box-shadow:0 0 0 1px rgba(255,255,255,.25), 0 0 0 8px rgba(212,175,106,.12), 0 14px 30px -10px rgba(0,0,0,.6);
+        animation:sealIn .8s cubic-bezier(.2,.8,.2,1) both; }
+    .auth-seal::after { content:""; position:absolute; inset:9px; border-radius:50%; border:1.5px dashed rgba(30,20,5,.45); }
+    .auth-seal svg { width:44px; height:44px; position:relative; }
+    @keyframes sealIn { from { opacity:0; transform:scale(.6) rotate(-14deg); } to { opacity:1; transform:none; } }
+    .auth-hero h1 { font-size:clamp(2.2rem, 5.5vw, 3.5rem); margin:0 0 1rem; letter-spacing:-.01em; }
+    .auth-hero h1 em { font-style:italic; color:var(--gold-bright); }
+    .auth-hero p { font-size:1.1rem; max-width:620px; margin:0 auto; color:rgba(255,255,255,.82); }
+    .auth-hero-badges { display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; margin-top:1.8rem; }
+    .auth-hero-badges span { font-size:.8rem; padding:.4rem .9rem; border-radius:999px; border:1px solid rgba(212,175,106,.35); color:rgba(255,255,255,.9); background:rgba(212,175,106,.08); }
+
+    /* section scaffold */
+    .auth-sec { padding:4rem 0; }
+    .auth-sec.tight { padding-top:0; }
+    .auth-head { max-width:640px; margin:0 0 2.4rem; }
+    .auth-head h2 { font-size:clamp(1.6rem, 3.4vw, 2.2rem); margin:.5rem 0 .6rem; }
+    .auth-head > p { color:var(--ink-soft); font-size:1.05rem; margin:0; }
+
+    /* pillars */
+    .auth-pillars { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+    @media (max-width:720px) { .auth-pillars { grid-template-columns:1fr; } }
+    .auth-pillar { background:var(--card); border:1px solid var(--hairline); border-radius:16px; padding:1.6rem; box-shadow:var(--card-shadow); display:flex; gap:1.1rem; align-items:flex-start; }
+    .auth-pillar .ic { flex:0 0 auto; width:46px; height:46px; border-radius:12px; display:grid; place-items:center; color:var(--gold);
+        background:linear-gradient(160deg, rgba(201,162,75,.16), rgba(201,162,75,.04)); border:1px solid rgba(201,162,75,.3); }
+    .auth-pillar .ic svg { width:24px; height:24px; }
+    .auth-pillar h3 { font-size:1.12rem; margin:.1rem 0 .4rem; }
+    .auth-pillar p { margin:0; color:var(--ink-soft); font-size:.95rem; line-height:1.55; }
+
+    /* verify module */
+    .auth-verify { background:var(--paper-2); border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); }
+    .auth-verify-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:2.5rem; align-items:center; }
+    @media (max-width:820px) { .auth-verify-grid { grid-template-columns:1fr; } }
+    .auth-verify-grid > div:first-child h2 { font-size:clamp(1.6rem,3.4vw,2.2rem); margin:.5rem 0 .3rem; }
+    .auth-verify-grid > div:first-child > p { color:var(--ink-soft); margin:0; }
+    .auth-steps { list-style:none; padding:0; margin:1.4rem 0 0; display:grid; gap:1.1rem; }
+    .auth-steps li { display:flex; gap:1rem; }
+    .auth-steps .n { flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--navy); color:var(--gold-bright); display:grid; place-items:center;
+        font-family:'JetBrains Mono', ui-monospace, monospace; font-size:.85rem; font-weight:600; }
+    .auth-steps h4 { margin:.25rem 0 .2rem; font-size:1rem; font-family:'Inter',sans-serif; font-weight:600; color:var(--ink); }
+    .auth-steps p { margin:0; font-size:.92rem; color:var(--ink-soft); }
+    .auth-steps a { color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(201,162,75,.4); }
+    .auth-steps a:hover { color:var(--navy); }
+    .auth-checker { background:var(--card); border:1px solid var(--hairline); border-radius:18px; padding:1.8rem; box-shadow:var(--card-shadow); }
+    .auth-checker .cap { font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); }
+    .auth-checker .row { display:flex; gap:.6rem; margin:.8rem 0 0; }
+    .auth-checker input { flex:1; min-width:0; font-family:'JetBrains Mono', ui-monospace, monospace; font-size:1.05rem; letter-spacing:.1em; text-transform:uppercase;
+        padding:.8rem .9rem; border-radius:10px; border:1px solid var(--hairline); background:var(--paper); color:var(--ink); }
+    .auth-checker input:focus-visible { outline:2px solid var(--gold); outline-offset:1px; }
+    .auth-checker button { border:none; cursor:pointer; border-radius:10px; padding:0 1.2rem; background:var(--navy); color:#fff; font-weight:600; font-size:.95rem; }
+    .auth-checker button:hover { background:var(--navy-deep); }
+    .auth-result { margin-top:1rem; min-height:1.4rem; font-size:.92rem; }
+    .auth-result.ok { color:var(--pass); }
+    .auth-result .tick { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; background:var(--pass); color:#fff; margin-right:.5rem; vertical-align:-4px; animation:pop .4s cubic-bezier(.2,.9,.3,1.4) both; }
+    @keyframes pop { from { transform:scale(0); } to { transform:scale(1); } }
+    .auth-checker small { display:block; margin-top:.9rem; color:var(--ink-soft); font-size:.8rem; }
+
+    /* spot a fake */
+    .auth-spot-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    @media (max-width:720px) { .auth-spot-grid { grid-template-columns:1fr; } }
+    .auth-spot-card { background:var(--card); border:1px solid var(--hairline); border-radius:16px; padding:1.6rem 1.6rem 1.8rem; box-shadow:var(--card-shadow); }
+    .auth-spot-card h3 { font-size:1.2rem; margin:0 0 1rem; }
+    .auth-checklist { list-style:none; padding:0; margin:0; display:grid; gap:.7rem; }
+    .auth-checklist li { display:flex; gap:.6rem; font-size:.94rem; align-items:flex-start; }
+    .auth-checklist .m { flex:0 0 auto; width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-size:.7rem; margin-top:2px; }
+    .auth-checklist .real .m { background:var(--pass-bg); color:var(--pass); }
+    .auth-checklist .fake .m { background:rgba(180,67,47,.12); color:var(--fail); }
+    .auth-checklist .lbl { color:var(--ink-soft); }
+    .auth-checklist .lbl b { color:var(--ink); font-weight:600; }
+
+    /* honesty callout */
+    .auth-honesty { background:var(--navy); color:#fff; border-radius:20px; padding:2.4rem; display:grid; grid-template-columns:auto 1fr; gap:1.6rem; align-items:start; }
+    @media (max-width:640px) { .auth-honesty { grid-template-columns:1fr; padding:1.8rem; } }
+    .auth-honesty .q { font-family:'Playfair Display', Georgia, serif; font-size:3.4rem; color:var(--gold-bright); line-height:.8; }
+    .auth-honesty h3 { color:#fff; font-size:1.35rem; margin:0 0 .6rem; }
+    .auth-honesty p { margin:0; color:rgba(255,255,255,.8); }
+    .auth-honesty p + p { margin-top:.8rem; }
+
+    /* stats */
+    .auth-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; text-align:center; }
+    @media (max-width:640px) { .auth-stats { grid-template-columns:1fr; } }
+    .auth-stat { padding:1.2rem; }
+    .auth-stat .num { font-family:'Playfair Display', Georgia, serif; font-size:2.5rem; color:var(--gold); font-weight:700; }
+    .auth-stat .lbl { color:var(--ink-soft); font-size:.92rem; margin-top:.2rem; }
+
+    /* whatsapp */
+    .auth-whatsapp { display:flex; gap:1.4rem; align-items:center; justify-content:space-between; flex-wrap:wrap;
+        background:linear-gradient(120deg, var(--pass-bg), var(--card)); border:1px solid var(--hairline); border-radius:18px; padding:1.8rem 2rem; }
+    .auth-whatsapp h3 { margin:0 0 .3rem; font-size:1.2rem; }
+    .auth-whatsapp p { margin:0; color:var(--ink-soft); }
+    .auth-wa-btn { background:#1fab5a; color:#fff; text-decoration:none; font-weight:600; padding:.8rem 1.4rem; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:.5rem; }
+    .auth-wa-btn:hover { background:#1a9850; }
+
+    /* faq */
+    .auth-faq { display:grid; gap:.7rem; max-width:760px; }
+    .auth-faq details { background:var(--card); border:1px solid var(--hairline); border-radius:12px; padding:0 1.3rem; }
+    .auth-faq summary { cursor:pointer; list-style:none; padding:1.1rem 0; font-weight:600; font-size:1rem; display:flex; justify-content:space-between; gap:1rem; align-items:center; }
+    .auth-faq summary::-webkit-details-marker { display:none; }
+    .auth-faq summary::after { content:"+"; color:var(--gold); font-size:1.3rem; font-weight:400; }
+    .auth-faq details[open] summary::after { content:"\2212"; }
+    .auth-faq p { margin:0 0 1.1rem; color:var(--ink-soft); font-size:.95rem; }
+
+    /* final cta */
+    .auth-final { text-align:center; color:#fff; border-radius:22px; padding:3.2rem 2rem;
+        background:radial-gradient(100% 120% at 50% 0%, #24244a, var(--navy) 60%, var(--navy-deep)); }
+    .auth-final h2 { color:#fff; font-size:clamp(1.7rem,4vw,2.4rem); margin:0 0 .8rem; }
+    .auth-final p { color:rgba(255,255,255,.82); max-width:520px; margin:0 auto 1.6rem; }
+    .auth-cta { display:inline-block; background:var(--gold-bright); color:var(--navy-deep); font-weight:700; text-decoration:none; padding:.9rem 1.8rem; border-radius:10px; transition:transform .15s ease; }
+    .auth-cta:hover { transform:translateY(-2px); }
+
+    @media (prefers-reduced-motion: reduce) { .auth-seal, .auth-result .tick { animation:none; } .auth-cta:hover { transform:none; } }
 </style>
 </head>
 <body>
@@ -63,53 +198,183 @@
     </div>
 </nav>
 
-<section class="auth-hero">
-    <h1>✓ Verified Authentic</h1>
-    <p>Every premium product we sell, from Dior Sauvage to La Mer to Brazilian human-hair wigs, is sourced from authorised distributors or directly from the brand. We don't sell fakes. Ever.</p>
-</section>
+<main class="auth">
 
-<div class="auth-wrap">
-    <div class="auth-pillar">
-        <div class="auth-pillar-icon">📦</div>
-        <div>
-            <h3>Direct from authorised distributors</h3>
-            <p>Our fragrance, skincare, and makeup inventory ships from authorised regional distributors of Dior LVMH, Estée Lauder Group, L'Oréal Luxe and equivalent verified channels. We do not buy through third-party resellers or grey-market suppliers.</p>
+    <!-- HERO -->
+    <header class="auth-hero">
+        <div class="wrap">
+            <div class="auth-seal" role="img" aria-label="Verified authentic seal">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="#2a1e05" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p class="eyebrow">The CreviaBeauty Guarantee</p>
+            <h1>Real, or your <em>money back</em>.</h1>
+            <p>Every product we sell, from Dior Sauvage to La Mer to raw Brazilian hair, is sourced from authorised distributors or the brand itself. And we hand you the tools to check us. No blind trust required.</p>
+            <div class="auth-hero-badges">
+                <span>Authorised distributors only</span>
+                <span>Batch-code verifiable</span>
+                <span>Origin-traced hair</span>
+                <span>Full refund on any counterfeit</span>
+            </div>
         </div>
-    </div>
-    <div class="auth-pillar">
-        <div class="auth-pillar-icon">🔍</div>
-        <div>
-            <h3>Batch code lookup on premium SKUs</h3>
-            <p>Every premium fragrance and skincare unit ships with the manufacturer batch code intact and verifiable on the brand's official site. If a batch code is missing or doesn't verify, we refund you in full and report the supplier.</p>
-        </div>
-    </div>
-    <div class="auth-pillar">
-        <div class="auth-pillar-icon">💆🏾‍♀️</div>
-        <div>
-            <h3>Human hair: traceable origin</h3>
-            <p>Our human-hair wigs come with origin documentation (Brazilian, Peruvian, Indian, Cambodian). Premium "raw" units are single-donor and certified by the supplier. Synthetic units are clearly labelled as such, we never sell a synthetic as human hair.</p>
-        </div>
-    </div>
-    <div class="auth-pillar">
-        <div class="auth-pillar-icon">↩️</div>
-        <div>
-            <h3>100% authenticity guarantee</h3>
-            <p>If you ever receive a product that fails an authenticity check at the brand's official channel, you get a full refund and we cover return shipping. No questions. No restocking fees. We hold our suppliers accountable.</p>
-        </div>
-    </div>
+    </header>
 
-    <div class="auth-promise">
-        <h3>The Crevia promise</h3>
-        <p>The Kenyan beauty market is full of fakes. We're not. Bring us proof of a counterfeit and we refund + replace at our cost.</p>
-        <div class="auth-badges-row">
-            <span class="b">Authorised distributors</span>
-            <span class="b">Batch-code verifiable</span>
-            <span class="b">Origin-traced hair</span>
-            <span class="b">Full refund on counterfeits</span>
+    <!-- GUARANTEE PILLARS -->
+    <section class="auth-sec">
+        <div class="wrap">
+            <div class="auth-head">
+                <p class="eyebrow">How we source</p>
+                <h2>Four things we promise on every order</h2>
+                <p>The Kenyan beauty market is flooded with fakes. Here is exactly what protects you when you buy from us.</p>
+            </div>
+            <div class="auth-pillars">
+                <div class="auth-pillar">
+                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7.5L12 12l8.7-4.5M12 12v9"/></svg></span>
+                    <div><h3>Straight from authorised distributors</h3><p>Fragrance, skincare and makeup ship from authorised regional distributors of LVMH, Est&eacute;e Lauder and L'Or&eacute;al Luxe, or equivalent verified channels. Never grey-market resellers.</p></div>
+                </div>
+                <div class="auth-pillar">
+                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+                    <div><h3>Batch code intact and verifiable</h3><p>Every premium fragrance and skincare unit keeps its manufacturer batch code, checkable on independent tools. If a code is missing or fails, we refund you in full and drop the supplier.</p></div>
+                </div>
+                <div class="auth-pillar">
+                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c-2 4-6 5-6 10a6 6 0 0012 0c0-5-4-6-6-10z"/></svg></span>
+                    <div><h3>Human hair with traceable origin</h3><p>Wigs and bundles come with origin documentation (Brazilian, Peruvian, Indian, Cambodian). Raw units are single-donor certified. Synthetic is always labelled synthetic. No exceptions.</p></div>
+                </div>
+                <div class="auth-pillar">
+                    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 4v4h4"/></svg></span>
+                    <div><h3>100% authenticity guarantee</h3><p>If anything ever fails an authenticity check at the brand's official channel, you get a full refund and we cover return shipping. No questions, no restocking fees.</p></div>
+                </div>
+            </div>
         </div>
-        <a class="auth-cta" href="/products?is_authentic=true">Shop verified products →</a>
-    </div>
-</div>
+    </section>
+
+    <!-- VERIFY IT YOURSELF -->
+    <section class="auth-sec auth-verify">
+        <div class="wrap auth-verify-grid">
+            <div>
+                <p class="eyebrow">Don't take our word for it</p>
+                <h2>Verify it yourself in 30 seconds</h2>
+                <p>The confidence of a real seller is inviting you to check. Here is how to authenticate any premium fragrance or skincare unit you buy from us.</p>
+                <ol class="auth-steps">
+                    <li><span class="n">1</span><div><h4>Find the batch code</h4><p>A short alphanumeric string (3 to 11 characters) printed on the base of the bottle and the box. They must match.</p></div></li>
+                    <li><span class="n">2</span><div><h4>Run it through a free checker</h4><p>Paste it into <a href="https://checkfresh.com" target="_blank" rel="noopener">CheckFresh</a> or <a href="https://checkcosmetic.net" target="_blank" rel="noopener">CheckCosmetic</a> to decode the brand and production date.</p></div></li>
+                    <li><span class="n">3</span><div><h4>Cross-check the details</h4><p>The decoded brand and date should match your product. Sharp printing, quality glass and matching codes together confirm the real thing.</p></div></li>
+                </ol>
+            </div>
+            <div class="auth-checker">
+                <span class="cap">Check a batch code</span>
+                <div class="row">
+                    <input id="bc" class="mono" value="3324H01" aria-label="Batch code" maxlength="11">
+                    <button id="bcBtn" type="button">Check</button>
+                </div>
+                <div class="auth-result" id="bcResult" aria-live="polite"></div>
+                <small>Opens CheckFresh in a new tab. We link out to independent tools, we never grade our own homework.</small>
+            </div>
+        </div>
+    </section>
+
+    <!-- SPOT A FAKE -->
+    <section class="auth-sec">
+        <div class="wrap">
+            <div class="auth-head">
+                <p class="eyebrow">Know the signs</p>
+                <h2>How to spot a fake, anywhere</h2>
+                <p>Useful whether you buy from us or not. A real seller equips you; a fake seller hopes you never look.</p>
+            </div>
+            <div class="auth-spot-grid">
+                <div class="auth-spot-card">
+                    <h3>Fragrance &amp; skincare</h3>
+                    <ul class="auth-checklist">
+                        <li class="real"><span class="m">&#10003;</span><span class="lbl"><b>Matching batch codes</b> on bottle and box, cleanly printed</span></li>
+                        <li class="real"><span class="m">&#10003;</span><span class="lbl"><b>Heavy, seamless glass</b> with no bubbles and an even spray</span></li>
+                        <li class="real"><span class="m">&#10003;</span><span class="lbl"><b>Crisp packaging</b>, sharp fonts, tight cellophane seal</span></li>
+                        <li class="fake"><span class="m">&#10007;</span><span class="lbl"><b>Missing, smudged or mismatched</b> batch codes</span></li>
+                        <li class="fake"><span class="m">&#10007;</span><span class="lbl"><b>Scent fades in minutes</b> or smells sharply of alcohol</span></li>
+                    </ul>
+                </div>
+                <div class="auth-spot-card">
+                    <h3>Human hair</h3>
+                    <ul class="auth-checklist">
+                        <li class="real"><span class="m">&#10003;</span><span class="lbl"><b>Origin documentation</b> naming the source country</span></li>
+                        <li class="real"><span class="m">&#10003;</span><span class="lbl"><b>Cuticles aligned one direction</b>, minimal tangling</span></li>
+                        <li class="real"><span class="m">&#10003;</span><span class="lbl"><b>Burns to ash</b> and smells like hair, not plastic</span></li>
+                        <li class="fake"><span class="m">&#10007;</span><span class="lbl"><b>Melts into a bead</b> and smells like plastic (synthetic)</span></li>
+                        <li class="fake"><span class="m">&#10007;</span><span class="lbl"><b>Excess shine</b> and heavy shedding after one wash</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HONESTY CALLOUT -->
+    <section class="auth-sec tight">
+        <div class="wrap">
+            <div class="auth-honesty">
+                <div class="q">&#8220;</div>
+                <div>
+                    <h3>The honest truth about batch codes</h3>
+                    <p>A valid batch code alone is not proof a product is real. Skilled counterfeiters copy real codes onto fake bottles. Anyone who tells you a code is the whole story is selling you something.</p>
+                    <p>Real authenticity is three things together: <b>where it was sourced</b>, <b>the physical product</b>, and <b>the code</b>. We control the first, guarantee the second, and hand you the third. That is why we can offer a full refund if we are ever wrong.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="auth-sec tight">
+        <div class="wrap">
+            <div class="auth-stats">
+                <div class="auth-stat"><div class="num">100%</div><div class="lbl">Authorised or brand-direct sourcing</div></div>
+                <div class="auth-stat"><div class="num">0</div><div class="lbl">Grey-market resellers in our chain</div></div>
+                <div class="auth-stat"><div class="num">Full</div><div class="lbl">Refund + return shipping on any fake</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHATSAPP ESCAPE -->
+    <section class="auth-sec tight">
+        <div class="wrap">
+            <div class="auth-whatsapp">
+                <div>
+                    <h3>Not sure about something you bought?</h3>
+                    <p>Send us the batch code on WhatsApp and we'll verify it with you, step by step.</p>
+                </div>
+                <a class="auth-wa-btn" href="https://wa.me/254745853914?text=Hi%20CreviaBeauty%2C%20I%27d%20like%20to%20verify%20the%20authenticity%20of%20a%20product.%20Here%27s%20the%20batch%20code%3A%20" target="_blank" rel="noopener">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm5.6 14.2c-.2.6-1.2 1.1-1.7 1.2-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.6-.6-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 .9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .5l-.4.6-.3.3c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.7-.9c.2-.2.4-.2.6-.1l1.8.9c.3.2.4.2.5.4 0 .1 0 .8-.2 1.4z"/></svg>
+                    Chat with us
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="auth-sec tight">
+        <div class="wrap">
+            <div class="auth-head" style="margin-bottom:1.5rem;">
+                <p class="eyebrow">Questions</p>
+                <h2>Before you ask</h2>
+            </div>
+            <div class="auth-faq">
+                <details><summary>Why are your prices sometimes lower than the boutique?</summary><p>We buy through authorised distributor channels and sell online with low overhead, no mall rent and no counter staff. Lower price, same authentic product. A price far below everyone else, though, is the classic sign of a fake, so we price to the real market, not below it.</p></details>
+                <details><summary>What happens if I get something and the code won't verify?</summary><p>You contact us, we refund you in full and cover return shipping, no restocking fee and no argument. We then investigate and drop the supplier. Our guarantee only works because our sourcing rarely puts us in that position.</p></details>
+                <details><summary>Do you sell testers or unboxed units?</summary><p>Only when clearly labelled as such, at a lower price, and always authentic. We never pass a tester off as a sealed retail unit.</p></details>
+                <details><summary>Is synthetic hair ever sold as human hair?</summary><p>Never. Synthetic is always labelled synthetic. Human-hair units carry origin documentation, and raw units are single-donor certified by the supplier.</p></details>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="auth-sec tight">
+        <div class="wrap">
+            <div class="auth-final">
+                <p class="eyebrow" style="color:var(--gold-bright);">Shop with certainty</p>
+                <h2>The real thing, guaranteed.</h2>
+                <p>Browse verified premium beauty, backed by a full refund if we are ever wrong. That is a promise we can only make because we mean it.</p>
+                <a class="auth-cta" href="/products?is_authentic=true">Shop verified products &#8594;</a>
+            </div>
+        </div>
+    </section>
+
+</main>
 
 <footer>
     <div class="footer-content">
@@ -118,5 +383,23 @@
     </div>
     <div class="footer-bottom"><p>&copy; 2026 CreviaBeauty Kenya. All rights reserved.</p></div>
 </footer>
+
+<script>
+    (function () {
+        var btn = document.getElementById('bcBtn');
+        var input = document.getElementById('bc');
+        var out = document.getElementById('bcResult');
+        if (!btn || !input) return;
+        function check() {
+            var v = (input.value || '').trim();
+            if (!v) { out.className = 'auth-result'; out.textContent = 'Enter a batch code to check.'; input.focus(); return; }
+            out.className = 'auth-result ok';
+            out.innerHTML = '<span class="tick" aria-hidden="true">&#10003;</span>Opening CheckFresh for <b>' + v.toUpperCase().replace(/[<>&]/g, '') + '</b> in a new tab&hellip;';
+            window.open('https://checkfresh.com/', '_blank', 'noopener');
+        }
+        btn.addEventListener('click', check);
+        input.addEventListener('keydown', function (e) { if (e.key === 'Enter') check(); });
+    })();
+</script>
 </body>
 </html>
