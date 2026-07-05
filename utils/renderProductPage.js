@@ -243,10 +243,33 @@ function renderProductPage(product) {
     if (product.skin_type) chips.push(`Skin: ${escapeHtml(product.skin_type)}`);
     if (product.hair_texture) chips.push(`Hair: ${escapeHtml(product.hair_texture)}`);
 
+    // Ingredients: a comma/semicolon INCI list reads better as scannable chips.
+    // Falls back to a paragraph when it's a single free-text blob (no delimiters).
+    const ingList = (product.ingredients || '').split(/[,;]+/).map(s => s.trim()).filter(Boolean);
     const ingredients = product.ingredients ? `
-        <details class="pd-details-sec"><summary>Ingredients</summary><p>${escapeHtml(product.ingredients)}</p></details>` : '';
-    const allergens = product.allergens ? `
-        <details class="pd-details-sec"><summary>Allergens &amp; sensitivities</summary><p>${escapeHtml(product.allergens)}</p></details>` : '';
+        <details class="pd-details-sec"><summary>Ingredients${ingList.length > 1 ? ` <span class="pd-dt-count">${ingList.length}</span>` : ''}</summary>
+            ${ingList.length > 1
+                ? `<div class="pd-tag-wrap">${ingList.map(i => `<span class="pd-tag">${escapeHtml(i)}</span>`).join('')}</div>`
+                : `<p>${escapeHtml(product.ingredients)}</p>`}
+        </details>` : '';
+
+    // Allergens: a soft advisory callout. Any parenthetical "(a, b, c)" list is
+    // pulled out into tags; the surrounding sentence stays as the advisory line.
+    const allergens = product.allergens ? (() => {
+        const paren = (product.allergens.match(/\(([^)]+)\)/) || [])[1] || '';
+        const tags = paren.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+        const advisory = product.allergens.replace(/\s*\([^)]*\)/, '').replace(/\s{2,}/g, ' ').trim();
+        return `
+        <details class="pd-details-sec"><summary>Allergens &amp; sensitivities</summary>
+            <div class="pd-allergen">
+                <span class="pd-allergen-ico" aria-hidden="true">⚠</span>
+                <div>
+                    ${advisory ? `<p>${escapeHtml(advisory)}</p>` : ''}
+                    ${tags.length ? `<div class="pd-tag-wrap">${tags.map(t => `<span class="pd-tag pd-tag-warn">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+                </div>
+            </div>
+        </details>`;
+    })() : '';
 
     const hasDiscount = product.discount > 0;
     const priceBlock = `
@@ -478,7 +501,16 @@ function renderProductPage(product) {
     @media (max-width:560px){ .pd-prof-row { grid-template-columns:1fr; gap:0.15rem; } }
     .pd-details-sec { margin:0.6rem 0; border-top:1px solid #f1f1f1; padding-top:0.6rem; }
     .pd-details-sec summary { font-weight:600; cursor:pointer; font-size:0.9rem; color:#444; }
-    .pd-details-sec p { font-size:0.9rem; color:#555; line-height:1.6; }
+    .pd-details-sec[open] summary { margin-bottom:0.7rem; }
+    .pd-details-sec p { font-size:0.9rem; color:#555; line-height:1.6; margin:0; }
+    .pd-dt-count { display:inline-block; margin-left:0.35rem; font-size:0.72rem; font-weight:700; color:var(--gold-ink); background:#f5eede; border-radius:999px; padding:0.05rem 0.5rem; vertical-align:middle; }
+    .pd-tag-wrap { display:flex; flex-wrap:wrap; gap:0.4rem; }
+    .pd-tag { font-size:0.82rem; color:#4a4a52; background:#f7f7f8; border:1px solid #ececef; border-radius:6px; padding:0.22rem 0.6rem; line-height:1.3; }
+    .pd-tag-warn { color:#8a5a12; background:#fbf4e6; border-color:#efe2c4; }
+    .pd-allergen { display:flex; gap:0.7rem; align-items:flex-start; background:#fbf7ee; border:1px solid #efe6d3; border-radius:10px; padding:0.8rem 0.9rem; }
+    .pd-allergen-ico { flex:0 0 auto; font-size:1.05rem; line-height:1.4; color:var(--gold-ink); }
+    .pd-allergen p { margin:0 0 0.5rem; color:#5a5145; }
+    .pd-allergen div div:last-child { margin-top:0.1rem; }
 
     footer { background:var(--navy); color:rgba(255,255,255,0.85); margin-top:2.5rem; }
     .footer-inner { max-width:1200px; margin:0 auto; padding:2rem 1.5rem 1.2rem; }
