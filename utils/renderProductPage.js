@@ -247,7 +247,7 @@ function renderProductPage(product) {
     // Falls back to a paragraph when it's a single free-text blob (no delimiters).
     const ingList = (product.ingredients || '').split(/[,;]+/).map(s => s.trim()).filter(Boolean);
     const ingredients = product.ingredients ? `
-        <details class="pd-details-sec"><summary>Ingredients${ingList.length > 1 ? ` <span class="pd-dt-count">${ingList.length}</span>` : ''}</summary>
+        <details class="pd-details-sec" open><summary>Ingredients${ingList.length > 1 ? ` <span class="pd-dt-count">${ingList.length}</span>` : ''}</summary>
             ${ingList.length > 1
                 ? `<div class="pd-tag-wrap">${ingList.map(i => `<span class="pd-tag">${escapeHtml(i)}</span>`).join('')}</div>`
                 : `<p>${escapeHtml(product.ingredients)}</p>`}
@@ -260,7 +260,7 @@ function renderProductPage(product) {
         const tags = paren.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
         const advisory = product.allergens.replace(/\s*\([^)]*\)/, '').replace(/\s{2,}/g, ' ').trim();
         return `
-        <details class="pd-details-sec"><summary>Allergens &amp; sensitivities</summary>
+        <details class="pd-details-sec" open><summary>Allergens &amp; sensitivities</summary>
             <div class="pd-allergen">
                 <span class="pd-allergen-ico" aria-hidden="true">⚠</span>
                 <div>
