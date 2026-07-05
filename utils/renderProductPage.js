@@ -36,6 +36,90 @@ function reviewDate(d) {
     catch { return ''; }
 }
 
+// --- Overall scent profile -------------------------------------------------
+// Derived, not stored. We classify each fragrance note into a scent accord,
+// then infer family / mood / seasons / occasion / longevity / projection from
+// the accord mix and its overall intensity (heavier accords = longer-lasting,
+// bigger projection, cooler seasons). Heuristic by design: it turns the notes
+// the merchandiser already entered into an at-a-glance summary. `weight` is a
+// 1-5 intensity used for longevity/projection; `mood` seeds the mood line.
+const SCENT_ACCORDS = [
+    { label: 'Amber',    weight: 5, mood: 'Warm',      kw: ['amber', 'ambergris', 'ambroxan'] },
+    { label: 'Oriental', weight: 5, mood: 'Sensual',   kw: ['vanilla', 'tonka', 'benzoin', 'labdanum', 'myrrh', 'opoponax', 'balsam', 'incense', 'frankincense', 'olibanum', 'oud', 'agarwood'] },
+    { label: 'Woody',    weight: 4, mood: 'Refined',   kw: ['cedar', 'sandalwood', 'vetiver', 'patchouli', 'guaiac', 'oakmoss', 'oak', 'birch', 'cypress', 'cashmeran', 'wood'] },
+    { label: 'Leather',  weight: 4, mood: 'Bold',      kw: ['leather', 'suede'] },
+    { label: 'Spicy',    weight: 4, mood: 'Spicy',     kw: ['clove', 'cinnamon', 'cardamom', 'pepper', 'ginger', 'nutmeg', 'saffron', 'coriander', 'pimento', 'anise', 'tobacco'] },
+    { label: 'Gourmand', weight: 4, mood: 'Inviting',  kw: ['caramel', 'chocolate', 'cocoa', 'coffee', 'honey', 'praline', 'toffee', 'almond', 'hazelnut', 'sugar'] },
+    { label: 'Musky',    weight: 4, mood: 'Seductive', kw: ['musk', 'civet', 'castoreum', 'ambrette'] },
+    { label: 'Floral',   weight: 3, mood: 'Romantic',  kw: ['rose', 'jasmine', 'iris', 'orris', 'violet', 'tuberose', 'ylang', 'peony', 'lily', 'muguet', 'neroli', 'magnolia', 'gardenia', 'orchid', 'freesia', 'narcissus', 'wildflower', 'mimosa', 'geranium', 'osmanthus', 'blossom', 'flower'] },
+    { label: 'Fruity',   weight: 3, mood: 'Playful',   kw: ['blackcurrant', 'cassis', 'apple', 'peach', 'plum', 'berry', 'raspberry', 'cherry', 'pear', 'pineapple', 'coconut', 'melon', 'lychee', 'fig', 'apricot', 'mango', 'blackberry'] },
+    { label: 'Powdery',  weight: 3, mood: 'Elegant',   kw: ['heliotrope', 'powder'] },
+    { label: 'Aromatic', weight: 3, mood: 'Fresh',     kw: ['lavender', 'rosemary', 'thyme', 'basil', 'sage', 'mint', 'herb'] },
+    { label: 'Green',    weight: 2, mood: 'Crisp',     kw: ['galbanum', 'grass', 'tea', 'tomato', 'leaf', 'ivy', 'fern'] },
+    { label: 'Citrus',   weight: 2, mood: 'Bright',    kw: ['bergamot', 'lemon', 'orange', 'grapefruit', 'mandarin', 'lime', 'yuzu', 'tangerine', 'petitgrain', 'citrus'] },
+    { label: 'Aquatic',  weight: 2, mood: 'Airy',      kw: ['marine', 'aquatic', 'ozone', 'rain', 'salt', 'water'] },
+];
+// Precompile word-boundary matchers so "rose" doesn't match "rosemary" etc.
+SCENT_ACCORDS.forEach(a => { a.re = a.kw.map(k => new RegExp('\\b' + k + '\\b', 'i')); });
+
+function deriveScentProfile(product) {
+    const notes = (product.notes || []).map(n => (n.note_name || '').toLowerCase()).filter(Boolean);
+    if (!notes.length) return null;
+
+    const score = {};                 // accord label -> how many notes matched it
+    let sum = 0, count = 0, max = 0;  // intensity accumulators
+    for (const note of notes) {
+        let inten = 0;
+        for (const acc of SCENT_ACCORDS) {
+            if (acc.re.some(re => re.test(note))) {
+                score[acc.label] = (score[acc.label] || 0) + 1;
+                inten = Math.max(inten, acc.weight);
+            }
+        }
+        if (!inten) inten = 3;         // unrecognised note -> neutral weight
+        sum += inten; count++; max = Math.max(max, inten);
+    }
+    const avg = sum / count;
+    const weightOf = l => (SCENT_ACCORDS.find(a => a.label === l) || {}).weight || 0;
+    const ranked = Object.keys(score).sort((a, b) => score[b] - score[a] || weightOf(b) - weightOf(a));
+
+    // Family: merchandiser's scent_family (if set) as the head noun, prefixed by
+    // the strongest *other* accord as a modifier. e.g. Floral + Woody -> "Woody Floral".
+    const base = (product.scent_family || '').trim();
+    const head = base || ranked[0] || 'Signature';
+    const modifier = ranked.find(l => l.toLowerCase() !== head.toLowerCase());
+    const family = modifier ? `${modifier} ${head}` : head;
+
+    // Mood: an intensity-led adjective + the top accords' mood words.
+    const lead = avg >= 4 ? 'Mysterious' : avg >= 3 ? 'Elegant' : 'Effortless';
+    const moods = [lead, ...ranked.map(l => (SCENT_ACCORDS.find(a => a.label === l) || {}).mood).filter(Boolean)];
+    const mood = [...new Set(moods)].slice(0, 4).join(' • ');
+
+    const seasons = avg >= 4.2 ? 'Autumn, Winter, and cool evenings'
+        : avg >= 3.4 ? 'Autumn, Winter, and Spring'
+        : avg >= 2.6 ? 'Spring and Autumn'
+        : 'Spring and Summer';
+    const occasion = avg >= 4 ? 'Formal events, date nights, and special occasions'
+        : avg >= 3 ? 'Date nights, dinners, and evenings out'
+        : 'Daytime, the office, and everyday wear';
+
+    // Longevity leans on the heaviest note present (base notes persist);
+    // projection weights the overall average a little more (it fades sooner).
+    const longScore = avg * 0.5 + max * 0.5;
+    const longStars = longScore >= 4.5 ? 5 : longScore >= 3.7 ? 4 : longScore >= 2.9 ? 3 : longScore >= 2.1 ? 2 : 1;
+    const longHours = ['', '2–4 hours', '3–5 hours', '4–6 hours', '6–9 hours', '8–12+ hours'][longStars];
+    const projScore = avg * 0.65 + max * 0.35;
+    const projStars = projScore >= 4.4 ? 5 : projScore >= 3.6 ? 4 : projScore >= 2.8 ? 3 : projScore >= 2.0 ? 2 : 1;
+    const projNote = ['', 'Subtle skin scent', 'Soft and close to the skin', 'Moderate, an intimate bubble', 'Noticeable at arm’s length', 'Strong, especially in the first hours'][projStars];
+
+    return { family, mood, seasons, occasion, longStars, longHours, projStars, projNote };
+}
+
+// Five stars with the first `n` filled in gold (for longevity / projection).
+function profileStars(n) {
+    return `<span class="pd-prof-stars"><span class="pd-prof-on">${'★'.repeat(n)}</span><span class="pd-prof-off">${'★'.repeat(5 - n)}</span></span>`;
+}
+
 // Rich-text formatter (ported from the storefront's renderRichText so the page
 // matches the modal): **bold**, *italic*, _italic_, "- "/"* " bullet lists,
 // numbered lists, blank-line paragraphs.
@@ -131,6 +215,21 @@ function renderProductPage(product) {
             ${noteRow('Top', byTier.top)}
             ${noteRow('Heart', byTier.heart)}
             ${noteRow('Base', byTier.base)}
+        </section>` : '';
+
+    // Overall scent profile — derived from the notes above; sits right under them.
+    const prof = deriveScentProfile(product);
+    const profileBlock = prof ? `
+        <section class="pd-block pd-profile">
+            <h2>Overall scent profile</h2>
+            <dl class="pd-prof-grid">
+                <div class="pd-prof-row"><dt>Fragrance family</dt><dd>${escapeHtml(prof.family)}</dd></div>
+                <div class="pd-prof-row"><dt>Mood</dt><dd>${escapeHtml(prof.mood)}</dd></div>
+                <div class="pd-prof-row"><dt>Best seasons</dt><dd>${escapeHtml(prof.seasons)}</dd></div>
+                <div class="pd-prof-row"><dt>Occasion</dt><dd>${escapeHtml(prof.occasion)}</dd></div>
+                <div class="pd-prof-row"><dt>Longevity</dt><dd>${profileStars(prof.longStars)} <span class="pd-prof-note">${escapeHtml(prof.longHours)}</span></dd></div>
+                <div class="pd-prof-row"><dt>Projection</dt><dd>${profileStars(prof.projStars)} <span class="pd-prof-note">${escapeHtml(prof.projNote)}</span></dd></div>
+            </dl>
         </section>` : '';
 
     // Badges + attribute chips
@@ -368,6 +467,15 @@ function renderProductPage(product) {
     .pd-note-thumb img { width:100%; height:100%; object-fit:cover; }
     .pd-note-empty { color:var(--gold-ink); }
     .pd-note-chip:hover .pd-note-thumb, .pd-note-chip:focus-visible .pd-note-thumb, .pd-note-chip.zoomed .pd-note-thumb { transform:scale(2.4); box-shadow:0 6px 18px rgba(0,0,0,0.22); border:2px solid #fff; position:relative; z-index:6; }
+    .pd-prof-grid { display:grid; gap:0; margin:0; }
+    .pd-prof-row { display:grid; grid-template-columns:150px 1fr; gap:0.9rem; padding:0.6rem 0; border-top:1px solid #f1f1f1; align-items:baseline; }
+    .pd-prof-row:first-child { border-top:none; }
+    .pd-prof-row dt { margin:0; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#666; }
+    .pd-prof-row dd { margin:0; color:#3a3a44; font-size:1rem; line-height:1.5; }
+    .pd-prof-stars { letter-spacing:0.08em; font-size:1rem; }
+    .pd-prof-on { color:var(--gold); } .pd-prof-off { color:#dcdce1; }
+    .pd-prof-note { color:#777; font-size:0.9rem; margin-left:0.4rem; }
+    @media (max-width:560px){ .pd-prof-row { grid-template-columns:1fr; gap:0.15rem; } }
     .pd-details-sec { margin:0.6rem 0; border-top:1px solid #f1f1f1; padding-top:0.6rem; }
     .pd-details-sec summary { font-weight:600; cursor:pointer; font-size:0.9rem; color:#444; }
     .pd-details-sec p { font-size:0.9rem; color:#555; line-height:1.6; }
@@ -421,6 +529,7 @@ function renderProductPage(product) {
     <div class="pd-below">
         ${descHtml ? `<div class="pd-desc-wrap"><h2>Product Description</h2><div class="pd-desc">${descHtml}</div></div>` : ''}
         ${notesBlock}
+        ${profileBlock}
         ${(ingredients || allergens) ? `<section class="pd-block">${ingredients}${allergens}</section>` : ''}
         ${reviewsBlock}
     </div>
