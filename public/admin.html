@@ -1027,7 +1027,7 @@
                         <option value="">Select category</option>
                         <option value="Perfumes">Perfumes</option>
                         <option value="Skincare">Skincare</option>
-                        <option value="Hair">Hair</option>
+                        <option value="Haircare">Haircare</option>
                         <option value="Makeup">Makeup</option>
                         <option value="Candles">Candles</option>
                     </select>
@@ -1239,11 +1239,10 @@
                         <option value="Women's Skincare">Women's Skincare</option>
                         <option value="Men's Skincare">Men's Skincare</option>
                         <option value="Makeup">Makeup</option>
-                        <option value="Hair Care">Hair Care</option>
+                        <option value="Haircare">Haircare</option>
                         <option value="Body Care">Body Care</option>
                         <option value="Fragrances">Fragrances</option>
                         <option value="Beauty Tools">Beauty Tools</option>
-                        <option value="Wigs">Wigs</option>
                     </select>
                     <small style="color:#888;">The "Shop ..." button links to /products?category=this</small>
                 </div>
@@ -1596,7 +1595,7 @@
             const tbody = document.getElementById('products-table');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #7f8c8d;">Loading...</td></tr>';
             try {
-                const params = new URLSearchParams({ limit: '100' });
+                const params = new URLSearchParams({ limit: '100', include_hidden: 'true' });
                 if (term) params.set('search', term);
                 const response = await fetch(`/api/products?${params.toString()}`);
                 const result = await response.json();
@@ -2829,7 +2828,7 @@
         const ADMIN_TAXONOMY = {
             'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
             'Skincare': ["Women's Skincare", "Men's Skincare"],
-            'Hair':     ['Wigs', 'Hair Care'],
+            'Haircare': ['Shampoo', 'Conditioner', 'Treatments & Masks', 'Oils & Serums', 'Styling', 'Edge Control'],
             'Makeup':   ['Lips', 'Face', 'Eyes'],
             'Candles':  ['Scented Candles', 'Luxury Candles']
         };
@@ -2839,7 +2838,7 @@
             const cat = document.getElementById('product-category').value;
             document.getElementById('attr-scent').style.display = (cat === 'Perfumes' || cat === 'Candles') ? 'block' : 'none';
             document.getElementById('attr-skin').style.display = (cat === 'Skincare') ? 'block' : 'none';
-            document.getElementById('attr-hair').style.display = (cat === 'Hair') ? 'block' : 'none';
+            document.getElementById('attr-hair').style.display = (cat === 'Haircare') ? 'block' : 'none';
             document.getElementById('attr-notes').style.display = (cat === 'Perfumes' || cat === 'Candles') ? 'block' : 'none';
         }
 

@@ -7,13 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Find Your Match | CreviaBeauty Quizzes</title>
 <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
-<meta name="description" content="Quick beauty quizzes: find your signature scent, your hair routine, your skincare match, or your first wig. Matched to products you can buy in Kenya.">
+<meta name="description" content="Quick beauty quizzes: find your signature scent, your hair routine, or your skincare match. Matched to products you can buy in Kenya.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://creviabeauty.com/quiz">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://creviabeauty.com/quiz">
 <meta property="og:title" content="Find Your Match | CreviaBeauty Quizzes">
-<meta property="og:description" content="Quick quizzes that match you to the right beauty products: scent, hair, skincare and wigs.">
+<meta property="og:description" content="Quick quizzes that match you to the right beauty products: scent, hair and skincare.">
 <meta property="og:image" content="https://creviabeauty.com/images/og-image.jpg">
 <meta property="og:locale" content="en_KE">
 <meta property="og:site_name" content="CreviaBeauty">
@@ -211,10 +211,10 @@ const QUIZZES = {
             ]}
         ],
         results: {
-            moisture:   { name: 'Moisture-First Routine', desc: 'Your coils need layered moisture that lasts past one evening: cleanse gently, deep condition, then seal it in.', notes: ['Leave-in', 'Curl cream', 'Shea butter', 'Seal with oil'], match: { category: 'Hair Care', keywords: ['4C', '4B', 'Leave-In', 'Curl Cream', 'Shea', 'CoWash'] }, ctaUrl: '/products?category=Hair%20Care' },
-            definition: { name: 'Curl Definition Routine', desc: 'Your curls want clump and hold: a curl smoothie plus a custard on soaking-wet hair changes everything.', notes: ['Curl smoothie', 'Custard', 'Wash-and-go', 'Refresh spray'], match: { category: 'Hair Care', keywords: ['Curl', 'Smoothie', 'Custard', '3B', '3C', 'Coconut'] }, ctaUrl: '/products?category=Hair%20Care' },
-            repair:     { name: 'Repair & Strengthen', desc: 'Your hair is asking for protein and bond repair before anything else. Strength first, length follows.', notes: ['Bond builder', 'Castor oil', 'Protein balance', 'Low heat'], match: { category: 'Hair Care', keywords: ['Olaplex', 'Castor', 'Strengthen', 'Repair', 'Damaged'] }, ctaUrl: '/products?category=Hair%20Care' },
-            scalp:      { name: 'Scalp & Growth Routine', desc: 'Growth starts at the scalp: stimulate, keep it clean, and leave the lengths alone.', notes: ['Rosemary + mint', 'Scalp oiling', 'Low manipulation'], match: { category: 'Hair Care', keywords: ['Rosemary', 'Scalp', 'Mint', 'Oil', 'Growth'] }, ctaUrl: '/products?category=Hair%20Care' }
+            moisture:   { name: 'Moisture-First Routine', desc: 'Your coils need layered moisture that lasts past one evening: cleanse gently, deep condition, then seal it in.', notes: ['Leave-in', 'Curl cream', 'Shea butter', 'Seal with oil'], match: { category: 'Haircare', keywords: ['4C', '4B', 'Leave-In', 'Curl Cream', 'Shea', 'CoWash'] }, ctaUrl: '/products?category=Haircare' },
+            definition: { name: 'Curl Definition Routine', desc: 'Your curls want clump and hold: a curl smoothie plus a custard on soaking-wet hair changes everything.', notes: ['Curl smoothie', 'Custard', 'Wash-and-go', 'Refresh spray'], match: { category: 'Haircare', keywords: ['Curl', 'Smoothie', 'Custard', '3B', '3C', 'Coconut'] }, ctaUrl: '/products?category=Haircare' },
+            repair:     { name: 'Repair & Strengthen', desc: 'Your hair is asking for protein and bond repair before anything else. Strength first, length follows.', notes: ['Bond builder', 'Castor oil', 'Protein balance', 'Low heat'], match: { category: 'Haircare', keywords: ['Olaplex', 'Castor', 'Strengthen', 'Repair', 'Damaged'] }, ctaUrl: '/products?category=Haircare' },
+            scalp:      { name: 'Scalp & Growth Routine', desc: 'Growth starts at the scalp: stimulate, keep it clean, and leave the lengths alone.', notes: ['Rosemary + mint', 'Scalp oiling', 'Low manipulation'], match: { category: 'Haircare', keywords: ['Rosemary', 'Scalp', 'Mint', 'Oil', 'Growth'] }, ctaUrl: '/products?category=Haircare' }
         }
     },
 
@@ -255,46 +255,6 @@ const QUIZZES = {
             oily:   { name: 'Oily / Acne-Prone', desc: 'Oil control without stripping: salicylic acid, light layers, and consistency over intensity.', notes: ['Salicylic acid', 'Oil-free', 'Non-comedogenic'], match: { category: "Women's Skincare", keywords: ['Oily', 'Acne', 'Cleanser', 'Black Soap', 'Salicylic'] }, ctaUrl: '/products?category=Women%27s%20Skincare' },
             combo:  { name: 'Combination / Balanced', desc: 'Your skin wants balance: one solid cleanser, one hydrator, and zone-targeted extras only where needed.', notes: ['Gentle cleanse', 'Light hydration', 'Zone targeting'], match: { category: "Women's Skincare", keywords: ['All skin types', 'Combination', 'Normal', 'Serum'] }, ctaUrl: '/products?category=Women%27s%20Skincare' },
             mature: { name: 'Renewal & Glow', desc: 'Your skin responds to actives with a plan: repair serums at night, hydration and protection by day.', notes: ['Night repair', 'Peptides', 'Glow'], match: { category: "Women's Skincare", keywords: ['Night Repair', 'Mature', 'Advanced', 'Cream', 'Serum'] }, ctaUrl: '/products?category=Women%27s%20Skincare' }
-        }
-    },
-
-    wig: {
-        icon: '\u{1F451}',
-        title: 'Find Your First (or Next) Wig',
-        pick: 'Headband to HD lace: match your skill, budget and the look you want.',
-        heroTitle: 'Find Your Perfect Wig',
-        heroSub: 'Skill level, budget, look. Four questions and you know exactly what to buy.',
-        questions: [
-            { q: 'Your wig experience level:', answers: [
-                { t: 'Never worn one (be honest, it is fine)', f: 'starter' },
-                { t: 'Worn a few, but lace scares me', f: 'glueless' },
-                { t: 'I can lay lace properly', f: 'hdlace' },
-                { t: 'Experienced, here for a statement', f: 'colour' }
-            ]},
-            { q: 'Morning hair time you can actually commit:', answers: [
-                { t: '30 seconds, max', f: 'starter' },
-                { t: 'About 5 minutes', f: 'glueless' },
-                { t: '15+ minutes for a flawless melt', f: 'hdlace' },
-                { t: 'Depends on the occasion', f: 'colour' }
-            ]},
-            { q: 'Budget that feels right:', answers: [
-                { t: 'Under KES 5,000', f: 'starter' },
-                { t: 'KES 8,000 to 20,000', f: 'glueless' },
-                { t: 'KES 25,000 and up, quality first', f: 'hdlace' },
-                { t: 'Whatever the look needs', f: 'colour' }
-            ]},
-            { q: 'The look you are going for:', answers: [
-                { t: 'Quick, cute, everyday', f: 'starter' },
-                { t: 'Natural, with a realistic parting', f: 'glueless' },
-                { t: 'Undetectable, scalp-like finish', f: 'hdlace' },
-                { t: 'Bold colour, fringe, something seen', f: 'colour' }
-            ]}
-        ],
-        results: {
-            starter:  { name: 'Headband Starter', desc: 'No glue, no lace, no skills needed: slip on and go. The right first wig while you learn.', notes: ['Headband cap', '30-second install', 'Budget friendly'], match: { category: 'Wigs', keywords: ['Headband', 'Synthetic', 'Bob'] }, ctaUrl: '/products?category=Wigs' },
-            glueless: { name: 'Glueless Closure', desc: 'A realistic parting without lace skills: 4x4 or 5x5 closures with adjustable straps and combs.', notes: ['4x4 / 5x5 closure', 'Glueless cap', 'Beginner lace'], match: { category: 'Wigs', keywords: ['Glueless', 'Closure', '4x4', '5x5'] }, ctaUrl: '/products?category=Wigs' },
-            hdlace:   { name: 'HD Lace Pro', desc: 'Melt-into-scalp HD lace, pre-plucked hairlines, high density. The undetectable tier.', notes: ['HD lace', '13x4 / 13x6', 'Pre-plucked'], match: { category: 'Wigs', keywords: ['HD Lace', '13x4', '13x6', '360', 'Full Lace'] }, ctaUrl: '/products?category=Wigs' },
-            colour:   { name: 'Statement Piece', desc: 'Colour, fringe, drama. Pre-coloured units and bold cuts that do not need explaining.', notes: ['Honey blonde', 'Highlights', 'Fringe & pixie'], match: { category: 'Wigs', keywords: ['Honey', 'Blonde', 'Coloured', 'Highlighted', 'Pixie', 'Fringe'] }, ctaUrl: '/products?category=Wigs' }
         }
     }
 };
@@ -422,7 +382,7 @@ async function loadMatches(match) {
             const kw = match.keywords.map(k => k.toLowerCase());
             products = all
                 .map(p => {
-                    const haystack = `${p.name} ${p.description || ''} ${p.hair_texture || ''} ${p.skin_type || ''} ${p.wig_cap_type || ''} ${p.wig_texture || ''}`.toLowerCase();
+                    const haystack = `${p.name} ${p.description || ''} ${p.hair_texture || ''} ${p.skin_type || ''}`.toLowerCase();
                     return { p, hits: kw.filter(k => haystack.includes(k)).length };
                 })
                 .sort((a, b) => b.hits - a.hits)

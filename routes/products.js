@@ -58,6 +58,13 @@ module.exports = (db) => {
         const params = [];
         let paramIndex = 1;
 
+        // Hide retired/hidden products (e.g. wigs) from the public storefront.
+        // Admin passes include_hidden=true to still see and manage them.
+        if (req.query.include_hidden !== 'true') {
+            query += ' AND (is_hidden IS NOT TRUE)';
+            countQuery += ' AND (is_hidden IS NOT TRUE)';
+        }
+
         const addEq = (col, val) => {
             if (val) {
                 query += ` AND ${col} = $${paramIndex}`;
@@ -132,7 +139,7 @@ module.exports = (db) => {
         const catFilter = category ? 'AND category = $1' : '';
         const params = category ? [category] : [];
         const facetQuery = (col) =>
-            `SELECT DISTINCT ${col} AS v FROM products WHERE ${col} IS NOT NULL ${catFilter} ORDER BY 1`;
+            `SELECT DISTINCT ${col} AS v FROM products WHERE ${col} IS NOT NULL AND (is_hidden IS NOT TRUE) ${catFilter} ORDER BY 1`;
         const [scents, skins, hairs, brands, origins, caps, textures] = await Promise.all([
             db.query(facetQuery('scent_family'), params),
             db.query(facetQuery('skin_type'),    params),
@@ -155,12 +162,12 @@ module.exports = (db) => {
 
     // Get hero images - optimized query
     router.get('/hero-images', cacheMiddleware('hero', TTL.HERO_IMAGES), asyncHandler(async (req, res) => {
-        const categories = ['Perfumes', 'Skincare', 'Hair', 'Makeup', 'Candles'];
+        const categories = ['Perfumes', 'Skincare', 'Haircare', 'Makeup', 'Candles'];
 
         const heroImages = await db.query(`
             SELECT DISTINCT ON (category) id, name, category, image_url
             FROM products
-            WHERE image_url IS NOT NULL AND image_url != '' AND category = ANY($1)
+            WHERE image_url IS NOT NULL AND image_url != '' AND (is_hidden IS NOT TRUE) AND category = ANY($1)
             ORDER BY category, created_at DESC
         `, [categories]);
 

@@ -5,12 +5,12 @@
     <script src="/js/gtag-base.js?v=1" defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Beauty Products Online in Kenya - Perfumes, Skincare, Makeup, Wigs | CreviaBeauty</title>
+    <title>Shop Beauty Products Online in Kenya - Perfumes, Skincare, Makeup, Haircare | CreviaBeauty</title>
     <link rel="icon" type="image/png" href="/assets/favicon.png?v=2">
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Browse our collection of premium beauty products in Kenya. Perfumes, skincare, makeup, fragrances, hair care, wigs and more. Free delivery in Nairobi.">
-    <meta name="keywords" content="buy beauty products Kenya, perfumes Nairobi, skincare for sale, makeup Kenya, fragrances, wigs Kenya, human hair wigs Nairobi, beauty shop Kenya">
+    <meta name="description" content="Browse our collection of premium beauty products in Kenya. Perfumes, skincare, makeup, fragrances, haircare and more. Free delivery in Nairobi.">
+    <meta name="keywords" content="buy beauty products Kenya, perfumes Nairobi, skincare for sale, makeup Kenya, fragrances, haircare Kenya, shampoo conditioner Nairobi, beauty shop Kenya">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://creviabeauty.com/products">
 
@@ -101,9 +101,13 @@
                     <a href="/products?category=Skincare">Skincare</a>
                     <a href="/products?category=Skincare&amp;subcategory=Women's%20Skincare" style="padding-left:2rem;font-size:0.9em;">Women's Skincare</a>
                     <a href="/products?category=Skincare&amp;subcategory=Men's%20Skincare" style="padding-left:2rem;font-size:0.9em;">Men's Skincare</a>
-                    <a href="/products?category=Hair">Hair</a>
-                    <a href="/products?category=Hair&amp;subcategory=Wigs" style="padding-left:2rem;font-size:0.9em;">Wigs</a>
-                    <a href="/products?category=Hair&amp;subcategory=Hair%20Care" style="padding-left:2rem;font-size:0.9em;">Hair Care</a>
+                    <a href="/products?category=Haircare">Haircare</a>
+                    <a href="/products?category=Haircare&amp;subcategory=Shampoo" style="padding-left:2rem;font-size:0.9em;">Shampoo</a>
+                    <a href="/products?category=Haircare&amp;subcategory=Conditioner" style="padding-left:2rem;font-size:0.9em;">Conditioner</a>
+                    <a href="/products?category=Haircare&amp;subcategory=Treatments%20%26%20Masks" style="padding-left:2rem;font-size:0.9em;">Treatments &amp; Masks</a>
+                    <a href="/products?category=Haircare&amp;subcategory=Oils%20%26%20Serums" style="padding-left:2rem;font-size:0.9em;">Oils &amp; Serums</a>
+                    <a href="/products?category=Haircare&amp;subcategory=Styling" style="padding-left:2rem;font-size:0.9em;">Styling</a>
+                    <a href="/products?category=Haircare&amp;subcategory=Edge%20Control" style="padding-left:2rem;font-size:0.9em;">Edge Control</a>
                     <a href="/products?category=Makeup">Makeup</a>
                     <a href="/products?category=Makeup&amp;subcategory=Lips" style="padding-left:2rem;font-size:0.9em;">Lips</a>
                     <a href="/products?category=Makeup&amp;subcategory=Face" style="padding-left:2rem;font-size:0.9em;">Face</a>
@@ -141,7 +145,7 @@
             <button class="filter-btn active" data-category="all">All Products</button>
             <button class="filter-btn" data-category="Perfumes">Perfumes</button>
             <button class="filter-btn" data-category="Skincare">Skincare</button>
-            <button class="filter-btn" data-category="Hair">Hair</button>
+            <button class="filter-btn" data-category="Haircare">Haircare</button>
             <button class="filter-btn" data-category="Makeup">Makeup</button>
             <button class="filter-btn" data-category="Candles">Candles</button>
         </div>
@@ -256,7 +260,7 @@
                 <ul>
                     <li><a href="/products?category=Perfumes">Perfumes</a></li>
                     <li><a href="/products?category=Skincare">Skincare</a></li>
-                    <li><a href="/products?category=Hair">Hair</a></li>
+                    <li><a href="/products?category=Haircare">Haircare</a></li>
                     <li><a href="/products?category=Makeup">Makeup</a></li>
                     <li><a href="/products?category=Candles">Candles</a></li>
                 </ul>
@@ -453,7 +457,7 @@
         const TAXONOMY = {
             'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
             'Skincare': ["Women's Skincare", "Men's Skincare"],
-            'Hair':     ['Wigs', 'Hair Care']
+            'Haircare': ['Shampoo', 'Conditioner', 'Treatments & Masks', 'Oils & Serums', 'Styling', 'Edge Control']
         };
 
         // Build the subcategory chips for the selected category and reflect the active one.

@@ -10,7 +10,7 @@
  *   2. Fall back to a keyword heuristic for category and a known-brand scan of
  *      the item name for brand.
  *
- * Categories in the catalog: Hair, Skincare, Makeup, Perfumes, Candles,
+ * Categories in the catalog: Haircare, Skincare, Makeup, Perfumes, Candles,
  * Body Care, Beauty Tools.
  */
 
@@ -28,7 +28,7 @@ const KEYWORD_RULES = [
     [/\b(perfume|cologne|parfum|eau de|fragrance|edp|edt)\b/, 'Perfumes'],
     [/\b(body mist|body spray|body lotion|body butter|body cream|shower gel|deodorant|scrub|exfoliat)\b/, 'Body Care'],
     [/\b(lipstick|lip gloss|lip liner|mascara|foundation|concealer|eyeliner|eyeshadow|eye shadow|blush|highlighter|bronzer|makeup|setting powder|primer)\b/, 'Makeup'],
-    [/\b(shampoo|conditioner|hair|wig|braid|weave|edge|relaxer|leave[- ]?in|detangl)\b/, 'Hair'],
+    [/\b(shampoo|conditioner|hair|wig|braid|weave|edge|relaxer|leave[- ]?in|detangl)\b/, 'Haircare'],
     [/\b(candle|wax melt|diffuser|incense)\b/, 'Candles'],
     [/\b(serum|cleanser|moisturi|toner|sunscreen|spf|face cream|skin|acne|retinol|niacinamide|hyaluronic|vitamin c)\b/, 'Skincare'],
     [/\b(brush|sponge|applicator|beauty tool|mirror|tweezer|roller)\b/, 'Beauty Tools'],

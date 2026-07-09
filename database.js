@@ -136,6 +136,7 @@ async function initializeDatabase() {
                 category VARCHAR(100),
                 image_url TEXT,
                 stock INTEGER DEFAULT 0,
+                is_hidden BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -430,6 +431,17 @@ async function initializeDatabase() {
         await client.query(`UPDATE products SET category = 'Hair', subcategory = 'Wigs'      WHERE category = 'Wigs'`);
         await client.query(`UPDATE products SET category = 'Perfumes', subcategory = 'Unisex Perfumes' WHERE category = 'Fragrances'`);
 
+        // Haircare rebrand: rename 'Hair' -> 'Haircare' with product-type subcategories,
+        // and retire Wigs "for now" — wig rows are hidden (is_hidden) and moved to an
+        // unlisted 'Wigs' category so their data is preserved and easily restorable.
+        await client.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN DEFAULT FALSE`);
+        await client.query(`UPDATE products SET is_hidden = TRUE WHERE category = 'Wigs' OR subcategory = 'Wigs'`);
+        await client.query(`UPDATE products SET category = 'Wigs', subcategory = NULL WHERE subcategory = 'Wigs'`);
+        await client.query(`UPDATE products SET category = 'Haircare' WHERE category = 'Hair'`);
+        // Old 'Hair Care' subcategory no longer exists in the new taxonomy; clear it so
+        // those products sit under "All Haircare" until an admin re-tags them.
+        await client.query(`UPDATE products SET subcategory = NULL WHERE category = 'Haircare' AND subcategory = 'Hair Care'`);
+
         // Add wig attribute columns to products table (migration for Wigs category)
         await client.query(`
             DO $$
@@ -721,11 +733,8 @@ async function initializeDatabase() {
                 await seedProducts(client);
             }
 
-            // Seed Wigs separately so existing stores get the new category on next boot
-            const wigCount = await client.query("SELECT COUNT(*) as count FROM products WHERE category = 'Wigs'");
-            if (parseInt(wigCount.rows[0].count) === 0) {
-                await seedWigs(client);
-            }
+            // Wigs are retired "for now" — no longer seeded. Existing wig rows are
+            // hidden via the Haircare-rebrand migration above (data preserved).
 
             // Seed Candles (new box-component category) so the beauty box has all 5 components
             const candleCount = await client.query("SELECT COUNT(*) as count FROM products WHERE category = 'Candles'");

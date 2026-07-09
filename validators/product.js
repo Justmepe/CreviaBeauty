@@ -22,7 +22,7 @@ const handleValidationErrors = (req, res, next) => {
 const TAXONOMY = {
     'Perfumes': ["Women's Perfumes", "Men's Perfumes", "Unisex Perfumes", 'Gift Sets'],
     'Skincare': ["Women's Skincare", "Men's Skincare"],
-    'Hair':     ['Wigs', 'Hair Care'],
+    'Haircare': ['Shampoo', 'Conditioner', 'Treatments & Masks', 'Oils & Serums', 'Styling', 'Edge Control'],
     'Makeup':   ['Lips', 'Face', 'Eyes'],
     'Candles':  ['Scented Candles', 'Luxury Candles']
 };
