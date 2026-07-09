@@ -1298,21 +1298,105 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ============ PAGE HEADER ============ */
 .page-header {
-    background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 26, 0.85) 100%),
-                url('https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1600&h=900&fit=crop') center/cover;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate; /* contain the pseudo layers behind the text */
+    background: linear-gradient(135deg, #15173A 0%, #0f0f1a 100%);
     color: white;
     padding: 4rem 2rem;
     text-align: center;
 }
 
+/* Photo layer with a slow, continuous Ken Burns drift.
+   Bleeds past the edges so the zoom never reveals a seam. */
+.page-header::before {
+    content: '';
+    position: absolute;
+    inset: -6%;
+    z-index: -2;
+    background: linear-gradient(135deg, rgba(21, 23, 58, 0.88) 0%, rgba(15, 15, 26, 0.82) 100%),
+                url('https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=1600&h=900&fit=crop') center/cover;
+    transform-origin: center;
+    animation: ph-kenburns 20s ease-in-out infinite alternate;
+}
+
+/* Champagne-gold sheen that sweeps across once on load. */
+.page-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 55%;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(100deg,
+        rgba(212, 175, 106, 0) 0%,
+        rgba(212, 175, 106, 0.20) 50%,
+        rgba(212, 175, 106, 0) 100%);
+    transform: translateX(-140%) skewX(-14deg);
+    animation: ph-sheen 2.6s cubic-bezier(0.25, 0.6, 0.2, 1) 0.55s 1 both;
+}
+
 .page-header h1 {
     font-size: 3rem;
     margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: ph-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
+}
+
+/* Gold hairline + sparkle mark that draws in under the title. */
+.page-header h1::after {
+    content: '\2726';
+    display: block;
+    width: 230px;
+    margin: 1rem auto 0;
+    color: var(--gold);
+    font-size: 0.7rem;
+    line-height: 1;
+    text-align: center;
+    background: linear-gradient(90deg,
+        transparent 0%, var(--gold) 16%, var(--gold) 43%,
+        transparent 47%, transparent 53%,
+        var(--gold) 57%, var(--gold) 84%, transparent 100%) center / 100% 1px no-repeat;
+    transform: scaleX(0);
+    transform-origin: center;
+    animation: ph-line 0.85s ease-out 0.7s both;
 }
 
 .page-header p {
     font-size: 1.1rem;
-    opacity: 0.9;
+    opacity: 0;
+    animation: ph-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s both;
+}
+
+@keyframes ph-kenburns {
+    from { transform: scale(1.02) translate(0, 0); }
+    to   { transform: scale(1.12) translate(-1.5%, -1%); }
+}
+@keyframes ph-sheen {
+    to { transform: translateX(320%) skewX(-14deg); }
+}
+@keyframes ph-rise {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ph-line {
+    to { transform: scaleX(1); }
+}
+
+/* Respect users who prefer no motion: show the final composed state. */
+@media (prefers-reduced-motion: reduce) {
+    .page-header::before,
+    .page-header::after,
+    .page-header h1,
+    .page-header h1::after,
+    .page-header p {
+        animation: none;
+    }
+    .page-header h1 { opacity: 1; }
+    .page-header h1::after { transform: scaleX(1); }
+    .page-header p { opacity: 0.9; }
 }
 
 /* ============ LIVE CHAT WIDGET ============ */
