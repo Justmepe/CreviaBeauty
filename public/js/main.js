@@ -1253,7 +1253,7 @@ function sendChatMessage() {
     if (input) {
         const message = input.value.trim();
         if (message) {
-            window.open(`https://wa.me/254745853914?text=${encodeURIComponent(message)}`, '_blank');
+            window.open(`https://wa.me/254111768092?text=${encodeURIComponent(message)}`, '_blank');
             input.value = '';
         }
     }

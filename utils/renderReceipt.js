@@ -121,7 +121,12 @@ function paymentLine(order, settings) {
                 ref = settings.mpesa_till_number || '';
                 break;
             default:
-                ref = settings.mpesa_phone || '';
+                // Send Money: never print the personal pay-to number on the receipt
+                // (anti-fraud). Shown as "M-Pesa (Send Money)" only.
+                ref = '';
+        }
+        if (settings.mpesa_type !== 'paybill' && settings.mpesa_type !== 'till') {
+            return `${label} (Send Money)`;
         }
         return ref ? `${label} : ${esc(ref)}` : label;
     }
@@ -153,11 +158,11 @@ function contextNote(order, settings, isPaid) {
         switch (settings.mpesa_type) {
             case 'paybill': ref = settings.mpesa_paybill_number || ''; break;
             case 'till': ref = settings.mpesa_till_number || ''; break;
-            default: ref = settings.mpesa_phone || '';
+            default: ref = ''; // Send Money number shared privately on WhatsApp, not here
         }
         return ref
             ? `Kindly complete payment via M-Pesa to ${ref} to confirm dispatch.`
-            : 'Kindly complete payment via M-Pesa to confirm dispatch.';
+            : 'Kindly complete payment via M-Pesa (Send Money) to confirm dispatch. We will share our M-Pesa number with you on WhatsApp.';
     }
     if (order.payment_method === 'bank') {
         return 'Kindly complete payment via Bank Transfer to confirm dispatch.';

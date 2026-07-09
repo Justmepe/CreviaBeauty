@@ -17,7 +17,6 @@
     <div class="top-bar">
         <div class="top-bar-content">
             <div class="contact-info">
-                <a href="tel:+254745853914">+254 745 853 914</a>
                 <a href="tel:+254111768092">+254 111 768 092</a>
                 <a href="mailto:info@creviabeauty.com">info@creviabeauty.com</a>
             </div>
@@ -106,7 +105,6 @@
             <div class="footer-section">
                 <h3>Contact Info</h3>
                 <ul>
-                    <li>+254 745 853 914</li>
                     <li>+254 111 768 092</li>
                     <li>info@creviabeauty.com</li>
                     <li>Mombasa Road, Nairobi</li>
@@ -142,11 +140,11 @@
     </div>
 
     <!-- WhatsApp Float Button -->
-    <a href="https://wa.me/254745853914" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+    <a href="https://wa.me/254111768092" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
         <img src="/assets/whatsapp.png" alt="WhatsApp" width="32" height="32">
     </a>
 
-    <script src="/js/main.js?v=24"></script>
+    <script src="/js/main.js?v=26"></script>
     <script>
         async function loadCart() {
             const container = document.getElementById('cart-content');
@@ -464,19 +462,20 @@
                 const amount = `KSh ${Number(orderData.total).toLocaleString()}`;
 
                 if (type === 'send_money') {
-                    const phone = settings.mpesa_phone || '0712345678';
+                    // For security we never post the pay-to M-Pesa number publicly
+                    // (stops fraudsters spoofing it). We share it privately on WhatsApp.
+                    const waMsg = `Hi CreviaBeauty, I'd like to pay for order ${orderData.paymentReference} (Amount: ${amount}) via M-Pesa Send Money. Please share your payment details.`;
+                    const waUrl = `https://wa.me/254111768092?text=${encodeURIComponent(waMsg)}`;
                     return `
-                        <p><strong>Send To:</strong> ${phone}</p>
                         <p><strong>Amount:</strong> ${amount}</p>
                         <p><strong>Reference:</strong> ${orderData.paymentReference}</p>
                         <hr style="margin: 1rem 0;">
                         <p style="font-size: 0.9rem; color: #666;">
-                            1. Go to M-Pesa menu<br>
-                            2. Select Send Money<br>
-                            3. Enter Phone Number: <strong>${phone}</strong><br>
-                            4. Enter Amount: <strong>${amount}</strong><br>
-                            5. Enter PIN and confirm<br>
-                            6. Send SMS confirmation to us with reference: <strong>${orderData.paymentReference}</strong>
+                            We accept <strong>M-Pesa (Send Money)</strong>. For your security we don't post our pay-to number online — our team shares it with you privately on WhatsApp.<br><br>
+                            Tap below to confirm your order and receive the M-Pesa number:
+                        </p>
+                        <p style="text-align:center; margin-top: 0.75rem;">
+                            <a href="${waUrl}" target="_blank" rel="noopener" style="display:inline-block; background:#25D366; color:#fff; padding:0.7rem 1.4rem; border-radius:8px; text-decoration:none; font-weight:600;">Pay via WhatsApp</a>
                         </p>
                     `;
                 } else if (type === 'paybill') {
@@ -587,7 +586,7 @@
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             if (message) {
-                window.open(`https://wa.me/254745853914?text=${encodeURIComponent(message)}`, '_blank');
+                window.open(`https://wa.me/254111768092?text=${encodeURIComponent(message)}`, '_blank');
                 input.value = '';
             }
         }
