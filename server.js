@@ -605,9 +605,14 @@ if (config.nodeEnv !== 'test') {
 // CONTENT_DISCORD_WEBHOOK_URL is unset, so it's safe to leave running everywhere.
 // Manual trigger: POST /api/admin/content/remind.
 const { runDueReminders } = require('./utils/contentReminder');
+const { notifyNewPrompts } = require('./utils/promptNotifier');
 setInterval(() => {
     runDueReminders(db).catch(err =>
         logger.error('Content due-reminder failed', { error: err.message })
+    );
+    // Ping the content channel when the research engine has dropped new prompts.
+    notifyNewPrompts().catch(err =>
+        logger.error('Prompt-ready notify failed', { error: err.message })
     );
 }, 15 * 60 * 1000); // every 15 minutes
 }

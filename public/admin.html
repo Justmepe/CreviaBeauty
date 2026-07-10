@@ -893,8 +893,8 @@
                                     </datalist>
                                 </div>
                                 <div class="form-group-dashboard">
-                                    <label>Product tie-in</label>
-                                    <input type="text" id="cc-f-product" placeholder="e.g. Perfume">
+                                    <label>Product (from catalog)</label>
+                                    <select id="cc-f-product-id"><option value="">None</option></select>
                                 </div>
                             </div>
                             <div class="cc-grid3">
@@ -1599,7 +1599,7 @@
     <script src="/js/vendor/prop-types.min.js"></script>
     <script src="/js/vendor/recharts.js"></script>
     <script src="/js/dashboard-charts.js?v=2"></script>
-    <script src="/js/content-calendar.js?v=1"></script>
+    <script src="/js/content-calendar.js?v=2"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';

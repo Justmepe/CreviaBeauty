@@ -668,6 +668,12 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_content_status ON content_items(status);
             CREATE INDEX IF NOT EXISTS idx_content_scheduled ON content_items(scheduled_date);
             CREATE INDEX IF NOT EXISTS idx_content_published ON content_items(published_at);
+
+            -- Link each content item to the catalog product it features, so the board
+            -- tracks which product was posted about, when, and in what format. Added via
+            -- ALTER (idempotent) so existing content_items tables pick it up on boot.
+            ALTER TABLE content_items ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES products(id) ON DELETE SET NULL;
+            CREATE INDEX IF NOT EXISTS idx_content_product ON content_items(product_id);
         `);
 
         // Add marketer/rewards columns to users table (migration)

@@ -31,6 +31,13 @@ function clampStr(v, max) {
     return s ? s.slice(0, max) : null;
 }
 
+// A positive catalog product id, or null (empty/invalid).
+function cleanId(v) {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseInt(v, 10);
+    return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 // 'HH:MM' 24h or null. Rejects anything else rather than storing junk.
 function cleanTime(v) {
     if (!v) return null;
@@ -74,26 +81,28 @@ module.exports = (db) => {
             // Anything scheduled in the month, plus anything published in the month
             // (an item can be published without a scheduled_date).
             where.push(`(
-                (scheduled_date >= $${params.length}::date AND scheduled_date < ($${params.length}::date + INTERVAL '1 month'))
-                OR (published_at >= $${params.length}::date AND published_at < ($${params.length}::date + INTERVAL '1 month'))
+                (ci.scheduled_date >= $${params.length}::date AND ci.scheduled_date < ($${params.length}::date + INTERVAL '1 month'))
+                OR (ci.published_at >= $${params.length}::date AND ci.published_at < ($${params.length}::date + INTERVAL '1 month'))
             )`);
         }
 
         const status = clampStr(req.query.status, 20);
         if (status && STATUSES.includes(status)) {
             params.push(status);
-            where.push(`status = $${params.length}`);
+            where.push(`ci.status = $${params.length}`);
         }
 
         const sql = `
-            SELECT id, title, pillar, format, platform, product, status,
-                   to_char(scheduled_date, 'YYYY-MM-DD') AS scheduled_date,
-                   scheduled_time, published_at, link, notes,
-                   metrics, article_id, created_at, updated_at
-            FROM content_items
+            SELECT ci.id, ci.title, ci.pillar, ci.format, ci.platform, ci.product, ci.status,
+                   to_char(ci.scheduled_date, 'YYYY-MM-DD') AS scheduled_date,
+                   ci.scheduled_time, ci.published_at, ci.link, ci.notes,
+                   ci.metrics, ci.article_id, ci.product_id, p.name AS product_name,
+                   ci.created_at, ci.updated_at
+            FROM content_items ci
+            LEFT JOIN products p ON p.id = ci.product_id
             ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-            ORDER BY COALESCE(scheduled_date, published_at::date, created_at::date) ASC,
-                     scheduled_time ASC NULLS LAST, id ASC
+            ORDER BY COALESCE(ci.scheduled_date, ci.published_at::date, ci.created_at::date) ASC,
+                     ci.scheduled_time ASC NULLS LAST, ci.id ASC
         `;
         const result = await db.query(sql, params);
         res.json(result.rows);
@@ -177,14 +186,15 @@ module.exports = (db) => {
 
         const r = await db.query(`
             INSERT INTO content_items
-                (title, pillar, format, platform, product, status, scheduled_date, scheduled_time, link, notes, metrics)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+                (title, pillar, format, platform, product, status, scheduled_date, scheduled_time, link, notes, metrics, product_id)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
             RETURNING *
         `, [
             title,
             clampStr(b.pillar, 100), clampStr(b.format, 100), clampStr(b.platform, 50), clampStr(b.product, 150),
             status, cleanDate(b.scheduled_date), cleanTime(b.scheduled_time),
-            clampStr(b.link, 2000), clampStr(b.notes, 4000), JSON.stringify(cleanMetrics(b.metrics))
+            clampStr(b.link, 2000), clampStr(b.notes, 4000), JSON.stringify(cleanMetrics(b.metrics)),
+            cleanId(b.product_id)
         ]);
         res.status(201).json(r.rows[0]);
     }));
@@ -209,6 +219,7 @@ module.exports = (db) => {
         if ('format' in b) set('format', clampStr(b.format, 100));
         if ('platform' in b) set('platform', clampStr(b.platform, 50));
         if ('product' in b) set('product', clampStr(b.product, 150));
+        if ('product_id' in b) set('product_id', cleanId(b.product_id));
         if ('scheduled_date' in b) set('scheduled_date', cleanDate(b.scheduled_date));
         if ('scheduled_time' in b) set('scheduled_time', cleanTime(b.scheduled_time));
         if ('link' in b) set('link', clampStr(b.link, 2000));

@@ -8,7 +8,7 @@
  */
 
 // ---- state ----
-var ccState = { month: null, view: 'board', items: [], loaded: false };
+var ccState = { month: null, view: 'board', items: [], products: [], loaded: false };
 
 const CC_STATUSES = ['idea', 'draft', 'scheduled', 'published', 'skipped'];
 const CC_STATUS_LABEL = { idea: 'Idea', draft: 'Draft', scheduled: 'Scheduled', published: 'Published', skipped: 'Skipped' };
@@ -41,7 +41,23 @@ function ccNum(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
 // ---- entry point (called by loadSectionData) ----
 function loadContentCalendar() {
     if (!ccState.month) ccState.month = ccMonthKey(new Date());
+    if (!ccState.products.length) ccLoadProducts();
     ccFetch();
+}
+
+// Catalog products for the modal picker (so each post is tied to a real product).
+async function ccLoadProducts() {
+    try {
+        const res = await fetch('/api/products?limit=500');
+        const body = res.ok ? await res.json() : [];
+        const rows = Array.isArray(body) ? body : (body.data || body.products || []);
+        ccState.products = rows.filter(p => p && p.id).map(p => ({ id: p.id, name: p.name || ('#' + p.id) }));
+        const sel = document.getElementById('cc-f-product-id');
+        if (sel) {
+            sel.innerHTML = '<option value="">None</option>' +
+                ccState.products.map(p => `<option value="${p.id}">${ccEsc(p.name)}</option>`).join('');
+        }
+    } catch (e) { /* leave picker with just None */ }
 }
 
 async function ccFetch() {
@@ -102,9 +118,10 @@ function ccRenderBoard() {
 function ccCardHtml(i) {
     const meta = [i.platform, i.format].filter(Boolean).map(x => `<span class="cc-chip">${ccEsc(x)}</span>`).join('');
     const when = i.scheduled_date ? `<span>&#128197; ${ccEsc(i.scheduled_date)}${i.scheduled_time ? ' ' + ccEsc(i.scheduled_time) : ''}</span>` : '';
+    const prod = (i.product_name || i.product) ? `<span>&#128717; ${ccEsc(i.product_name || i.product)}</span>` : '';
     return `<div class="cc-card" style="border-left-color:${CC_STATUS_COLOR[i.status]}" onclick="ccOpenModal(${i.id})">
         <div class="t">${ccEsc(i.title)}</div>
-        <div class="m">${meta}${when}${i.pillar ? `<span>${ccEsc(i.pillar)}</span>` : ''}</div>
+        <div class="m">${meta}${when}${prod}${i.pillar ? `<span>${ccEsc(i.pillar)}</span>` : ''}</div>
     </div>`;
 }
 
@@ -155,6 +172,7 @@ function ccRenderTable() {
         return `<tr onclick="ccOpenModal(${i.id})" style="cursor:pointer;">
             <td>${ccEsc(i.title)}</td>
             <td><span class="cc-status st-${i.status}">${CC_STATUS_LABEL[i.status]}</span></td>
+            <td>${ccEsc(i.product_name || i.product || '')}</td>
             <td>${ccEsc(i.pillar || '')}</td>
             <td>${ccEsc(i.platform || '')}</td>
             <td>${ccEsc(i.format || '')}</td>
@@ -164,7 +182,7 @@ function ccRenderTable() {
         </tr>`;
     }).join('');
     host.innerHTML = `<div style="overflow-x:auto;"><table class="cc-table">
-        <thead><tr><th>Title</th><th>Status</th><th>Pillar</th><th>Platform</th><th>Format</th><th>Scheduled</th><th>Published</th><th>Link</th></tr></thead>
+        <thead><tr><th>Title</th><th>Status</th><th>Product</th><th>Pillar</th><th>Platform</th><th>Format</th><th>Scheduled</th><th>Published</th><th>Link</th></tr></thead>
         <tbody>${rows}</tbody></table></div>`;
 }
 
@@ -231,7 +249,7 @@ function ccOpenModal(id, prefillDate) {
     ccSetVal('cc-f-pillar', item ? item.pillar : '');
     ccSetVal('cc-f-platform', item ? item.platform : '');
     ccSetVal('cc-f-format', item ? item.format : '');
-    ccSetVal('cc-f-product', item ? item.product : '');
+    ccSetVal('cc-f-product-id', item ? (item.product_id || '') : '');
     ccSetVal('cc-f-status', item ? item.status : 'idea');
     ccSetVal('cc-f-date', item ? (item.scheduled_date || '') : (prefillDate || ''));
     ccSetVal('cc-f-time', item ? (item.scheduled_time || '') : '');
@@ -263,7 +281,7 @@ function ccFormBody() {
         pillar: ccGetVal('cc-f-pillar'),
         platform: ccGetVal('cc-f-platform'),
         format: ccGetVal('cc-f-format'),
-        product: ccGetVal('cc-f-product'),
+        product_id: ccGetVal('cc-f-product-id') || null,
         status: ccGetVal('cc-f-status'),
         scheduled_date: ccGetVal('cc-f-date'),
         scheduled_time: ccGetVal('cc-f-time'),
