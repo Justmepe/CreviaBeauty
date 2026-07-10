@@ -69,4 +69,7 @@ module.exports = (app, db) => {
 
     // Content Calendar (Notion-style content ops board) — admin only
     app.use('/api/admin/content', contentRoutes(db));
+
+    // Engine surface (token-protected) — the research engine reads coverage here
+    app.use('/api/engine', require('./engine')(db));
 };

@@ -48,6 +48,22 @@ OUTPUT_DIR = ENGINE_DIR / "output"
 CALENDAR_FILE = ENGINE_DIR / "calendar.json"
 # Local dev runs on 3000; production (VPS) runs on 3010 — override via env
 SITE_URL = os.environ.get("CREVIA_SITE_URL", "http://localhost:3000")
+# Shared secret to read the coverage brain (/api/engine/*). Empty -> fall back to rotation.
+ENGINE_TOKEN = os.environ.get("CONTENT_ENGINE_TOKEN", "")
+
+# On the VPS the engine sits beside the app; if the token isn't in the process env,
+# read it from the app's .env so the PM2 research process needs no extra config.
+if not ENGINE_TOKEN:
+    try:
+        _env_file = ENGINE_DIR.parent / ".env"
+        if _env_file.exists():
+            for _line in _env_file.read_text(encoding="utf-8").splitlines():
+                _line = _line.strip()
+                if _line.startswith("CONTENT_ENGINE_TOKEN=") and "=" in _line:
+                    ENGINE_TOKEN = _line.split("=", 1)[1].strip()
+                    break
+    except Exception:
+        pass
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
@@ -777,6 +793,84 @@ def run_youtube(copy_to_clipboard):
     return out_file
 
 
+# ── Product posts (single image + caption), coverage-aware ────────────────
+# The calendar knows which products have NOT been posted about. We ask it for the
+# least-covered products and generate a real caption prompt for each, so the system
+# decides what to post (no manual planning) and never repeats a product needlessly.
+
+def fetch_uncovered(count=3, category=None):
+    """Least-covered products from the content calendar's coverage brain."""
+    if not ENGINE_TOKEN:
+        print("  [warn] CONTENT_ENGINE_TOKEN not set; cannot read coverage, using catalog order.")
+        return []
+    try:
+        params = {"count": count, "token": ENGINE_TOKEN}
+        if category:
+            params["category"] = category
+        r = requests.get(f"{SITE_URL}/api/engine/uncovered", params=params, timeout=10)
+        r.raise_for_status()
+        return r.json().get("products", [])
+    except Exception as e:
+        print(f"  [warn] coverage fetch failed: {e}")
+        return []
+
+
+def build_product_post_prompt(product):
+    """A claude.ai prompt that outputs a single-image Instagram product post caption pack."""
+    name = product.get("name") or "this product"
+    price = f"KES {int(float(product['price'])):,}" if product.get("price") else "-"
+    link = f"{SITE_URL}/products?search={quote(name)}"
+    return f"""You are the social copywriter for Crevia Beauty, a premium AUTHENTIC beauty and fragrance store in Nairobi, Kenya (creviabeauty.com). Write ONE single-image Instagram product post (NOT a carousel) for the product below. Short-form, scroll-stopping, native to the feed. Kenyan English, prices in KES. Crevia competes on identity and trust, never on being the cheapest. Style nods to Alex Hormozi: name the desire or pain, show why THIS product answers it, make the offer clear.
+
+THE PRODUCT:
+- Name: {name}
+- Brand: {product.get('brand') or '-'}
+- Category: {product.get('category') or '-'}
+- Scent family: {product.get('scent_family') or '-'}
+- Price: {price}
+- Description: {product.get('description') or '-'}
+- Product link (use as first_comment link): {link}
+- Product image (use as image_url, or omit): {product.get('image_url') or '(none)'}
+
+Return ONE JSON object, no text before or after, no markdown outside the JSON, exactly this shape:
+
+{{
+  "type": "crevia-product-post",
+  "product": "{name}",
+  "on_image_text": "3 to 6 word scroll-stopper to print on the image",
+  "caption": "2 to 4 short lines: the desire or problem, why this product, the KES price, then 'Comment <keyword> and we will DM you the link.' End with 3 to 4 Kenyan beauty hashtags.",
+  "dm_keyword": "ONE short uppercase word to comment for the link",
+  "first_comment": "One line with the product link.",
+  "dm_reply": "The warm DM to send when they comment the keyword: the link and one engagement question.",
+  "image_direction": "One sentence on how to shoot or style the single image: props, background, angle."
+}}
+
+RULES:
+- Single image, not a carousel. Punchy, native to the feed.
+- Kenyan English, KES prices. NEVER use em dashes; use commas, periods or colons.
+- Return ONLY the JSON object."""
+
+
+def run_product_posts(count, copy_to_clipboard=False):
+    """Generate `count` product-post prompts for the least-covered products."""
+    print(f"\n=== Product posts (x{count}, least-covered first) ===")
+    products = fetch_uncovered(count)
+    if not products:
+        products = (fetch_products() or [])[:count]  # fallback: catalog order
+    made = []
+    for product in products:
+        prompt = build_product_post_prompt(product)
+        OUTPUT_DIR.mkdir(exist_ok=True)
+        slug = slugify(product.get("name") or f"product-{product.get('id')}")
+        out_file = OUTPUT_DIR / f"product-{slug}-prompt.txt"
+        out_file.write_text(prompt, encoding="utf-8")
+        print(f"  - {product.get('name')}  ->  {out_file.name}")
+        made.append(out_file)
+    if not made:
+        print("  (no products available to post about)")
+    return made
+
+
 def main():
     parser = argparse.ArgumentParser(description="Crevia Beauty research engine")
     parser.add_argument("topic", nargs="?", help="Topic / pain point to research")
@@ -788,15 +882,22 @@ def main():
     parser.add_argument("--watch", type=float, metavar="HOURS", help="Continuous mode: re-run every N hours")
     parser.add_argument("--copy", action="store_true", help="Copy the prompt to the clipboard")
     parser.add_argument("--youtube", action="store_true", help="Queue a YouTube origin-story prompt (weekly fragrance rotation)")
+    parser.add_argument("--product-posts", type=int, metavar="N", default=0, help="Generate N single-image product-post prompts for the least-covered products")
     args = parser.parse_args()
 
     # The weekday the weekly YouTube essay is queued (Wed). Mon=0 .. Sun=6.
     YOUTUBE_WEEKDAY = 2
 
+    # How many single-image product posts the daily plan queues (alongside the carousel).
+    DAILY_PRODUCT_POSTS = 3
+
     # One unit of work: a chosen series, an ad-hoc topic, or today's series by default.
     def do_run():
         if args.youtube:
             run_youtube(args.copy)
+            return
+        if args.product_posts:
+            run_product_posts(args.product_posts)
             return
         if args.topic and not args.series:
             print(f"\n=== Ad-hoc topic: {args.topic} ===")
@@ -813,6 +914,13 @@ def main():
             print(f"\nPrompt saved: {out}")
         else:
             run_series(pick_series(args.series), args.copy)
+            # The daily plan also queues single-image product posts for the
+            # least-covered products (coverage-aware; no manual planning).
+            if not args.series:
+                try:
+                    run_product_posts(DAILY_PRODUCT_POSTS)
+                except Exception as e:
+                    print(f"[warn] daily product posts failed: {e}")
             # Once a week, also queue a YouTube origin-story prompt into the inbox.
             if not args.series and date.today().weekday() == YOUTUBE_WEEKDAY:
                 try:
