@@ -862,12 +862,111 @@ RULES:
 - Return ONLY the JSON object."""
 
 
-def run_product_posts(count, copy_to_clipboard=False):
-    """Generate `count` product-post prompts for the least-covered products."""
+def build_product_story_prompt(product):
+    """A claude.ai prompt for an EDUCATIONAL STORYTELLING carousel about a product:
+    the idea, how it came to be, the founder/brand motivation, why people connect.
+    Outputs the same crevia-article JSON as the series carousels, so it publishes
+    through the existing Content Studio (blog + carousel + social pack)."""
+    name = product.get("name") or "this product"
+    price = f"KES {int(float(product['price'])):,}" if product.get("price") else "-"
+    link = product.get("link") or f"/products?search={quote(name)}"
+    image = product.get("image_url") or "(none, omit hero_image_url)"
+    return f"""You are the senior brand storyteller for Crevia Beauty, a premium AUTHENTIC beauty and fragrance store in Nairobi, Kenya (creviabeauty.com). Write an EDUCATIONAL STORYTELLING carousel about the product below. Not a sales pitch: a story that makes people CONNECT with it. Tell the idea behind it, how it came to be, the motivation and inspiration of the people or house who created it, the desire or problem it was born from, and why it still matters today. Warm, intelligent, a little aspirational. Kenyan English, prices in KES. Crevia competes on identity and trust, never on being cheapest. No em dashes.
+
+THE PRODUCT:
+- Name: {name}
+- Brand / house: {product.get('brand') or '-'}
+- Category: {product.get('category') or '-'}
+- Scent family: {product.get('scent_family') or '-'}
+- Price: {price}
+- Description: {product.get('description') or '-'}
+- Product link (use as cta_link): {link}
+- Product image (use as hero_image_url): {image}
+
+First research the REAL story: the house or brand behind {name}, who created it and why, the year and moment it launched into, what it was really made for, and how people connect with it now. Prefer authoritative sources. If you cannot confirm a specific name, date or fact, do NOT state it as fact: keep that beat emotional and general, and list the unconfirmed specifics in facts_to_verify.
+
+Return ONE JSON object, no text before or after, no markdown outside the JSON, exactly this shape:
+
+{{
+  "type": "crevia-article",
+  "title": "A story-driven headline, not just the product name",
+  "slug": "short-kebab-case-slug",
+  "category": "Product Story",
+  "meta_title": "Under 60 characters",
+  "meta_description": "Under 155 characters: the story hook and a soft CTA",
+  "tags": ["3-5", "seo", "tags"],
+  "hero_image_url": "the product image URL above, or omit this field",
+  "intro": "One paragraph that opens the story and the emotional hook",
+  "sections": [
+    {{ "heading": "The Idea", "paragraphs": ["the desire or problem it was born from, 2-3 short paragraphs"] }},
+    {{ "heading": "The Story", "paragraphs": ["how it came to be, the motivation and the people behind it"] }},
+    {{ "heading": "Why It Connects", "paragraphs": ["what it means to the person who wears or uses it today"] }}
+  ],
+  "cta_text": "1-2 warm sentences inviting them to make it theirs, tied to {name}",
+  "cta_link": "the product link above",
+  "carousel": [
+    {{ "heading": "Hook: an arresting line from the story", "highlight": "1-2 words from this heading", "body": "1-2 short lines" }},
+    {{ "heading": "The idea it was born from", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "How it came to be", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "The motivation behind it", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "What it gives you", "bullets": [ {{ "icon": "heart", "text": "Feeling" }}, {{ "icon": "star", "text": "Feeling" }}, {{ "icon": "diamond", "text": "Feeling" }} ] }},
+    {{ "heading": "Why it still matters", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "Make it yours", "body": "Comment the keyword below and we will DM you the details. @creviabeauty" }}
+  ],
+  "social": {{
+    "dm_keyword": "ONE short uppercase word to comment for the link, themed to the story",
+    "caption": "The story hook in 2-3 lines, then 'Comment <keyword> and we will DM you the details.' End with 3-4 Kenyan beauty hashtags.",
+    "first_comment": "One line: the product, here -> https://creviabeauty.com{link}",
+    "dm_reply": "Warm DM with the link and one question about what draws them to it.",
+    "lead_followup": "Second DM after they open the link: ask for their email or WhatsApp to hear these stories first."
+  }},
+  "facts_to_verify": ["each specific name, date or claim to confirm before posting, or [] if fully confident"]
+}}
+
+RULES:
+- It is a STORY, educational and emotional, never a hard sell.
+- paragraphs are plain text only: no HTML, no markdown.
+- NEVER use em dashes. Use commas, periods or colons.
+- Carousel text short enough to read on a phone (heading <= 8 words, body <= 30 words).
+- Carousel "highlight": copy 1-2 words that appear in that slide's heading, to print in gold. Omit on the final CTA slide.
+- One carousel slide uses "bullets": a 3-item list, each {{ "icon", "text" }} with text 1-3 words. Icons ONLY: user, star, diamond, heart, shield, gift, check, clock, x.
+- Kenyan English, KES prices. Return ONLY the JSON object."""
+
+
+def run_product_stories(count, copy_to_clipboard=False, products=None):
+    """Generate `count` product-story carousel prompts for the least-covered products."""
+    print(f"\n=== Product story carousels (x{count}, least-covered first) ===")
+    if products is None:
+        products = fetch_uncovered(count) or (fetch_products() or [])[:count]
+    made = []
+    for product in products:
+        prompt = build_product_story_prompt(product)
+        OUTPUT_DIR.mkdir(exist_ok=True)
+        slug = slugify(product.get("name") or f"product-{product.get('id')}")
+        out_file = OUTPUT_DIR / f"story-{slug}-prompt.txt"
+        out_file.write_text(prompt, encoding="utf-8")
+        print(f"  - {product.get('name')}  ->  {out_file.name}")
+        pid = product.get("id")
+        made.append({
+            "product_id": pid,
+            "product_ids": [pid] if pid else [],
+            "title": f"Story: {product.get('name')}",
+            "pillar": "Product Story",
+            "format": "Story carousel",
+            "platform": "Instagram",
+            "prompt_file": out_file.name,
+        })
+    if not made:
+        print("  (no products available)")
+    return made
+
+
+def run_product_posts(count, copy_to_clipboard=False, products=None):
+    """Generate `count` product-post prompts. Uses `products` if given, else the
+    least-covered products from the coverage brain."""
     print(f"\n=== Product posts (x{count}, least-covered first) ===")
-    products = fetch_uncovered(count)
-    if not products:
-        products = (fetch_products() or [])[:count]  # fallback: catalog order
+    if products is None:
+        products = fetch_uncovered(count) or (fetch_products() or [])[:count]
     made = []
     for product in products:
         prompt = build_product_post_prompt(product)
@@ -928,12 +1027,15 @@ def main():
     parser.add_argument("--copy", action="store_true", help="Copy the prompt to the clipboard")
     parser.add_argument("--youtube", action="store_true", help="Queue a YouTube origin-story prompt (weekly fragrance rotation)")
     parser.add_argument("--product-posts", type=int, metavar="N", default=0, help="Generate N single-image product-post prompts for the least-covered products")
+    parser.add_argument("--product-stories", type=int, metavar="N", default=0, help="Generate N product-story carousel prompts for the least-covered products")
     args = parser.parse_args()
 
     # The weekday the weekly YouTube essay is queued (Wed). Mon=0 .. Sun=6.
     YOUTUBE_WEEKDAY = 2
 
-    # How many single-image product posts the daily plan queues (alongside the carousel).
+    # The daily plan: this many product-story carousels + this many single-image
+    # product posts, each about a different least-covered product (6/day by default).
+    DAILY_STORIES = 3
     DAILY_PRODUCT_POSTS = 3
 
     # One unit of work: a chosen series, an ad-hoc topic, or today's series by default.
@@ -943,6 +1045,9 @@ def main():
             return
         if args.product_posts:
             post_plan(run_product_posts(args.product_posts))
+            return
+        if args.product_stories:
+            post_plan(run_product_stories(args.product_stories))
             return
         if args.topic and not args.series:
             print(f"\n=== Ad-hoc topic: {args.topic} ===")
@@ -957,23 +1062,29 @@ def main():
             out = OUTPUT_DIR / f"{slugify(args.topic)}-prompt.txt"
             out.write_text(prompt, encoding="utf-8")
             print(f"\nPrompt saved: {out}")
-        else:
-            # Build the day's plan: the series carousel + product posts, then register
-            # them all on the content calendar in one shot (staggered times, one ping).
-            plan = []
+        elif args.series:
+            # Explicit fragrance series carousel (the 7-day Fragrantica rotation),
+            # still available on demand. Registers it on the calendar too.
             carousel = run_series(pick_series(args.series), args.copy)
-            if carousel:
-                plan.append(carousel)
-            # The daily plan also queues single-image product posts for the
-            # least-covered products (coverage-aware; no manual planning).
-            if not args.series:
-                try:
-                    plan.extend(run_product_posts(DAILY_PRODUCT_POSTS))
-                except Exception as e:
-                    print(f"[warn] daily product posts failed: {e}")
+            post_plan([carousel] if carousel else [])
+        else:
+            # The daily plan: DAILY_STORIES story carousels + DAILY_PRODUCT_POSTS product
+            # posts, each about a DIFFERENT least-covered product (coverage-aware, no manual
+            # planning), all registered on the calendar in one shot at staggered times.
+            need = DAILY_STORIES + DAILY_PRODUCT_POSTS
+            pool = fetch_uncovered(need) or (fetch_products() or [])[:need]
+            plan = []
+            try:
+                plan.extend(run_product_stories(DAILY_STORIES, products=pool[:DAILY_STORIES]))
+            except Exception as e:
+                print(f"[warn] daily story carousels failed: {e}")
+            try:
+                plan.extend(run_product_posts(DAILY_PRODUCT_POSTS, products=pool[DAILY_STORIES:need]))
+            except Exception as e:
+                print(f"[warn] daily product posts failed: {e}")
             post_plan(plan)
             # Once a week, also queue a YouTube origin-story prompt into the inbox.
-            if not args.series and date.today().weekday() == YOUTUBE_WEEKDAY:
+            if date.today().weekday() == YOUTUBE_WEEKDAY:
                 try:
                     run_youtube(args.copy)
                 except Exception as e:
