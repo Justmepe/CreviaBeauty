@@ -313,6 +313,53 @@ module.exports = (db) => {
         res.json(r.rows[0]);
     }));
 
+    // GET /api/admin/content/coverage — which catalog products have (not) been featured.
+    // This is the "system decides which product to post" brain: never-covered first, then
+    // least-recently covered. Counts a product whether it's the single feature or in a combo.
+    router.get('/coverage', asyncHandler(async (req, res) => {
+        const { rows } = await db.query(`
+            SELECT p.id, p.name, p.category,
+                   COUNT(ci.id)::int AS times_featured,
+                   to_char(MAX(COALESCE(ci.published_at::date, ci.scheduled_date)), 'YYYY-MM-DD') AS last_featured
+            FROM products p
+            LEFT JOIN content_items ci
+                   ON (ci.product_id = p.id OR p.id = ANY(ci.product_ids))
+            GROUP BY p.id, p.name, p.category
+            ORDER BY times_featured ASC, last_featured ASC NULLS FIRST, p.name ASC
+        `);
+        const uncovered = rows.filter(r => r.times_featured === 0);
+        res.json({ total: rows.length, uncovered_count: uncovered.length, products: rows });
+    }));
+
+    // GET /api/admin/content/insights — learn from day-1 views: which formats, pillars and
+    // combos actually perform, so future content leans into what works (not cosmetic numbers).
+    router.get('/insights', asyncHandler(async (req, res) => {
+        const byDim = async (col) => (await db.query(`
+            SELECT COALESCE(${col}, 'Unassigned') AS key,
+                   COUNT(*)::int AS posts,
+                   ROUND(AVG(day1_views))::int AS avg_day1,
+                   MAX(day1_views)::int AS best_day1
+            FROM content_items
+            WHERE day1_views IS NOT NULL
+            GROUP BY COALESCE(${col}, 'Unassigned')
+            ORDER BY avg_day1 DESC NULLS LAST
+        `)).rows;
+
+        const top = (await db.query(`
+            SELECT id, title, format, pillar, product_ids, day1_views, link
+            FROM content_items
+            WHERE day1_views IS NOT NULL
+            ORDER BY day1_views DESC
+            LIMIT 10
+        `)).rows;
+
+        const recorded = (await db.query(
+            `SELECT COUNT(*)::int AS n FROM content_items WHERE day1_views IS NOT NULL`
+        )).rows[0].n;
+
+        res.json({ recorded, byFormat: await byDim('format'), byPillar: await byDim('pillar'), topPosts: top });
+    }));
+
     // GET /api/admin/content/pending-measurement — posts published >24h ago whose
     // day-1 views haven't been entered yet. This is how the system knows what still
     // needs recording (manual entry for now, before any platform API pull).

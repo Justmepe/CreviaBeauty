@@ -85,15 +85,21 @@ async function ccFetch() {
     const label = document.getElementById('cc-month-label');
     if (label) label.textContent = ccMonthLabel(ccState.month);
     try {
-        const [itemsRes, rollupRes, pendingRes] = await Promise.all([
+        const [itemsRes, rollupRes, pendingRes, coverageRes, insightsRes] = await Promise.all([
             fetch('/api/admin/content?month=' + ccState.month),
             fetch('/api/admin/content/rollup?month=' + ccState.month),
-            fetch('/api/admin/content/pending-measurement')
+            fetch('/api/admin/content/pending-measurement'),
+            fetch('/api/admin/content/coverage'),
+            fetch('/api/admin/content/insights')
         ]);
         ccState.items = itemsRes.ok ? await itemsRes.json() : [];
         const rollup = rollupRes.ok ? await rollupRes.json() : null;
         ccRenderRollup(rollup);
         ccRenderPending(pendingRes.ok ? await pendingRes.json() : []);
+        ccRenderBrain(
+            coverageRes.ok ? await coverageRes.json() : null,
+            insightsRes.ok ? await insightsRes.json() : null
+        );
         ccRenderCurrentView();
     } catch (e) {
         const board = document.getElementById('cc-view-board');
@@ -259,6 +265,62 @@ function ccRenderRollup(r) {
                 <div class="cc-bars">${dowBars}</div>
             </div>
         </div>`;
+}
+
+// ---- coverage brain + what's working ----
+function ccRenderBrain(coverage, insights) {
+    const host = document.getElementById('cc-brain');
+    if (!host) return;
+
+    // Left: products not yet covered (the system deciding what to post next).
+    let coverHtml;
+    if (!coverage) {
+        coverHtml = '<p style="color:#c0392b;margin:0;">Could not load coverage.</p>';
+    } else {
+        const uncovered = (coverage.products || []).filter(p => p.times_featured === 0);
+        const chips = uncovered.slice(0, 18).map(p =>
+            `<span class="cc-chip" style="background:#fdf3e3;color:#8a6d1f;">${ccEsc(p.name)}</span>`).join(' ');
+        coverHtml = `
+            <div style="font-size:.85rem;margin-bottom:.5rem;">
+                <strong>${coverage.uncovered_count}</strong> of ${coverage.total} products not yet posted about.
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:.35rem;">${chips || '<span style="color:#7f8c8d;">All products covered 🎉</span>'}</div>
+            ${uncovered.length > 18 ? `<div style="font-size:.75rem;color:#7f8c8d;margin-top:.4rem;">+${uncovered.length - 18} more</div>` : ''}`;
+    }
+
+    // Right: what's working, by format, from day-1 views.
+    let perfHtml;
+    if (!insights || !insights.recorded) {
+        perfHtml = '<p style="color:#7f8c8d;margin:0;">No day-1 views recorded yet. Once you log a few, the best formats and combos show here.</p>';
+    } else {
+        const fmt = (insights.byFormat || []).slice(0, 6).map(f =>
+            `<div class="cc-bar-row" style="grid-template-columns:120px 1fr 64px;">
+                <span>${ccEsc(f.key)}</span>
+                <div class="cc-bar-track"><div class="cc-bar-fill" style="width:${ccBrainPct(f.avg_day1, insights.byFormat)}%"></div></div>
+                <span>${Number(f.avg_day1 || 0).toLocaleString()}</span>
+            </div>`).join('');
+        const top = (insights.topPosts || []).slice(0, 5).map(t => {
+            const combo = ccProductNames(t.product_ids).join(' + ');
+            return `<div style="font-size:.8rem;padding:.25rem 0;border-bottom:1px solid #f0f2f5;">
+                <strong>${Number(t.day1_views).toLocaleString()}</strong> &middot; ${ccEsc(t.title)}
+                <span style="color:#7f8c8d;">${combo ? '— ' + ccEsc(combo) : ''}</span></div>`;
+        }).join('');
+        perfHtml = `
+            <div style="font-size:.8rem;color:#7f8c8d;margin-bottom:.4rem;">Avg day-1 views by format</div>
+            <div class="cc-bars">${fmt}</div>
+            <div style="font-size:.8rem;color:#7f8c8d;margin:.75rem 0 .3rem;">Top posts</div>
+            ${top}`;
+    }
+
+    host.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div><h4 style="margin:0 0 .6rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em;color:#7f8c8d;">Post about these next</h4>${coverHtml}</div>
+        <div><h4 style="margin:0 0 .6rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em;color:#7f8c8d;">What's working</h4>${perfHtml}</div>
+    </div>`;
+}
+
+function ccBrainPct(v, arr) {
+    const max = Math.max(1, ...arr.map(x => Number(x.avg_day1) || 0));
+    return Math.round((Number(v) || 0) / max * 100);
 }
 
 // ---- needs day-1 views queue ----

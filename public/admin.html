@@ -841,6 +841,16 @@
                         </div>
                     </div>
 
+                    <!-- Coverage brain + what's working (learns from day-1 views) -->
+                    <div class="content-card" style="margin-bottom:1.25rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">&#129504; Coverage &amp; what&rsquo;s working <small style="font-weight:400;color:#7f8c8d;">— products not yet posted, and what day-1 views say performs</small></h3>
+                        </div>
+                        <div class="card-body" id="cc-brain">
+                            <p style="color:#7f8c8d;margin:0;">Loading&hellip;</p>
+                        </div>
+                    </div>
+
                     <!-- Needs day-1 views: published >24h ago, not yet recorded -->
                     <div class="content-card" id="cc-pending-card" style="margin-bottom:1.25rem; display:none;">
                         <div class="card-header">
@@ -1616,7 +1626,7 @@
     <script src="/js/vendor/prop-types.min.js"></script>
     <script src="/js/vendor/recharts.js"></script>
     <script src="/js/dashboard-charts.js?v=2"></script>
-    <script src="/js/content-calendar.js?v=3"></script>
+    <script src="/js/content-calendar.js?v=4"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
