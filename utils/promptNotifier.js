@@ -96,4 +96,15 @@ async function notifyNewPrompts() {
     return { count: fresh.length };
 }
 
-module.exports = { notifyNewPrompts };
+// Mark prompt files as already-seen so notifyNewPrompts won't ping for them. The
+// engine's plan flow sends its own "today's plan" ping, so it calls this for the
+// prompts it just created to avoid a duplicate "new prompts ready" ping ~15 min later.
+function markSeen(files) {
+    if (!Array.isArray(files) || !files.length) return;
+    let seen = loadSeen();
+    if (seen === null) seen = new Set(listPrompts()); // baseline current before adding
+    files.forEach(f => { if (f) seen.add(f); });
+    saveSeen(seen);
+}
+
+module.exports = { notifyNewPrompts, markSeen };

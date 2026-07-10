@@ -682,6 +682,10 @@ async function initializeDatabase() {
             -- combos are comparable). day1_views NULL + published + >24h old = "needs recording".
             ALTER TABLE content_items ADD COLUMN IF NOT EXISTS day1_views INTEGER;
             ALTER TABLE content_items ADD COLUMN IF NOT EXISTS day1_recorded_at TIMESTAMP;
+
+            -- Which engine prompt created this row (engine/output/<file>). Lets the daily
+            -- plan be idempotent: re-running the engine won't duplicate the day's rows.
+            ALTER TABLE content_items ADD COLUMN IF NOT EXISTS source_prompt VARCHAR(200);
         `);
 
         // Add marketer/rewards columns to users table (migration)

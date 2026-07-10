@@ -293,6 +293,7 @@ def fetch_product(search_term):
             # http://localhost:3010, which a visitor's browser can never reach.
             image = p.get("image_url") or ""
             return {
+                "id": p.get("id"),
                 "name": p.get("name"),
                 "category": p.get("category"),
                 "price": p.get("price"),
@@ -321,6 +322,7 @@ def fetch_products(category=None, limit=100):
             # http://localhost:3010, which a visitor's browser can never reach.
             image = p.get("image_url") or ""
             out.append({
+                "id": p.get("id"),
                 "name": p.get("name"), "category": p.get("category"),
                 "brand": p.get("brand"), "price": p.get("price"),
                 "scent_family": p.get("scent_family"),
@@ -694,7 +696,16 @@ def run_series(series, copy_to_clipboard):
             print("(clipboard copy failed, open the file instead)")
     print("\nNext: copy this prompt into claude.ai, then Inject the reply in")
     print("Admin -> Marketing -> Content Studio. Review the draft, carousel, Reel and post-pack, then publish.")
-    return out_file
+    pid = product.get("id") if product else None
+    return {
+        "product_id": pid,
+        "product_ids": [pid] if pid else [],
+        "title": f"{series['name']}: {product['name']}" if product else series["name"],
+        "pillar": series["name"],
+        "format": "Carousel + Reel",
+        "platform": "Instagram",
+        "prompt_file": out_file.name,
+    }
 
 
 # ── YouTube origin-story essays (weekly) ──────────────────────────────────
@@ -865,10 +876,44 @@ def run_product_posts(count, copy_to_clipboard=False):
         out_file = OUTPUT_DIR / f"product-{slug}-prompt.txt"
         out_file.write_text(prompt, encoding="utf-8")
         print(f"  - {product.get('name')}  ->  {out_file.name}")
-        made.append(out_file)
+        pid = product.get("id")
+        made.append({
+            "product_id": pid,
+            "product_ids": [pid] if pid else [],
+            "title": f"Product post: {product.get('name')}",
+            "pillar": "Product",
+            "format": "Single image",
+            "platform": "Instagram",
+            "prompt_file": out_file.name,
+        })
     if not made:
         print("  (no products available to post about)")
     return made
+
+
+# Staggered posting slots for the day's plan (Nairobi time), assigned in order.
+PLAN_SLOTS = ["09:00", "11:00", "13:00", "15:00", "18:00", "20:00"]
+
+
+def post_plan(items):
+    """Register the day's generated pieces on the content calendar (one row each,
+    scheduled at a staggered slot, tied to its product), and fire one plan ping."""
+    items = [it for it in (items or []) if it]
+    if not items:
+        return
+    for i, it in enumerate(items):
+        it["slot_time"] = PLAN_SLOTS[i % len(PLAN_SLOTS)]
+    if not ENGINE_TOKEN:
+        print("  [warn] CONTENT_ENGINE_TOKEN not set; prompts are in the inbox but not added to the calendar.")
+        return
+    try:
+        r = requests.post(f"{SITE_URL}/api/engine/plan", json={"items": items},
+                          headers={"x-engine-token": ENGINE_TOKEN}, timeout=15)
+        r.raise_for_status()
+        res = r.json()
+        print(f"  - calendar: created {res.get('created')} item(s), skipped {res.get('skipped')}")
+    except Exception as e:
+        print(f"  [warn] could not add the plan to the calendar: {e}")
 
 
 def main():
@@ -897,7 +942,7 @@ def main():
             run_youtube(args.copy)
             return
         if args.product_posts:
-            run_product_posts(args.product_posts)
+            post_plan(run_product_posts(args.product_posts))
             return
         if args.topic and not args.series:
             print(f"\n=== Ad-hoc topic: {args.topic} ===")
@@ -913,14 +958,20 @@ def main():
             out.write_text(prompt, encoding="utf-8")
             print(f"\nPrompt saved: {out}")
         else:
-            run_series(pick_series(args.series), args.copy)
+            # Build the day's plan: the series carousel + product posts, then register
+            # them all on the content calendar in one shot (staggered times, one ping).
+            plan = []
+            carousel = run_series(pick_series(args.series), args.copy)
+            if carousel:
+                plan.append(carousel)
             # The daily plan also queues single-image product posts for the
             # least-covered products (coverage-aware; no manual planning).
             if not args.series:
                 try:
-                    run_product_posts(DAILY_PRODUCT_POSTS)
+                    plan.extend(run_product_posts(DAILY_PRODUCT_POSTS))
                 except Exception as e:
                     print(f"[warn] daily product posts failed: {e}")
+            post_plan(plan)
             # Once a week, also queue a YouTube origin-story prompt into the inbox.
             if not args.series and date.today().weekday() == YOUTUBE_WEEKDAY:
                 try:
