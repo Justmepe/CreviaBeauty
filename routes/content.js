@@ -38,6 +38,25 @@ function cleanId(v) {
     return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+// A de-duplicated list of up to `max` positive product ids (the featured combo).
+function cleanIds(v, max = 4) {
+    if (!Array.isArray(v)) return [];
+    const out = [];
+    for (const x of v) {
+        const n = parseInt(x, 10);
+        if (Number.isInteger(n) && n > 0 && !out.includes(n)) out.push(n);
+        if (out.length >= max) break;
+    }
+    return out;
+}
+
+// Non-negative integer or null (for day-1 views).
+function cleanCount(v) {
+    if (v === undefined || v === null || v === '') return null;
+    const n = parseInt(v, 10);
+    return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
 // 'HH:MM' 24h or null. Rejects anything else rather than storing junk.
 function cleanTime(v) {
     if (!v) return null;
@@ -96,10 +115,10 @@ module.exports = (db) => {
             SELECT ci.id, ci.title, ci.pillar, ci.format, ci.platform, ci.product, ci.status,
                    to_char(ci.scheduled_date, 'YYYY-MM-DD') AS scheduled_date,
                    ci.scheduled_time, ci.published_at, ci.link, ci.notes,
-                   ci.metrics, ci.article_id, ci.product_id, p.name AS product_name,
+                   ci.metrics, ci.article_id, ci.product_id, ci.product_ids,
+                   ci.day1_views, ci.day1_recorded_at,
                    ci.created_at, ci.updated_at
             FROM content_items ci
-            LEFT JOIN products p ON p.id = ci.product_id
             ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
             ORDER BY COALESCE(ci.scheduled_date, ci.published_at::date, ci.created_at::date) ASC,
                      ci.scheduled_time ASC NULLS LAST, ci.id ASC
@@ -184,17 +203,18 @@ module.exports = (db) => {
         if (!title) throw AppError.badRequest('Title is required');
         const status = STATUSES.includes(b.status) ? b.status : 'idea';
 
+        const productIds = cleanIds(b.product_ids);
         const r = await db.query(`
             INSERT INTO content_items
-                (title, pillar, format, platform, product, status, scheduled_date, scheduled_time, link, notes, metrics, product_id)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+                (title, pillar, format, platform, product, status, scheduled_date, scheduled_time, link, notes, metrics, product_id, product_ids)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::int[])
             RETURNING *
         `, [
             title,
             clampStr(b.pillar, 100), clampStr(b.format, 100), clampStr(b.platform, 50), clampStr(b.product, 150),
             status, cleanDate(b.scheduled_date), cleanTime(b.scheduled_time),
             clampStr(b.link, 2000), clampStr(b.notes, 4000), JSON.stringify(cleanMetrics(b.metrics)),
-            cleanId(b.product_id)
+            productIds[0] || null, productIds
         ]);
         res.status(201).json(r.rows[0]);
     }));
@@ -219,7 +239,17 @@ module.exports = (db) => {
         if ('format' in b) set('format', clampStr(b.format, 100));
         if ('platform' in b) set('platform', clampStr(b.platform, 50));
         if ('product' in b) set('product', clampStr(b.product, 150));
-        if ('product_id' in b) set('product_id', cleanId(b.product_id));
+        if ('product_ids' in b) {
+            const ids = cleanIds(b.product_ids);
+            params.push(ids); sets.push(`product_ids = $${params.length}::int[]`);
+            set('product_id', ids[0] || null); // keep the single column in sync
+        } else if ('product_id' in b) {
+            set('product_id', cleanId(b.product_id));
+        }
+        if ('day1_views' in b) {
+            set('day1_views', cleanCount(b.day1_views));
+            sets.push('day1_recorded_at = CASE WHEN $' + params.length + ' IS NULL THEN NULL ELSE CURRENT_TIMESTAMP END');
+        }
         if ('scheduled_date' in b) set('scheduled_date', cleanDate(b.scheduled_date));
         if ('scheduled_time' in b) set('scheduled_time', cleanTime(b.scheduled_time));
         if ('link' in b) set('link', clampStr(b.link, 2000));
@@ -278,6 +308,39 @@ module.exports = (db) => {
         const r = await db.query(
             `UPDATE content_items SET metrics = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
             [id, JSON.stringify(metrics)]
+        );
+        if (!r.rows[0]) throw AppError.notFound('Content item not found');
+        res.json(r.rows[0]);
+    }));
+
+    // GET /api/admin/content/pending-measurement — posts published >24h ago whose
+    // day-1 views haven't been entered yet. This is how the system knows what still
+    // needs recording (manual entry for now, before any platform API pull).
+    router.get('/pending-measurement', asyncHandler(async (req, res) => {
+        const tz = process.env.CONTENT_TZ || 'Africa/Nairobi';
+        const { rows } = await db.query(`
+            SELECT id, title, pillar, format, platform, product_ids, link, published_at,
+                   to_char(published_at AT TIME ZONE $1, 'YYYY-MM-DD HH24:MI') AS published_local
+            FROM content_items
+            WHERE status = 'published'
+              AND published_at IS NOT NULL
+              AND published_at <= NOW() - INTERVAL '24 hours'
+              AND day1_views IS NULL
+            ORDER BY published_at ASC
+        `, [tz]);
+        res.json(rows);
+    }));
+
+    // PUT /api/admin/content/:id/day1 — record the day-1 view count.
+    router.put('/:id/day1', asyncHandler(async (req, res) => {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) throw AppError.badRequest('Invalid content ID');
+        const views = cleanCount((req.body || {}).day1_views);
+        if (views === null) throw AppError.badRequest('day1_views must be a non-negative number');
+        const r = await db.query(
+            `UPDATE content_items SET day1_views = $2, day1_recorded_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *`,
+            [id, views]
         );
         if (!r.rows[0]) throw AppError.notFound('Content item not found');
         res.json(r.rows[0]);

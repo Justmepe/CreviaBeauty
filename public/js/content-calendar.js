@@ -46,31 +46,54 @@ function loadContentCalendar() {
 }
 
 // Catalog products for the modal picker (so each post is tied to a real product).
+// /api/products caps limit at 100, so page through until we have them all (cap 5 pages).
 async function ccLoadProducts() {
     try {
-        const res = await fetch('/api/products?limit=500');
-        const body = res.ok ? await res.json() : [];
-        const rows = Array.isArray(body) ? body : (body.data || body.products || []);
-        ccState.products = rows.filter(p => p && p.id).map(p => ({ id: p.id, name: p.name || ('#' + p.id) }));
-        const sel = document.getElementById('cc-f-product-id');
-        if (sel) {
-            sel.innerHTML = '<option value="">None</option>' +
-                ccState.products.map(p => `<option value="${p.id}">${ccEsc(p.name)}</option>`).join('');
+        const all = [];
+        for (let page = 1; page <= 5; page++) {
+            const res = await fetch(`/api/products?limit=100&page=${page}`);
+            if (!res.ok) break;
+            const body = await res.json();
+            const rows = Array.isArray(body) ? body : (body.data || body.products || []);
+            all.push(...rows);
+            const pages = body && body.pagination && body.pagination.pages;
+            if (!pages || page >= pages || rows.length < 100) break;
         }
-    } catch (e) { /* leave picker with just None */ }
+        ccState.products = all.filter(p => p && p.id)
+            .map(p => ({ id: p.id, name: p.name || ('#' + p.id) }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        ccState.productMap = {};
+        ccState.products.forEach(p => { ccState.productMap[p.id] = p.name; });
+        // Fill the 4 combo selects; each keeps its "Product N" placeholder as the empty option.
+        document.querySelectorAll('.cc-combo-sel').forEach(sel => {
+            const placeholder = sel.querySelector('option[value=""]');
+            const label = placeholder ? placeholder.textContent : 'None';
+            sel.innerHTML = `<option value="">${ccEsc(label)}</option>` +
+                ccState.products.map(p => `<option value="${p.id}">${ccEsc(p.name)}</option>`).join('');
+        });
+    } catch (e) { /* leave pickers empty */ }
+}
+
+// Resolve product ids -> names using the loaded catalog map.
+function ccProductNames(ids) {
+    if (!Array.isArray(ids) || !ids.length) return [];
+    const map = ccState.productMap || {};
+    return ids.map(id => map[id] || ('#' + id));
 }
 
 async function ccFetch() {
     const label = document.getElementById('cc-month-label');
     if (label) label.textContent = ccMonthLabel(ccState.month);
     try {
-        const [itemsRes, rollupRes] = await Promise.all([
+        const [itemsRes, rollupRes, pendingRes] = await Promise.all([
             fetch('/api/admin/content?month=' + ccState.month),
-            fetch('/api/admin/content/rollup?month=' + ccState.month)
+            fetch('/api/admin/content/rollup?month=' + ccState.month),
+            fetch('/api/admin/content/pending-measurement')
         ]);
         ccState.items = itemsRes.ok ? await itemsRes.json() : [];
         const rollup = rollupRes.ok ? await rollupRes.json() : null;
         ccRenderRollup(rollup);
+        ccRenderPending(pendingRes.ok ? await pendingRes.json() : []);
         ccRenderCurrentView();
     } catch (e) {
         const board = document.getElementById('cc-view-board');
@@ -118,10 +141,12 @@ function ccRenderBoard() {
 function ccCardHtml(i) {
     const meta = [i.platform, i.format].filter(Boolean).map(x => `<span class="cc-chip">${ccEsc(x)}</span>`).join('');
     const when = i.scheduled_date ? `<span>&#128197; ${ccEsc(i.scheduled_date)}${i.scheduled_time ? ' ' + ccEsc(i.scheduled_time) : ''}</span>` : '';
-    const prod = (i.product_name || i.product) ? `<span>&#128717; ${ccEsc(i.product_name || i.product)}</span>` : '';
+    const comboNames = ccProductNames(i.product_ids);
+    const prod = comboNames.length ? `<span>&#128717; ${ccEsc(comboNames.join(' + '))}</span>` : '';
+    const views = (i.day1_views != null) ? `<span>&#128065; ${Number(i.day1_views).toLocaleString()} d1</span>` : '';
     return `<div class="cc-card" style="border-left-color:${CC_STATUS_COLOR[i.status]}" onclick="ccOpenModal(${i.id})">
         <div class="t">${ccEsc(i.title)}</div>
-        <div class="m">${meta}${when}${prod}${i.pillar ? `<span>${ccEsc(i.pillar)}</span>` : ''}</div>
+        <div class="m">${meta}${when}${prod}${views}${i.pillar ? `<span>${ccEsc(i.pillar)}</span>` : ''}</div>
     </div>`;
 }
 
@@ -172,17 +197,17 @@ function ccRenderTable() {
         return `<tr onclick="ccOpenModal(${i.id})" style="cursor:pointer;">
             <td>${ccEsc(i.title)}</td>
             <td><span class="cc-status st-${i.status}">${CC_STATUS_LABEL[i.status]}</span></td>
-            <td>${ccEsc(i.product_name || i.product || '')}</td>
-            <td>${ccEsc(i.pillar || '')}</td>
+            <td>${ccEsc(ccProductNames(i.product_ids).join(' + '))}</td>
             <td>${ccEsc(i.platform || '')}</td>
             <td>${ccEsc(i.format || '')}</td>
             <td>${ccEsc(i.scheduled_date || '')}${i.scheduled_time ? ' ' + ccEsc(i.scheduled_time) : ''}</td>
             <td>${ccEsc(pub)}</td>
+            <td style="text-align:right;">${i.day1_views != null ? Number(i.day1_views).toLocaleString() : ''}</td>
             <td onclick="event.stopPropagation();">${link}</td>
         </tr>`;
     }).join('');
     host.innerHTML = `<div style="overflow-x:auto;"><table class="cc-table">
-        <thead><tr><th>Title</th><th>Status</th><th>Product</th><th>Pillar</th><th>Platform</th><th>Format</th><th>Scheduled</th><th>Published</th><th>Link</th></tr></thead>
+        <thead><tr><th>Title</th><th>Status</th><th>Products (combo)</th><th>Platform</th><th>Format</th><th>Scheduled</th><th>Published</th><th>Day-1 views</th><th>Link</th></tr></thead>
         <tbody>${rows}</tbody></table></div>`;
 }
 
@@ -236,6 +261,40 @@ function ccRenderRollup(r) {
         </div>`;
 }
 
+// ---- needs day-1 views queue ----
+function ccRenderPending(list) {
+    const card = document.getElementById('cc-pending-card');
+    const host = document.getElementById('cc-pending');
+    if (!card || !host) return;
+    if (!Array.isArray(list) || !list.length) { card.style.display = 'none'; host.innerHTML = ''; return; }
+    card.style.display = 'block';
+    const rows = list.map(i => {
+        const combo = ccProductNames(i.product_ids).join(' + ');
+        return `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid #eef0f3;">
+            <div style="flex:1;min-width:200px;">
+                <div style="font-weight:600;">${ccEsc(i.title)}</div>
+                <div style="font-size:.75rem;color:#7f8c8d;">${ccEsc([i.platform, i.format].filter(Boolean).join(' · '))}${combo ? ' — ' + ccEsc(combo) : ''} · posted ${ccEsc(i.published_local || '')}</div>
+            </div>
+            <input type="number" min="0" id="cc-pv-${i.id}" placeholder="views after 24h" style="width:150px;">
+            <button class="btn-dashboard primary sm" onclick="ccSaveDay1(${i.id})">Save</button>
+        </div>`;
+    }).join('');
+    host.innerHTML = `<p style="margin:0 0 .5rem;color:#7f8c8d;">${list.length} post${list.length === 1 ? '' : 's'} posted over a day ago still need their day-1 views:</p>${rows}`;
+}
+
+async function ccSaveDay1(id) {
+    const el = document.getElementById('cc-pv-' + id);
+    if (!el || el.value === '') { el && el.focus(); return; }
+    try {
+        await fetch('/api/admin/content/' + id + '/day1', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ day1_views: Number(el.value) })
+        });
+        await ccFetch();
+    } catch (e) { /* ignore */ }
+}
+
 // ---- modal ----
 function ccSetVal(id, v) { const el = document.getElementById(id); if (el) el.value = v === null || v === undefined ? '' : v; }
 function ccGetVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
@@ -249,7 +308,10 @@ function ccOpenModal(id, prefillDate) {
     ccSetVal('cc-f-pillar', item ? item.pillar : '');
     ccSetVal('cc-f-platform', item ? item.platform : '');
     ccSetVal('cc-f-format', item ? item.format : '');
-    ccSetVal('cc-f-product-id', item ? (item.product_id || '') : '');
+    // Combo: fill the 4 selects from product_ids (blank the rest).
+    const ids = (item && Array.isArray(item.product_ids)) ? item.product_ids : [];
+    document.querySelectorAll('.cc-combo-sel').forEach((sel, idx) => { sel.value = ids[idx] ? String(ids[idx]) : ''; });
+    ccSetVal('cc-f-day1', item && item.day1_views != null ? item.day1_views : '');
     ccSetVal('cc-f-status', item ? item.status : 'idea');
     ccSetVal('cc-f-date', item ? (item.scheduled_date || '') : (prefillDate || ''));
     ccSetVal('cc-f-time', item ? (item.scheduled_time || '') : '');
@@ -275,13 +337,24 @@ function ccCollectMetrics() {
     return metrics;
 }
 
+// Gather the featured-product combo from the 4 selects (deduped, max 4).
+function ccCollectCombo() {
+    const ids = [];
+    document.querySelectorAll('.cc-combo-sel').forEach(sel => {
+        const v = parseInt(sel.value, 10);
+        if (Number.isInteger(v) && v > 0 && !ids.includes(v)) ids.push(v);
+    });
+    return ids.slice(0, 4);
+}
+
 function ccFormBody() {
     return {
         title: ccGetVal('cc-f-title'),
         pillar: ccGetVal('cc-f-pillar'),
         platform: ccGetVal('cc-f-platform'),
         format: ccGetVal('cc-f-format'),
-        product_id: ccGetVal('cc-f-product-id') || null,
+        product_ids: ccCollectCombo(),
+        day1_views: ccGetVal('cc-f-day1') === '' ? null : Number(ccGetVal('cc-f-day1')),
         status: ccGetVal('cc-f-status'),
         scheduled_date: ccGetVal('cc-f-date'),
         scheduled_time: ccGetVal('cc-f-time'),

@@ -669,11 +669,19 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_content_scheduled ON content_items(scheduled_date);
             CREATE INDEX IF NOT EXISTS idx_content_published ON content_items(published_at);
 
-            -- Link each content item to the catalog product it features, so the board
-            -- tracks which product was posted about, when, and in what format. Added via
-            -- ALTER (idempotent) so existing content_items tables pick it up on boot.
+            -- Link each content item to the catalog product(s) it features, so the board
+            -- tracks which product/combo was posted about, when, and in what format. Added
+            -- via ALTER (idempotent) so existing content_items tables pick it up on boot.
+            -- product_id: single feature (product posts). product_ids: the combo (reels, up
+            -- to 4 products) used to learn which COMBINATION drives views.
             ALTER TABLE content_items ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES products(id) ON DELETE SET NULL;
+            ALTER TABLE content_items ADD COLUMN IF NOT EXISTS product_ids INTEGER[] NOT NULL DEFAULT '{}';
             CREATE INDEX IF NOT EXISTS idx_content_product ON content_items(product_id);
+
+            -- Day-1 performance: views recorded ~24h after posting (standardized window so
+            -- combos are comparable). day1_views NULL + published + >24h old = "needs recording".
+            ALTER TABLE content_items ADD COLUMN IF NOT EXISTS day1_views INTEGER;
+            ALTER TABLE content_items ADD COLUMN IF NOT EXISTS day1_recorded_at TIMESTAMP;
         `);
 
         // Add marketer/rewards columns to users table (migration)
