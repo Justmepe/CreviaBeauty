@@ -127,6 +127,12 @@
                                 <span class="label">YouTube Scripts</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="#content-calendar" class="nav-link" data-section="content-calendar">
+                                <span class="icon">&#128197;</span>
+                                <span class="label">Content Calendar</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -751,6 +757,196 @@
                                     <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Content Calendar Section (Notion-style content ops board) -->
+                <section id="section-content-calendar" class="dashboard-section" style="display: none;">
+                    <style>
+                        .cc-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;margin-bottom:1.25rem}
+                        .cc-month{display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:1.05rem;min-width:190px;justify-content:center}
+                        .cc-views{display:inline-flex;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden}
+                        .cc-views button{border:0;background:#fff;padding:.5rem .9rem;cursor:pointer;font:inherit;color:#555}
+                        .cc-views button.active{background:#C9A24B;color:#fff}
+                        .cc-spacer{flex:1}
+                        /* KPI strip */
+                        .cc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.25rem}
+                        .cc-kpi{background:#fff;border:1px solid #eef0f3;border-radius:12px;padding:1rem 1.15rem}
+                        .cc-kpi .n{font-size:1.7rem;font-weight:700;line-height:1;color:#1f2430}
+                        .cc-kpi .l{color:#7f8c8d;font-size:.8rem;margin-top:.35rem;text-transform:uppercase;letter-spacing:.03em}
+                        .cc-bars{display:flex;flex-direction:column;gap:.5rem}
+                        .cc-bar-row{display:grid;grid-template-columns:130px 1fr 46px;align-items:center;gap:.6rem;font-size:.85rem}
+                        .cc-bar-track{background:#f0f2f5;border-radius:6px;height:16px;overflow:hidden}
+                        .cc-bar-fill{height:100%;border-radius:6px;background:#C9A24B}
+                        .cc-bar-fill.pub{background:#27ae60}
+                        /* Board */
+                        .cc-board{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:1rem;overflow-x:auto}
+                        .cc-col{background:#f7f8fa;border-radius:12px;padding:.75rem;min-height:120px}
+                        .cc-col h4{margin:.1rem .25rem .6rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:#7f8c8d;display:flex;justify-content:space-between}
+                        .cc-card{background:#fff;border:1px solid #eef0f3;border-left:4px solid #C9A24B;border-radius:9px;padding:.6rem .7rem;margin-bottom:.6rem;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+                        .cc-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.09)}
+                        .cc-card .t{font-weight:600;font-size:.9rem;color:#1f2430;margin-bottom:.3rem}
+                        .cc-card .m{font-size:.72rem;color:#7f8c8d;display:flex;flex-wrap:wrap;gap:.3rem .55rem}
+                        .cc-chip{display:inline-block;font-size:.68rem;padding:.08rem .45rem;border-radius:20px;background:#eef0f3;color:#555}
+                        /* Calendar */
+                        .cc-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+                        .cc-cal .dow{font-size:.72rem;font-weight:600;color:#7f8c8d;text-align:center;padding:.25rem 0;text-transform:uppercase}
+                        .cc-day{background:#fff;border:1px solid #eef0f3;border-radius:8px;min-height:96px;padding:.35rem;cursor:pointer}
+                        .cc-day.empty{background:#fafbfc;border-style:dashed;cursor:default}
+                        .cc-day.today{border-color:#C9A24B;box-shadow:inset 0 0 0 1px #C9A24B}
+                        .cc-day .dn{font-size:.75rem;color:#98a0ab;font-weight:600}
+                        .cc-ev{font-size:.7rem;padding:.12rem .35rem;border-radius:5px;margin-top:.22rem;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+                        /* Table */
+                        .cc-table{width:100%;border-collapse:collapse;font-size:.86rem}
+                        .cc-table th,.cc-table td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid #eef0f3}
+                        .cc-table th{color:#7f8c8d;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
+                        .cc-table tr:hover td{background:#fafbfc}
+                        .cc-status{display:inline-block;font-size:.7rem;font-weight:600;padding:.12rem .5rem;border-radius:20px;color:#fff}
+                        /* status colors (shared) */
+                        .st-idea{background:#95a5a6}.st-draft{background:#e67e22}.st-scheduled{background:#2980b9}
+                        .st-published{background:#27ae60}.st-skipped{background:#c0392b}
+                        /* Modal */
+                        .cc-modal{position:fixed;inset:0;background:rgba(20,24,31,.55);display:none;align-items:flex-start;justify-content:center;z-index:1000;overflow-y:auto;padding:3vh 1rem}
+                        .cc-modal.open{display:flex}
+                        .cc-modal-box{background:#fff;border-radius:14px;width:100%;max-width:640px;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+                        .cc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+                        .cc-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+                        @media(max-width:640px){.cc-grid2,.cc-grid3{grid-template-columns:1fr}}
+                    </style>
+
+                    <div class="cc-toolbar">
+                        <div class="cc-month">
+                            <button class="btn-dashboard outline sm" onclick="ccShiftMonth(-1)">&#8249;</button>
+                            <span id="cc-month-label">&mdash;</span>
+                            <button class="btn-dashboard outline sm" onclick="ccShiftMonth(1)">&#8250;</button>
+                        </div>
+                        <div class="cc-views" id="cc-views">
+                            <button data-view="board" class="active" onclick="ccSetView('board')">Board</button>
+                            <button data-view="calendar" onclick="ccSetView('calendar')">Calendar</button>
+                            <button data-view="table" onclick="ccSetView('table')">Table</button>
+                        </div>
+                        <div class="cc-spacer"></div>
+                        <button class="btn-dashboard outline sm" onclick="ccSendReminder(this)">&#128276; Discord reminder</button>
+                        <button class="btn-dashboard primary" onclick="ccOpenModal()">&#43; New post</button>
+                    </div>
+
+                    <!-- Monthly performance rollup -->
+                    <div class="content-card" style="margin-bottom:1.25rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">&#128202; This month&rsquo;s performance</h3>
+                        </div>
+                        <div class="card-body" id="cc-rollup">
+                            <p style="color:#7f8c8d;margin:0;">Loading&hellip;</p>
+                        </div>
+                    </div>
+
+                    <!-- Active view -->
+                    <div class="content-card">
+                        <div class="card-body">
+                            <div id="cc-view-board"></div>
+                            <div id="cc-view-calendar" style="display:none;"></div>
+                            <div id="cc-view-table" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Create / edit modal -->
+                    <div class="cc-modal" id="cc-modal">
+                        <div class="cc-modal-box">
+                            <div class="card-header" style="margin-bottom:1rem;">
+                                <h3 class="card-title" id="cc-modal-title">New post</h3>
+                                <button class="btn-dashboard outline sm" onclick="ccCloseModal()">&times;</button>
+                            </div>
+                            <input type="hidden" id="cc-f-id">
+                            <div class="form-group-dashboard">
+                                <label>Title *</label>
+                                <input type="text" id="cc-f-title" placeholder="e.g. Scent layering 101 reel">
+                            </div>
+                            <div class="cc-grid2">
+                                <div class="form-group-dashboard">
+                                    <label>Content pillar</label>
+                                    <input type="text" id="cc-f-pillar" list="cc-pillars" placeholder="Pillar">
+                                    <datalist id="cc-pillars">
+                                        <option>Problem-Solving &amp; Education</option>
+                                        <option>Trending Beauty News &amp; Insights</option>
+                                        <option>Confidence &amp; Lifestyle</option>
+                                        <option>Crevia Product Education</option>
+                                        <option>Commercial / Promo</option>
+                                    </datalist>
+                                </div>
+                                <div class="form-group-dashboard">
+                                    <label>Platform</label>
+                                    <input type="text" id="cc-f-platform" list="cc-platforms" placeholder="Platform">
+                                    <datalist id="cc-platforms">
+                                        <option>Instagram</option><option>TikTok</option><option>Facebook</option>
+                                        <option>YouTube</option><option>Blog</option><option>WhatsApp</option>
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div class="cc-grid2">
+                                <div class="form-group-dashboard">
+                                    <label>Format</label>
+                                    <input type="text" id="cc-f-format" list="cc-formats" placeholder="Reel, Carousel, Story...">
+                                    <datalist id="cc-formats">
+                                        <option>Reel</option><option>Carousel</option><option>Story</option>
+                                        <option>Single image</option><option>Article</option><option>Video</option>
+                                    </datalist>
+                                </div>
+                                <div class="form-group-dashboard">
+                                    <label>Product tie-in</label>
+                                    <input type="text" id="cc-f-product" placeholder="e.g. Perfume">
+                                </div>
+                            </div>
+                            <div class="cc-grid3">
+                                <div class="form-group-dashboard">
+                                    <label>Status</label>
+                                    <select id="cc-f-status">
+                                        <option value="idea">Idea</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="published">Published</option>
+                                        <option value="skipped">Skipped</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-dashboard">
+                                    <label>Scheduled date</label>
+                                    <input type="date" id="cc-f-date">
+                                </div>
+                                <div class="form-group-dashboard">
+                                    <label>Time</label>
+                                    <input type="time" id="cc-f-time">
+                                </div>
+                            </div>
+                            <div class="form-group-dashboard">
+                                <label>Live post link</label>
+                                <input type="url" id="cc-f-link" placeholder="https://instagram.com/p/...">
+                            </div>
+                            <div class="form-group-dashboard">
+                                <label>Notes</label>
+                                <textarea id="cc-f-notes" rows="2" placeholder="Hook, caption idea, CTA..."></textarea>
+                            </div>
+
+                            <details id="cc-metrics-wrap" style="margin:.25rem 0 1rem;">
+                                <summary style="cursor:pointer;font-weight:600;color:#555;">&#128200; Performance metrics (enter after posting)</summary>
+                                <div class="cc-grid3" style="margin-top:.75rem;">
+                                    <div class="form-group-dashboard"><label>Reach</label><input type="number" min="0" id="cc-m-reach"></div>
+                                    <div class="form-group-dashboard"><label>Impressions</label><input type="number" min="0" id="cc-m-impressions"></div>
+                                    <div class="form-group-dashboard"><label>Likes</label><input type="number" min="0" id="cc-m-likes"></div>
+                                    <div class="form-group-dashboard"><label>Comments</label><input type="number" min="0" id="cc-m-comments"></div>
+                                    <div class="form-group-dashboard"><label>Saves</label><input type="number" min="0" id="cc-m-saves"></div>
+                                    <div class="form-group-dashboard"><label>Shares</label><input type="number" min="0" id="cc-m-shares"></div>
+                                    <div class="form-group-dashboard"><label>Link clicks</label><input type="number" min="0" id="cc-m-clicks"></div>
+                                    <div class="form-group-dashboard"><label>Orders</label><input type="number" min="0" id="cc-m-orders"></div>
+                                    <div class="form-group-dashboard"><label>Revenue (KES)</label><input type="number" min="0" id="cc-m-revenue"></div>
+                                </div>
+                            </details>
+
+                            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
+                                <button class="btn-dashboard primary" onclick="ccSave()">&#128190; Save</button>
+                                <button class="btn-dashboard outline" id="cc-publish-btn" onclick="ccPublishFromModal()" style="display:none;">&#9989; Mark published now</button>
+                                <button class="btn-dashboard outline" id="cc-delete-btn" onclick="ccDelete()" style="display:none;margin-left:auto;color:#c0392b;border-color:#c0392b;">&#128465; Delete</button>
+                                <span id="cc-save-status" style="color:#27ae60;"></span>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1403,6 +1599,7 @@
     <script src="/js/vendor/prop-types.min.js"></script>
     <script src="/js/vendor/recharts.js"></script>
     <script src="/js/dashboard-charts.js?v=2"></script>
+    <script src="/js/content-calendar.js?v=1"></script>
     <script>
         let isEditing = false;
         let currentSection = 'dashboard';
@@ -1470,6 +1667,7 @@
                 reviews: 'Reviews',
                 messages: 'Messages',
                 'content-studio': 'Content Studio',
+                'content-calendar': 'Content Calendar',
                 'carousel-assets': 'Carousel Assets',
                 rewards: 'Rewards Settings',
                 payments: 'Payment Settings'
@@ -1496,6 +1694,7 @@
                 case 'content-studio': loadStudioArticles(); loadStudioProducts(); loadPromptInbox(); break;
                 case 'carousel-assets': loadCarouselAssets(); break;
                 case 'youtube': loadYoutubeScripts(); break;
+                case 'content-calendar': loadContentCalendar(); break;
                 case 'rewards': loadRewardsSettings(); loadPointsWithdrawals(); break;
                 case 'payments': loadPaymentSettings(); break;
             }

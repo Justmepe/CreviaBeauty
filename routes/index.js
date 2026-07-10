@@ -17,6 +17,7 @@ const bundlesRoutes = require('./bundles');
 const heroSlidesRoutes = require('./heroSlides');
 const articlesRoutes = require('./articles');
 const receiptsRoutes = require('./receipts');
+const contentRoutes = require('./content');
 
 module.exports = (app, db) => {
     // Auth routes
@@ -65,4 +66,7 @@ module.exports = (app, db) => {
     app.use('/api/articles', articles.public);
     app.use('/api/admin/articles', articles.admin);
     app.use('/api/admin/youtube', articles.youtube);
+
+    // Content Calendar (Notion-style content ops board) — admin only
+    app.use('/api/admin/content', contentRoutes(db));
 };

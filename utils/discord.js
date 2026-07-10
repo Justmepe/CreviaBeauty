@@ -15,9 +15,12 @@ const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 /**
  * @param {object} embed  A Discord embed object.
  * @param {object} [file] Optional attachment: { buffer: Buffer, filename: string }.
+ * @param {string} [webhookUrl] Override the default webhook (e.g. a dedicated
+ *                 content channel). Falls back to DISCORD_WEBHOOK_URL when omitted.
  */
-async function sendEmbed(embed, file) {
-    if (!DISCORD_WEBHOOK_URL) return;
+async function sendEmbed(embed, file, webhookUrl) {
+    const url = webhookUrl || DISCORD_WEBHOOK_URL;
+    if (!url) return;
     try {
         let body;
         const payload = { embeds: [embed] };
@@ -35,7 +38,7 @@ async function sendEmbed(embed, file) {
             body = JSON.stringify(payload);
         }
 
-        const res = await fetch(DISCORD_WEBHOOK_URL, {
+        const res = await fetch(url, {
             method: 'POST',
             headers: file && file.buffer ? undefined : { 'Content-Type': 'application/json' },
             body

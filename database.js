@@ -640,6 +640,34 @@ async function initializeDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             CREATE INDEX IF NOT EXISTS idx_youtube_created ON youtube_scripts(created_at);
+
+            -- Content Calendar — the Notion-style content ops board.
+            -- One row per planned social/blog post. status walks
+            -- idea -> draft -> scheduled -> published (or skipped).
+            -- metrics is a manually-entered JSONB blob (reach/likes/saves/orders/revenue).
+            -- reminded_at makes the daily Discord due-check idempotent.
+            CREATE TABLE IF NOT EXISTS content_items (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(300) NOT NULL,
+                pillar VARCHAR(100),
+                format VARCHAR(100),
+                platform VARCHAR(50),
+                product VARCHAR(150),
+                status VARCHAR(20) DEFAULT 'idea',
+                scheduled_date DATE,
+                scheduled_time VARCHAR(5),
+                published_at TIMESTAMP,
+                link TEXT,
+                notes TEXT,
+                metrics JSONB NOT NULL DEFAULT '{}',
+                reminded_at TIMESTAMP,
+                article_id INTEGER REFERENCES articles(id) ON DELETE SET NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_content_status ON content_items(status);
+            CREATE INDEX IF NOT EXISTS idx_content_scheduled ON content_items(scheduled_date);
+            CREATE INDEX IF NOT EXISTS idx_content_published ON content_items(published_at);
         `);
 
         // Add marketer/rewards columns to users table (migration)

@@ -596,6 +596,21 @@ if (config.nodeEnv !== 'test') {
         `);
     }
 });
+
+// ============ CONTENT CALENDAR: DAILY DISCORD DUE-REMINDER ============
+//
+// Checks once an hour and fires the due/overdue reminder when the local hour
+// matches CONTENT_REMIND_HOUR (default 08:00). runDueReminders() is idempotent
+// (reminded_at 20h guard) and no-ops when DISCORD_WEBHOOK_URL is unset, so this
+// is safe to leave running everywhere. Manual trigger: POST /api/admin/content/remind.
+const { runDueReminders } = require('./utils/contentReminder');
+const REMIND_HOUR = parseInt(process.env.CONTENT_REMIND_HOUR, 10) || 8;
+setInterval(() => {
+    if (new Date().getHours() !== REMIND_HOUR) return;
+    runDueReminders(db).catch(err =>
+        logger.error('Content due-reminder failed', { error: err.message })
+    );
+}, 60 * 60 * 1000); // hourly
 }
 
 module.exports = app;
