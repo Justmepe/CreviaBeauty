@@ -883,7 +883,7 @@ THE PRODUCT:
 - Product link (use as cta_link): {link}
 - Product image (use as hero_image_url): {image}
 
-First research the REAL story: the house or brand behind {name}, who created it and why, the year and moment it launched into, what it was really made for, and how people connect with it now. Prefer authoritative sources. If you cannot confirm a specific name, date or fact, do NOT state it as fact: keep that beat emotional and general, and list the unconfirmed specifics in facts_to_verify.
+First research the REAL story: the house or brand behind {name}, who created it and why, the year and moment it launched into, and what it was really made for. Then research the CRAFT: the scent family and the note pyramid (top, heart, base), and most importantly HOW those note choices serve the intention, why each accord was chosen, the signature accord or the note discovery that makes it what it is, and how the composition builds the exact feeling the creator was chasing. If this is not a fragrance, cover the key ingredients or design choices and why they were chosen instead. Prefer authoritative sources (for fragrances, houses like Fragrantica and Basenotes for the perfumer, year and notes). If you cannot confirm a specific name, date, note or fact, do NOT state it as fact: keep that beat general and list the unconfirmed specifics in facts_to_verify.
 
 Return ONE JSON object, no text before or after, no markdown outside the JSON, exactly this shape:
 
@@ -900,6 +900,7 @@ Return ONE JSON object, no text before or after, no markdown outside the JSON, e
   "sections": [
     {{ "heading": "The Idea", "paragraphs": ["the desire or problem it was born from, 2-3 short paragraphs"] }},
     {{ "heading": "The Story", "paragraphs": ["how it came to be, the motivation and the people behind it"] }},
+    {{ "heading": "The Notes That Carry It", "paragraphs": ["the scent family and the note pyramid, and how those note choices serve the intention: why each accord was chosen and how they build the feeling. For a non-fragrance, the key ingredients and why."] }},
     {{ "heading": "Why It Connects", "paragraphs": ["what it means to the person who wears or uses it today"] }}
   ],
   "cta_text": "1-2 warm sentences inviting them to make it theirs, tied to {name}",
@@ -908,7 +909,7 @@ Return ONE JSON object, no text before or after, no markdown outside the JSON, e
     {{ "heading": "Hook: an arresting line from the story", "highlight": "1-2 words from this heading", "body": "1-2 short lines" }},
     {{ "heading": "The idea it was born from", "highlight": "1-2 key words", "body": "1-2 short lines" }},
     {{ "heading": "How it came to be", "highlight": "1-2 key words", "body": "1-2 short lines" }},
-    {{ "heading": "The motivation behind it", "highlight": "1-2 key words", "body": "1-2 short lines" }},
+    {{ "heading": "The notes that carry the feeling", "highlight": "1-2 key words", "body": "the scent family or signature accord, and the intention it serves, in 1-2 short lines" }},
     {{ "heading": "What it gives you", "bullets": [ {{ "icon": "heart", "text": "Feeling" }}, {{ "icon": "star", "text": "Feeling" }}, {{ "icon": "diamond", "text": "Feeling" }} ] }},
     {{ "heading": "Why it still matters", "highlight": "1-2 key words", "body": "1-2 short lines" }},
     {{ "heading": "Make it yours", "body": "Comment the keyword below and we will DM you the details. @creviabeauty" }}
