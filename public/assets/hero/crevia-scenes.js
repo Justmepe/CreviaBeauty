@@ -37,7 +37,7 @@ const CATEGORIES = [{
     stack: ['Take the 5-question scent quiz', 'Matched to how you want to feel', 'Free delivery across Nairobi']
   }, {
     headline: 'Real designer. Real price. Real proof.',
-    stack: ['Sourced direct, never grey-market', 'Every batch code is verifiable', 'Money back if it’s ever fake']
+    stack: ['Sourced from trusted, authentic suppliers', 'Every batch code is verifiable', 'Money-back authenticity guarantee']
   }],
   products: [{
     name: 'Velvet Oud',
