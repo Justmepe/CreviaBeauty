@@ -45,11 +45,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
-    <link rel="stylesheet" href="/css/styles.css?v=7">
+    <link rel="stylesheet" href="/css/styles.css?v=8">
     <link rel="stylesheet" href="/assets/hero/crevia-hero.css?v=3">
     <style>
         /* 3 focused category tiles + subcategory chips */
-        .categories-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        .categories-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-pad); }
         @media (max-width: 640px) { .categories-grid-3 { grid-template-columns: 1fr; } }
         .categories-grid-3 .category-card { display: flex; flex-direction: column; background: transparent; border: none; box-shadow: none; overflow: visible; }
         /* Kill the legacy full-card dark gradient (styles.css .category-card::after) so it doesn't bleed over the chip strip below the image */
@@ -376,7 +376,7 @@
     </section>
 
     <style>
-        .discovery-tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.1rem; max-width:1400px; margin:3rem auto; padding:0 2rem; }
+        .discovery-tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.1rem; max-width:var(--page-narrow); margin:3rem auto; padding:0 var(--page-pad); }
         .discovery-tile { position:relative; display:block; text-decoration:none; padding:2.1rem 1.8rem; border-radius:18px; transition:transform 0.25s, box-shadow 0.25s; box-shadow:0 4px 14px rgba(26,26,46,0.1); overflow:hidden; }
         .discovery-tile:hover { transform:translateY(-4px); box-shadow:0 14px 30px rgba(26,26,46,0.2); }
 
@@ -409,7 +409,7 @@
         <div class="ff-image" role="img" aria-label="Woman applying perfume"></div>
     </section>
     <style>
-        .fragrance-finder { display:grid; grid-template-columns:1fr 1fr; max-width:1280px; margin:3.5rem auto; border-radius:20px; overflow:hidden; box-shadow:0 10px 34px rgba(26,26,46,0.14); background:#faf7f1; }
+        .fragrance-finder { display:grid; grid-template-columns:1fr 1fr; max-width:var(--page-narrow); margin:3.5rem auto; border-radius:20px; overflow:hidden; box-shadow:0 10px 34px rgba(26,26,46,0.14); background:#faf7f1; }
         .fragrance-finder .ff-text { padding:3.5rem 3rem; display:flex; flex-direction:column; justify-content:center; }
         .fragrance-finder h2 { font-family:'Cinzel','Playfair Display',serif; font-size:2.4rem; letter-spacing:0.12em; color:#1a1a2e; margin:0 0 0.8rem; }
         .fragrance-finder p { color:#5a5448; font-size:1.05rem; line-height:1.6; margin:0 0 1.8rem; max-width:420px; }
